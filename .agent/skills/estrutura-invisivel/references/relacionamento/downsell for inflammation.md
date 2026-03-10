@@ -1,0 +1,5 @@
+# downsell for inflammation.pdf
+> Fonte: Swipe File/Chris Haddad/Converted/downsell for inflammation.pdf
+
+OK, I Know Money Can Be Tight Even When There’s An Incredible Deal In Front Of You. I Wouldn’t Be Able To Live With Myself If I Let You Miss Out On This Incredible Chance To Reduce Or Even Eliminate Deadly Inﬂammation From Your Body The Simple, Easy Way.   That’s Why — If You Act Right Now — I’ll Take Money Out Of My Own Pocket And Give You Immediate Access To The 21 Day Anti-Inﬂammatory Reboot Program PLUS Bonuses For Just $7 $1 MEASLY Dollar.  (PROD SHOT AND PRICE GRAPHIC)
+(GRAPHIC BOX WITH CHECKBOX CHECKED) Yes! NAME, I’m Excited To Take Advantage Of Your Incredible Generosity And Get EVERYTHING I’ve Seen On This Page Right Now (ADD IN HOW MUCH IT “SHOULD” COST) Value For Just One Single Payment Of (PRICE)  

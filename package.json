@@ -1,0 +1,21 @@
+{
+  "name": "start-metric-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "SaaS para Gestão de Tráfego e Tracking de Vendas",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "test": "turbo run test"
+  },
+  "devDependencies": {
+    "turbo": "latest",
+    "prettier": "latest"
+  }
+}
