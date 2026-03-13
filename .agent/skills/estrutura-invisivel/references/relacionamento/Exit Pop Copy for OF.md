@@ -1,5 +1,0 @@
-# Exit Pop Copy for OF.pdf
-> Fonte: Swipe File/Chris Haddad/Converted/Exit Pop Copy for OF.pdf
-
-Dan -Here’s initial exit pop copy for the OF product.Note that the bribe we’re giving away is one of the Blow Job Interviews from the series.Also note - for design on the exit - use whatever you think works. I’m not attached to what we’ve currently got. I tend to think the easier and faster they can understand what’s going on the better off we’ll be.“WAIT: Enter Your Email Address And Get My ‘Blow Job Interview’ With Samantha 100% FREE”(DAN -  we need a hot chick who we can call “Samantha” on this page. Maybe on the phone. Then the opt in box. If you need more copy let me know.)In this FREE call you’ll learn . . .* How Samantha went from HATING giving head to LOVING it in shockingly little time.*How to transform “giving you head” into something POWERFUL for a woman to do.*The huge mistake almost all guys make that forces a woman to stop giving you head.And much more.This “behind closed doors” interview is almost an HOUR of unﬁltered insight into a woman’s sexual mind. And it’s yours FREE just for entering your email address today.
- 
