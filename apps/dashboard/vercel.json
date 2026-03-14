@@ -6,7 +6,7 @@
     },
     {
       "path": "/api/cron/alerts-monitor",
-      "schedule": "*/15 * * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
