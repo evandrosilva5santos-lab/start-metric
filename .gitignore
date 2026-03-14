@@ -1,0 +1,73 @@
+# node
+node_modules/
+.npm
+.DS_Store
+
+# build
+.next/
+dist/
+out/
+build/
+
+# env (CRITICAL)
+.env
+.env.*
+!.env.example
+
+# vercel
+.vercel
+
+# turbo
+.turbo
+
+# next.js
+next-env.d.ts
+
+# logs
+*.log
+
+# supabase
+supabase/.temp/
+supabase/functions/.env
+supabase/functions/.env.*
+# If there are local keys or secrets, ignore them
+.supabase/
+
+# Monorepo specific
+apps/*/node_modules/
+packages/*/node_modules/
+apps/*/.next/
+apps/*/dist/
+
+# IDE
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+!.vscode/settings.json
+.idea/
+
+# Temp
+tmp/
+*.tmp
+ts_errors.txt
+
+# Environment & Secrets (AIOX)
+.env.local
+.env.*.local
+*.key
+*.pem
+
+# Dependencies (AIOX)
+node_modules
+
+# Build & Logs (AIOX)
+logs/
+
+# IDE & OS (AIOX)
+Thumbs.db
+*.swp
+
+# AIOX Local (AIOX)
+.aiox-core/local/
+.claude/settings.local.json
+.aiox/install-log.txt
