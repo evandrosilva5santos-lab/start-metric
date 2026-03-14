@@ -4,10 +4,14 @@ import type { NextConfig } from "next";
 const isDev = process.env.NODE_ENV === "development";
 
 // unsafe-eval: necessário apenas em dev (Next.js hot reload / turbopack)
-// unsafe-inline: necessário para Tailwind v4 e Framer Motion (styles inline)
+// unsafe-inline: Next.js App Router injeta scripts inline para RSC/hydration;
+//   sem isso os scripts são bloqueados e elementos com opacity:0 (Framer Motion)
+//   nunca animam, deixando a tela em branco.
 const ContentSecurityPolicy = [
   "default-src 'self'",
-  isDev ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
+  isDev
+    ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
+    : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co",
   "font-src 'self'",
