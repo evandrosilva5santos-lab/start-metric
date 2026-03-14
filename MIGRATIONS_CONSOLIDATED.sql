@@ -836,4 +836,56 @@ CREATE INDEX IF NOT EXISTS idx_sales_orders_created_at ON public.sales_orders(cr
 ALTER TABLE public.sales_orders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.sales_order_items ENABLE ROW LEVEL SECURITY;
 
+-- ==== 20260314000000_auth_profile_bootstrap_trigger.sql ====
+-- ============================================================
+-- CRITICAL FIX: Auto-create organization and profile on signup
+-- Fixes infinite loop on /auth/callback when profile doesn't exist
+-- ============================================================
+
+-- Function to handle new user signup
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_org_id UUID;
+  v_user_name TEXT;
+BEGIN
+  -- Extract user name from metadata (signup form provides full_name)
+  v_user_name := COALESCE(
+    NEW.raw_user_meta_data->>'full_name',
+    NEW.raw_user_meta_data->>'name',
+    'Usuário'
+  );
+
+  -- Create organization for new user
+  INSERT INTO public.organizations (name, plan, timezone)
+  VALUES (v_user_name || ' Organization', 'free', 'America/Sao_Paulo')
+  RETURNING id INTO v_org_id;
+
+  -- Create profile linking user to organization
+  INSERT INTO public.profiles (id, name, org_id, role)
+  VALUES (NEW.id, v_user_name, v_org_id, 'owner')
+  ON CONFLICT (id) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$;
+
+-- Drop existing trigger if any
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+
+-- Create trigger to auto-bootstrap org + profile on signup
+CREATE TRIGGER on_auth_user_created
+AFTER INSERT ON auth.users
+FOR EACH ROW
+EXECUTE FUNCTION public.handle_new_user();
+
+-- Grant necessary permissions
+GRANT USAGE ON SCHEMA public TO authenticated;
+GRANT ALL ON TABLE public.organizations TO authenticated;
+GRANT ALL ON TABLE public.profiles TO authenticated;
+
 -- ==== END OF ALL MIGRATIONS ====
