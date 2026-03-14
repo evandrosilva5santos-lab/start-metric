@@ -33,6 +33,13 @@ Se voce usa dominio custom, inclua tambem:
 Garanta que as migrations de `apps/dashboard/supabase/migrations` foram aplicadas no seu projeto Supabase
 (tabelas `profiles`, `ad_accounts`, `campaigns`, `daily_metrics`, funcoes `encrypt_token`/`decrypt_token`, RLS, etc).
 
+## 4.1) Auth (Supabase)
+- Em `Authentication > Providers > Email`, mantenha `Confirm email` habilitado.
+- Em `Authentication > URL Configuration`, garanta que o redirect permitido inclui:
+  - `http://localhost:3000/auth/callback`
+  - `https://SEU-DEPLOY-VERCEL/auth/callback`
+- O cadastro do app depende do trigger que cria automaticamente `organizations + profiles` para novos usuarios.
+
 ## 5) Smoke test (na producao/preview)
 1. Abrir `/auth` e autenticar
 2. Ir em `/settings/meta`
@@ -48,4 +55,3 @@ O arquivo `apps/dashboard/vercel.json` agenda:
 Os endpoints aceitam:
 - `Authorization: Bearer ${CRON_SECRET}` (manual)
 - Header `x-vercel-cron: 1` (Vercel Cron)
-

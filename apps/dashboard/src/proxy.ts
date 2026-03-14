@@ -14,6 +14,14 @@ const SUPABASE_ANON_KEY =
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
   "";
 
+function sanitizeNextPath(next: string) {
+  if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/auth")) {
+    return "/performance";
+  }
+
+  return next;
+}
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
@@ -59,13 +67,17 @@ export async function proxy(request: NextRequest) {
   if (!user && isRootPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth";
+    url.searchParams.set("next", authedLandingPath);
     return NextResponse.redirect(url);
   }
 
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth";
-    url.searchParams.set("next", pathname);
+    url.searchParams.set(
+      "next",
+      sanitizeNextPath(`${pathname}${request.nextUrl.search}`),
+    );
     return NextResponse.redirect(url);
   }
 

@@ -1,10 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+
+const MIN_PASSWORD_LENGTH = 8;
+
+function sanitizeNextPath(next: string | null) {
+  if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/auth")) {
+    return "/performance";
+  }
+
+  return next;
+}
 
 function mapAuthError(errorMessage: string) {
   const message = errorMessage.toLowerCase();
@@ -21,36 +31,69 @@ function mapAuthError(errorMessage: string) {
     return "Este e-mail já está cadastrado. Faça login para continuar.";
   }
 
+  if (message.includes("password should be at least")) {
+    return `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`;
+  }
+
   return "Não foi possível autenticar agora. Tente novamente em instantes.";
 }
 
+function mapAuthPageError(errorCode: string | null) {
+  switch (errorCode) {
+    case "missing_code":
+      return "O link de confirmação está incompleto. Solicite um novo e-mail.";
+    case "callback_failed":
+      return "Não foi possível confirmar seu e-mail. Tente novamente.";
+    case "profile_setup_failed":
+      return "Seu acesso foi validado, mas o perfil inicial não foi configurado corretamente.";
+    case "password_mismatch":
+      return "A confirmação de senha não confere.";
+    case "email_not_confirmed":
+      return "Confirme seu e-mail antes de entrar no painel.";
+    default:
+      return null;
+  }
+}
+
 const FEATURES = [
-  { icon: TrendingUp, label: "ROAS em Tempo Real",   desc: "Veja o retorno de cada centavo" },
-  { icon: BarChart3,  label: "Curva de Performance", desc: "Tendências diárias e semanais"  },
-  { icon: Zap,        label: "Alertas Inteligentes", desc: "Notifique quando ROAS cair"      },
+  { icon: TrendingUp, label: "ROAS em Tempo Real", desc: "Veja o retorno de cada centavo" },
+  { icon: BarChart3, label: "Curva de Performance", desc: "Tendências diárias e semanais" },
+  { icon: Zap, label: "Alertas Inteligentes", desc: "Notifique quando ROAS cair" },
 ];
 
 export default function LoginPage() {
   const router = useRouter();
-  const [tab, setTab]           = useState<"login" | "signup">("login");
-  const [email, setEmail]       = useState("");
+  const searchParams = useSearchParams();
+  const nextPath = sanitizeNextPath(searchParams.get("next"));
+  const queryError = mapAuthPageError(searchParams.get("error"));
+
+  const [tab, setTab] = useState<"login" | "signup">("login");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [showPwd, setShowPwd]   = useState(false);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState<string | null>(null);
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPwd, setShowPwd] = useState(false);
+  const [showConfirmPwd, setShowConfirmPwd] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
+  function resetFeedback() {
     setError(null);
     setSuccessMessage(null);
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    resetFeedback();
     setLoading(true);
     const supabase = createClient();
 
     if (tab === "login") {
       const { error: loginError } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim(),
         password,
       });
 
@@ -61,38 +104,74 @@ export default function LoginPage() {
       }
 
       setRedirecting(true);
-      router.replace("/");
+      router.replace(nextPath);
       return;
     }
 
+    const trimmedName = name.trim();
+    const trimmedPhone = phone.trim();
+    const trimmedEmail = email.trim();
+
+    if (!trimmedName) {
+      setLoading(false);
+      setError("Informe seu nome para criar a conta.");
+      return;
+    }
+
+    if (!trimmedPhone) {
+      setLoading(false);
+      setError("Informe seu telefone para criar a conta.");
+      return;
+    }
+
+    if (password.length < MIN_PASSWORD_LENGTH) {
+      setLoading(false);
+      setError(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+      return;
+    }
+
+    if (confirmPassword !== password) {
+      setLoading(false);
+      setError(mapAuthPageError("password_mismatch"));
+      return;
+    }
+
+    const signupRedirectUrl = new URL("/auth/callback", window.location.origin);
+    signupRedirectUrl.searchParams.set("next", nextPath);
+
     const { data, error: signupError } = await supabase.auth.signUp({
-      email,
+      email: trimmedEmail,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        emailRedirectTo: signupRedirectUrl.toString(),
+        data: {
+          name: trimmedName,
+          phone: trimmedPhone,
+        },
       },
     });
 
-    setLoading(false);
     if (signupError) {
+      setLoading(false);
       setError(mapAuthError(signupError.message));
       return;
     }
 
     if (data.session) {
-      setRedirecting(true);
-      router.replace("/");
-      return;
+      await supabase.auth.signOut();
     }
 
-    setSuccessMessage("Verifique seu e-mail para confirmar o cadastro.");
+    setLoading(false);
+    setSuccessMessage("Cadastro criado. Verifique seu e-mail para confirmar o acesso.");
+    setPassword("");
+    setConfirmPassword("");
   }
+
+  const visibleError = error ?? queryError;
 
   return (
     <div className="min-h-screen flex overflow-hidden">
-      {/* ── LEFT PANEL: Branding ─────────────────────────── */}
       <div className="hidden lg:flex lg:w-[52%] relative flex-col justify-between p-14 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        {/* Blob decorativo */}
         <div
           className="absolute top-[-120px] right-[-80px] w-[480px] h-[480px] rounded-full opacity-20 blur-3xl"
           style={{ background: "radial-gradient(circle, #22d3ee 0%, #818cf8 60%, transparent 100%)" }}
@@ -102,7 +181,6 @@ export default function LoginPage() {
           style={{ background: "radial-gradient(circle, #34d399 0%, transparent 100%)" }}
         />
 
-        {/* Logo */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -111,12 +189,9 @@ export default function LoginPage() {
           <div className="w-10 h-10 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-sm tracking-widest">
             SM
           </div>
-          <span className="text-white font-bold text-xl tracking-tight">
-            START METRIC
-          </span>
+          <span className="text-white font-bold text-xl tracking-tight">START METRIC</span>
         </motion.div>
 
-        {/* Headline */}
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
@@ -158,7 +233,6 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        {/* Stat rápida */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -171,7 +245,6 @@ export default function LoginPage() {
         </motion.div>
       </div>
 
-      {/* ── RIGHT PANEL: Form ─────────────────────────────── */}
       <div className="flex-1 flex items-center justify-center p-8 relative bg-slate-950">
         <div
           className="absolute inset-0 opacity-30"
@@ -186,7 +259,6 @@ export default function LoginPage() {
           transition={{ duration: 0.4 }}
           className="w-full max-w-md z-10"
         >
-          {/* Logo Mobile */}
           <div className="flex items-center gap-2 mb-10 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
               SM
@@ -194,12 +266,14 @@ export default function LoginPage() {
             <span className="text-white font-bold tracking-tight">START METRIC</span>
           </div>
 
-          {/* Tab switcher */}
           <div className="flex gap-1 p-1 glass rounded-xl mb-8 border-none">
             {(["login", "signup"] as const).map((t) => (
               <button
                 key={t}
-                onClick={() => { setTab(t); setError(null); setSuccessMessage(null); }}
+                onClick={() => {
+                  setTab(t);
+                  resetFeedback();
+                }}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   tab === t
                     ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20"
@@ -223,13 +297,44 @@ export default function LoginPage() {
                 {tab === "login" ? "Bem-vindo de volta" : "Comece agora"}
               </h2>
               <p className="text-slate-500 text-sm mb-8">
-                {tab === "login"
-                  ? "Entre para ver seu painel de ROI."
-                  : "Crie sua conta e conecte seus anúncios."}
+                {tab === "login" ? "Entre para ver seu painel de ROI." : "Crie sua conta e confirme seu e-mail."}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
-                {/* E-mail */}
+                {tab === "signup" && (
+                  <>
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        Nome
+                      </label>
+                      <input
+                        id="name"
+                        type="text"
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
+                        placeholder="Seu nome completo"
+                        required
+                        className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        Telefone
+                      </label>
+                      <input
+                        id="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="(11) 99999-9999"
+                        required
+                        className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     E-mail
@@ -245,7 +350,6 @@ export default function LoginPage() {
                   />
                 </div>
 
-                {/* Senha */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     Senha
@@ -270,6 +374,32 @@ export default function LoginPage() {
                   </div>
                 </div>
 
+                {tab === "signup" && (
+                  <div className="space-y-2">
+                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      Confirmar senha
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="confirm-password"
+                        type={showConfirmPwd ? "text" : "password"}
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        placeholder="••••••••"
+                        required
+                        className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                      >
+                        {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
                 {tab === "login" && (
                   <div className="text-right">
                     <button type="button" className="text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors">
@@ -278,16 +408,15 @@ export default function LoginPage() {
                   </div>
                 )}
 
-                {/* Error */}
                 <AnimatePresence>
-                  {error && (
+                  {visibleError && (
                     <motion.div
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm"
                     >
-                      {error}
+                      {visibleError}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -305,7 +434,6 @@ export default function LoginPage() {
                   )}
                 </AnimatePresence>
 
-                {/* Submit */}
                 <motion.button
                   type="submit"
                   disabled={loading || redirecting}
