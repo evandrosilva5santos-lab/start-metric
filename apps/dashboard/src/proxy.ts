@@ -1,10 +1,14 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 
-// Read Supabase vars directly — avoids importing @/lib/env which uses dynamic
-// process.env[key] access, incompatible with Next.js Edge Runtime bundling.
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+// Use server-side vars (without NEXT_PUBLIC_ prefix) in Edge Runtime middleware.
+// NEXT_PUBLIC_ vars are inlined at build time for client bundles; in Edge Runtime
+// they may not be resolved via process.env. SUPABASE_URL / SUPABASE_ANON_KEY are
+// duplicates set in Vercel env vars for the middleware to use at runtime.
+const SUPABASE_URL =
+  process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? "";
+const SUPABASE_ANON_KEY =
+  process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
 export async function proxy(request: NextRequest) {
   const response = NextResponse.next({
