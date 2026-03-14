@@ -5,7 +5,7 @@
 -- Prefix: sm_ (Start Metric)
 
 -- 1. SETOR: IDENTITY & ACCESS (Acesso e Perfil)
-CREATE TABLE sm_auth_profiles (
+CREATE TABLE IF NOT EXISTS sm_auth_profiles (
     id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
     full_name TEXT,
     avatar_url TEXT,
@@ -17,7 +17,7 @@ CREATE TABLE sm_auth_profiles (
 COMMENT ON TABLE sm_auth_profiles IS 'Dados estendidos de perfil do usuário vinculados ao Supabase Auth.';
 
 -- 2. SETOR: META ADS (Conexão e Dados Brutos)
-CREATE TABLE sm_meta_tokens (
+CREATE TABLE IF NOT EXISTS sm_meta_tokens (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users ON DELETE CASCADE,
     fb_user_id TEXT NOT NULL,
@@ -29,7 +29,7 @@ CREATE TABLE sm_meta_tokens (
 
 COMMENT ON TABLE sm_meta_tokens IS 'Tokens de acesso à API do Facebook, isolados por usuário.';
 
-CREATE TABLE sm_meta_accounts (
+CREATE TABLE IF NOT EXISTS sm_meta_accounts (
     id TEXT PRIMARY KEY, -- ID da Conta de Anúncios (act_...)
     token_id UUID REFERENCES sm_meta_tokens(id) ON DELETE CASCADE,
     name TEXT,
@@ -42,7 +42,7 @@ CREATE TABLE sm_meta_accounts (
 COMMENT ON TABLE sm_meta_accounts IS 'Contas de anúncios gerenciadas dentro do Start Metric.';
 
 -- 3. SETOR: PERFORMANCE (Inteligência de Tráfego)
-CREATE TABLE sm_perf_daily_metrics (
+CREATE TABLE IF NOT EXISTS sm_perf_daily_metrics (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     account_id TEXT REFERENCES sm_meta_accounts(id) ON DELETE CASCADE,
     date DATE NOT NULL,
@@ -58,7 +58,7 @@ CREATE TABLE sm_perf_daily_metrics (
 COMMENT ON TABLE sm_perf_daily_metrics IS 'Métricas agregadas por dia: o pulso do ROI do investimento em tráfego.';
 
 -- 4. SETOR: ASSETS (Gestão de Criativos)
-CREATE TABLE sm_asset_registry (
+CREATE TABLE IF NOT EXISTS sm_asset_registry (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     account_id TEXT REFERENCES sm_meta_accounts(id) ON DELETE CASCADE,
     meta_asset_id TEXT NOT NULL,

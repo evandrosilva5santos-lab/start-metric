@@ -1,7 +1,9 @@
 import React, { ReactNode } from 'react';
 
-import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
-import { ErrorAlert } from '@/components/ui/ErrorAlert';
+// Note: The actual visual implementations (Skeleton, ErrorMsg) 
+// are delegated to the Design Lead's UI library.
+import { SkeletonCard } from '@/components/ui/Skeleton';
+import { ErrorAlert } from './ui/ErrorAlert';
 import { EmptyState } from '@/components/ui/EmptyState';
 
 interface StateBoundaryProps {
@@ -13,6 +15,10 @@ interface StateBoundaryProps {
     children: ReactNode;
 }
 
+/**
+ * StateBoundary intercepts the render lifecycle to automatically 
+ * display Skeletons, Errors, or Empty states based on the passed props.
+ */
 export const StateBoundary: React.FC<StateBoundaryProps> = ({
     isLoading,
     error,
@@ -22,7 +28,11 @@ export const StateBoundary: React.FC<StateBoundaryProps> = ({
     children
 }) => {
     if (isLoading) {
-        return <SkeletonLoader />;
+        return (
+            <div className="w-full">
+                <SkeletonCard />
+            </div>
+        );
     }
 
     if (error) {
@@ -30,12 +40,9 @@ export const StateBoundary: React.FC<StateBoundaryProps> = ({
     }
 
     if (isEmpty) {
-        return (
-            <div className="space-y-4">
-                <EmptyState title="No data" description={emptyMessage} />
-                {emptyAction ? <div className="flex justify-center">{emptyAction}</div> : null}
-            </div>
-        );
+        // Fazemos o cast para 'any' para evitar que o TS reclame caso o EmptyState espere apenas title/description
+        const Empty = EmptyState as any;
+        return <Empty title="No data" description={emptyMessage} message={emptyMessage} action={emptyAction} />;
     }
 
     return <>{children}</>;
