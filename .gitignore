@@ -67,7 +67,13 @@ logs/
 Thumbs.db
 *.swp
 
-# AIOX Local (AIOX)
-.aiox-core/local/
-.claude/settings.local.json
-.aiox/install-log.txt
+# AIOX / Agentes (tooling local — não faz parte do app)
+.aiox-core/
+.aiox/
+.agent/
+.antigravity/
+.claude/
+.codex/
+.cursor/
+.gemini/
+.github/agents/
