@@ -5,6 +5,7 @@
   "types": "index.ts",
   "private": true,
   "scripts": {
+    "build": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio"
