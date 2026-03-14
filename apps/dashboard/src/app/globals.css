@@ -41,7 +41,11 @@
   }
 
   body {
-    background-color: var(--color-background);
+    background:
+      radial-gradient(circle at 10% 0%, rgba(34, 211, 238, 0.08), transparent 35%),
+      radial-gradient(circle at 85% 10%, rgba(99, 102, 241, 0.1), transparent 35%),
+      radial-gradient(circle at 50% 100%, rgba(52, 211, 153, 0.06), transparent 40%),
+      var(--color-background);
     color: var(--color-foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -63,17 +67,19 @@
    GLASSMORPHISM ATOMS
    ============================================================ */
 .glass {
-  background: var(--color-surface-1);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.72), rgba(15, 23, 42, 0.5));
   backdrop-filter: blur(16px) saturate(180%);
   -webkit-backdrop-filter: blur(16px) saturate(180%);
   border: 1px solid var(--color-surface-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 24px 48px rgba(2, 6, 23, 0.35);
 }
 
 .glass-solid {
-  background: var(--color-surface-2);
+  background: linear-gradient(145deg, rgba(15, 23, 42, 0.9), rgba(15, 23, 42, 0.75));
   backdrop-filter: blur(24px) saturate(200%);
   -webkit-backdrop-filter: blur(24px) saturate(200%);
   border: 1px solid var(--color-surface-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02), 0 24px 48px rgba(2, 6, 23, 0.45);
 }
 
 /* ============================================================
@@ -136,6 +142,26 @@
   50%       { opacity: 0.5; }
 }
 
+@keyframes pulse-fast {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.65; transform: scale(1.1); }
+}
+
+@keyframes float {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, -20px, 0); }
+}
+
+@keyframes float-delayed {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50% { transform: translate3d(0, 22px, 0); }
+}
+
+@keyframes scan {
+  0% { transform: translateY(-120%); }
+  100% { transform: translateY(620%); }
+}
+
 .animate-fade-in-up {
   animation: fadeInUp 0.5s ease forwards;
 }
@@ -146,6 +172,22 @@
 
 .animate-pulse-soft {
   animation: pulse-soft 2s ease-in-out infinite;
+}
+
+.animate-pulse-fast {
+  animation: pulse-fast 1.2s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 9s ease-in-out infinite;
+}
+
+.animate-float-delayed {
+  animation: float-delayed 11s ease-in-out infinite;
+}
+
+.animate-scan {
+  animation: scan 4s linear infinite;
 }
 /* ============================================================
    ELITE UI 2026 UTILITIES

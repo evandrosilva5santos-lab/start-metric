@@ -87,7 +87,7 @@ export function AlertRulesConfig({
   }
 
   return (
-    <div className="glass rounded-2xl p-6 mt-8" id="alerts-config-section">
+    <section className="glass rounded-3xl p-6 lg:p-7 mt-6 lg:mt-8 border-white/10" id="alerts-config-section">
       {/* Header */}
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-3">
@@ -284,6 +284,6 @@ export function AlertRulesConfig({
           )}
         </AnimatePresence>
       </div>
-    </div>
+    </section>
   );
 }

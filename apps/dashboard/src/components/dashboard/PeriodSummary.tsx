@@ -34,7 +34,7 @@ export function PeriodSummary({ kpis, generatedAt }: PeriodSummaryProps) {
         Resumo de Período
       </h2>
       <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase tracking-widest">
-        // Agregado tático
+        {"// Agregado tático"}
       </p>
 
       <div className="space-y-4 flex-1">

@@ -43,7 +43,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
             Curva de Performance
           </h2>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            // Monitoramento de performance em tempo real
+            {"// Monitoramento de performance em tempo real"}
           </p>
         </div>
         <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
@@ -94,15 +94,20 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
               cursor={{ stroke: "#334155", strokeWidth: 2 }}
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
+                  const formattedLabel =
+                    typeof label === "string" && label.length > 0
+                      ? formatDateLabel(label)
+                      : "--";
+
                   return (
                     <div className="glass p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">
-                        Data: {formatDateLabel(label)}
+                        Data: {formattedLabel}
                       </p>
                       <div className="space-y-2">
-                        {payload.map((entry: any) => (
+                        {payload.map((entry) => (
                           <div
-                            key={entry.name}
+                            key={String(entry.name)}
                             className="flex items-center justify-between gap-8"
                           >
                             <div className="flex items-center gap-2">
@@ -115,7 +120,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
                               </span>
                             </div>
                             <span className="text-xs font-black text-white text-mono">
-                              {formatCurrency(entry.value)}
+                              {formatCurrency(Number(entry.value))}
                             </span>
                           </div>
                         ))}

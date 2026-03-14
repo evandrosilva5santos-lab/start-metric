@@ -4,7 +4,9 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export function GlobalStatusOverlay() {
-  const { isLoading, error, setError } = useUIStore();
+  const isLoading = useUIStore((state) => state.isLoading);
+  const error = useUIStore((state) => state.error);
+  const setError = useUIStore((state) => state.setError);
 
   return (
     <>

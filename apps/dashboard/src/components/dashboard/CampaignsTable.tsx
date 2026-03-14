@@ -28,7 +28,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
             Operações de Combate
           </h2>
           <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-            // Desempenho granular por campanha ativa
+            {"// Desempenho granular por campanha ativa"}
           </p>
         </div>
         <div className="flex items-center gap-2 glass px-4 py-2 rounded-xl border-white/5">
@@ -58,7 +58,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               <tr>
                 <td colSpan={7} className="py-20 text-center">
                   <p className="text-xs font-black uppercase tracking-widest text-slate-700">
-                    // Sistema aguardando dados operacionais
+                    {"// Sistema aguardando dados operacionais"}
                   </p>
                 </td>
               </tr>
