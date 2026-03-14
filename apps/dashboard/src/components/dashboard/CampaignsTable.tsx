@@ -61,10 +61,10 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
         {campaigns.length === 0 ? (
           <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] p-8 text-center">
             <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-600">
-              Sincronizando Datastream
+              Nenhuma campanha encontrada
             </p>
             <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
-              {"// Aguardando sinais dos servidores"}
+              Ajuste o periodo ou sincronize uma conta Meta para ver dados aqui.
             </p>
           </div>
         ) : (
@@ -141,14 +141,14 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                 <td colSpan={7} className="py-40 text-center relative overflow-hidden rounded-[2.5rem] bg-white/[0.01] border border-white/[0.03]">
                   <div className="flex flex-col items-center gap-6">
                     <div className="glass w-20 h-20 rounded-full flex items-center justify-center border-white/5 animate-float shadow-2xl">
-                      <div className="w-10 h-10 border-2 border-slate-700/50 border-t-cyan-500 rounded-full animate-spin" />
+                      <div className="w-10 h-10 border-2 border-slate-700/50 border-t-cyan-500 rounded-full" />
                     </div>
                     <div className="space-y-2">
                         <p className="text-xs font-black uppercase tracking-[0.5em] text-slate-600 animate-pulse">
-                            Sincronizando Datastream...
+                            Nenhuma campanha com dados no periodo
                         </p>
                         <p className="text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">
-                            {"// Aguardando sinais de rádio dos servidores de anúncios"}
+                            Conecte uma conta Meta ou altere os filtros para visualizar resultados.
                         </p>
                     </div>
                   </div>
@@ -252,7 +252,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
       {campaigns.length > 0 && (
         <div className="mt-8 flex items-center justify-between px-2 relative z-10 opacity-60 hover:opacity-100 transition-opacity">
             <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">
-                Ultima atualização: {new Date().toLocaleTimeString()}
+                Atualizado em {new Date().toLocaleTimeString("pt-BR")}
             </div>
             <div className="flex gap-1">
                 {[...Array(3)].map((_, i) => (

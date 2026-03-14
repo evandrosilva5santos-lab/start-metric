@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -12,7 +12,6 @@ function sanitizeNextPath(next: string | null) {
   if (!next || !next.startsWith("/") || next.startsWith("//") || next.startsWith("/auth")) {
     return "/performance";
   }
-
   return next;
 }
 
@@ -22,19 +21,15 @@ function mapAuthError(errorMessage: string) {
   if (message.includes("email not confirmed")) {
     return "Seu e-mail ainda não foi confirmado. Verifique sua caixa de entrada.";
   }
-
   if (message.includes("invalid login credentials")) {
     return "E-mail ou senha inválidos.";
   }
-
   if (message.includes("user already registered")) {
     return "Este e-mail já está cadastrado. Faça login para continuar.";
   }
-
   if (message.includes("password should be at least")) {
     return `A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`;
   }
-
   return "Não foi possível autenticar agora. Tente novamente em instantes.";
 }
 
@@ -55,6 +50,20 @@ function mapAuthPageError(errorCode: string | null) {
   }
 }
 
+type PasswordRule = { label: string; met: boolean };
+
+function usePasswordRules(password: string): PasswordRule[] {
+  return useMemo(
+    () => [
+      { label: "Mínimo 8 caracteres", met: password.length >= MIN_PASSWORD_LENGTH },
+      { label: "Letra maiúscula (A–Z)", met: /[A-Z]/.test(password) },
+      { label: "Letra minúscula (a–z)", met: /[a-z]/.test(password) },
+      { label: "Caractere especial (!@#$...)", met: /[^A-Za-z0-9]/.test(password) },
+    ],
+    [password],
+  );
+}
+
 const FEATURES = [
   { icon: TrendingUp, label: "ROAS em Tempo Real", desc: "Veja o retorno de cada centavo" },
   { icon: BarChart3, label: "Curva de Performance", desc: "Tendências diárias e semanais" },
@@ -72,7 +81,8 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
   const queryError = mapAuthPageError(errorParam);
 
   const [tab, setTab] = useState<"login" | "signup">("login");
-  const [name, setName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -83,6 +93,10 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+
+  const passwordRules = usePasswordRules(password);
+  const passwordValid = passwordRules.every((r) => r.met);
 
   function resetFeedback() {
     setError(null);
@@ -112,34 +126,40 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
       return;
     }
 
-    const trimmedName = name.trim();
+    // --- Signup validations ---
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
     const trimmedPhone = phone.trim();
     const trimmedEmail = email.trim();
 
-    if (!trimmedName) {
+    if (!trimmedFirst) {
       setLoading(false);
-      setError("Informe seu nome para criar a conta.");
+      setError("Informe seu nome.");
       return;
     }
-
+    if (!trimmedLast) {
+      setLoading(false);
+      setError("Informe seu sobrenome.");
+      return;
+    }
     if (!trimmedPhone) {
       setLoading(false);
-      setError("Informe seu telefone para criar a conta.");
+      setError("Informe seu telefone.");
       return;
     }
-
-    if (password.length < MIN_PASSWORD_LENGTH) {
+    if (!passwordValid) {
       setLoading(false);
-      setError(`A senha deve ter pelo menos ${MIN_PASSWORD_LENGTH} caracteres.`);
+      setPasswordTouched(true);
+      setError("A senha não atende aos requisitos de segurança.");
       return;
     }
-
     if (confirmPassword !== password) {
       setLoading(false);
       setError(mapAuthPageError("password_mismatch"));
       return;
     }
 
+    const fullName = `${trimmedFirst} ${trimmedLast}`;
     const signupRedirectUrl = new URL("/auth/callback", window.location.origin);
     signupRedirectUrl.searchParams.set("next", nextPath);
 
@@ -149,7 +169,8 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
       options: {
         emailRedirectTo: signupRedirectUrl.toString(),
         data: {
-          name: trimmedName,
+          full_name: fullName,
+          name: fullName,
           phone: trimmedPhone,
         },
       },
@@ -166,7 +187,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
     }
 
     setLoading(false);
-    setSuccessMessage("Cadastro criado. Verifique seu e-mail para confirmar o acesso.");
+    setSuccessMessage("Cadastro criado! Verifique seu e-mail e clique no link de confirmação para ativar sua conta.");
     setPassword("");
     setConfirmPassword("");
   }
@@ -175,6 +196,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
 
   return (
     <div className="min-h-screen flex overflow-hidden">
+      {/* Left panel */}
       <div className="hidden lg:flex lg:w-[52%] relative flex-col justify-between p-14 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
         <div
           className="absolute top-[-120px] right-[-80px] w-[480px] h-[480px] rounded-full opacity-20 blur-3xl"
@@ -249,7 +271,8 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
         </motion.div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center p-8 relative bg-slate-950">
+      {/* Right panel */}
+      <div className="flex-1 flex items-center justify-center p-8 relative bg-slate-950 overflow-y-auto">
         <div
           className="absolute inset-0 opacity-30"
           style={{
@@ -261,7 +284,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
           initial={{ opacity: 0, scale: 0.97 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.4 }}
-          className="w-full max-w-md z-10"
+          className="w-full max-w-md z-10 py-8"
         >
           <div className="flex items-center gap-2 mb-10 lg:hidden">
             <div className="w-8 h-8 rounded-lg bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
@@ -277,6 +300,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                 onClick={() => {
                   setTab(t);
                   resetFeedback();
+                  setPasswordTouched(false);
                 }}
                 className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
                   tab === t
@@ -301,71 +325,94 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                 {tab === "login" ? "Bem-vindo de volta" : "Comece agora"}
               </h2>
               <p className="text-slate-500 text-sm mb-8">
-                {tab === "login" ? "Entre para ver seu painel de ROI." : "Crie sua conta e confirme seu e-mail."}
+                {tab === "login"
+                  ? "Entre para ver seu painel de ROI."
+                  : "Crie sua conta e confirme seu e-mail para ativar o acesso."}
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {tab === "signup" && (
                   <>
-                    <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                        Nome
-                      </label>
-                      <input
-                        id="name"
-                        type="text"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                        placeholder="Seu nome completo"
-                        required
-                        className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
-                      />
+                    {/* Nome + Sobrenome */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                          Nome
+                        </label>
+                        <input
+                          type="text"
+                          value={firstName}
+                          onChange={(e) => setFirstName(e.target.value)}
+                          placeholder="João"
+                          required
+                          autoComplete="given-name"
+                          className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                          Sobrenome
+                        </label>
+                        <input
+                          type="text"
+                          value={lastName}
+                          onChange={(e) => setLastName(e.target.value)}
+                          placeholder="Silva"
+                          required
+                          autoComplete="family-name"
+                          className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                        />
+                      </div>
                     </div>
 
+                    {/* Telefone */}
                     <div className="space-y-2">
                       <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                         Telefone
                       </label>
                       <input
-                        id="phone"
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
                         placeholder="(11) 99999-9999"
                         required
+                        autoComplete="tel"
                         className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
                       />
                     </div>
                   </>
                 )}
 
+                {/* E-mail */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     E-mail
                   </label>
                   <input
-                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="gestor@agencia.com.br"
                     required
+                    autoComplete="email"
                     className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
                   />
                 </div>
 
+                {/* Senha */}
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     Senha
                   </label>
                   <div className="relative">
                     <input
-                      id="password"
                       type={showPwd ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
+                      onBlur={() => tab === "signup" && setPasswordTouched(true)}
                       placeholder="••••••••"
                       required
+                      autoComplete={tab === "signup" ? "new-password" : "current-password"}
                       className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
                     />
                     <button
@@ -376,8 +423,35 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                       {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
+
+                  {/* Requisitos de senha (só no signup) */}
+                  {tab === "signup" && (passwordTouched || password.length > 0) && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="grid grid-cols-2 gap-1.5 pt-1"
+                    >
+                      {passwordRules.map((rule) => (
+                        <div key={rule.label} className="flex items-center gap-1.5">
+                          {rule.met ? (
+                            <Check size={11} className="text-emerald-400 shrink-0" />
+                          ) : (
+                            <X size={11} className="text-slate-600 shrink-0" />
+                          )}
+                          <span
+                            className={`text-[10px] transition-colors ${
+                              rule.met ? "text-emerald-400" : "text-slate-600"
+                            }`}
+                          >
+                            {rule.label}
+                          </span>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
                 </div>
 
+                {/* Confirmar senha */}
                 {tab === "signup" && (
                   <div className="space-y-2">
                     <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
@@ -385,13 +459,17 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                     </label>
                     <div className="relative">
                       <input
-                        id="confirm-password"
                         type={showConfirmPwd ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
                         placeholder="••••••••"
                         required
-                        className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                        autoComplete="new-password"
+                        className={`w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none transition-all duration-200 ${
+                          confirmPassword && confirmPassword !== password
+                            ? "focus:border-red-400/50 focus:ring-1 focus:ring-red-400/30"
+                            : "focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30"
+                        }`}
                       />
                       <button
                         type="button"
@@ -401,6 +479,9 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                         {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
+                    {confirmPassword && confirmPassword !== password && (
+                      <p className="text-[11px] text-red-400">As senhas não conferem.</p>
+                    )}
                   </div>
                 )}
 

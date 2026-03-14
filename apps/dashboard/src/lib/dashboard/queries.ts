@@ -285,8 +285,22 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
     roi: safeDivide(grossProfit, kpisAccumulator.adSpend),
   };
 
-  const campaignsOutput: DashboardCampaignRow[] = Array.from(campaignAcc.values())
-    .map((row) => {
+  const campaignsOutput: DashboardCampaignRow[] = campaigns
+    .map((campaign) => {
+      const account = accountById.get(campaign.ad_account_id);
+      const row =
+        campaignAcc.get(campaign.id) ?? {
+          campaignId: campaign.id,
+          campaignName: campaign.name,
+          accountId: campaign.ad_account_id,
+          accountName: account?.name ?? account?.external_id ?? "Conta sem nome",
+          status: campaign.status ?? "UNKNOWN",
+          spend: 0,
+          revenue: 0,
+          conversions: 0,
+          impressions: 0,
+          clicks: 0,
+        };
       const rowGrossProfit = row.revenue - row.spend;
       return {
         ...row,

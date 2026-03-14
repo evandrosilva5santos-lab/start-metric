@@ -78,6 +78,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [toastDismissed, setToastDismissed] = useState<string | null>(null);
 
   const filters = useAppStore((state) => state.filters);
+  const setFilters = useAppStore((state) => state.setFilters);
   const alerts = useAlerts();
   const { fadeInUp, fadeInContent } = useReducedMotion();
 
@@ -107,6 +108,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     }, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, [queryClient]);
+
+  useEffect(() => {
+    setFilters({
+      from: initialData.range.from,
+      to: initialData.range.to,
+      adAccountId: initialData.filters.adAccountId,
+      campaignStatus: initialData.filters.campaignStatus,
+    });
+  }, [
+    initialData.filters.adAccountId,
+    initialData.filters.campaignStatus,
+    initialData.range.from,
+    initialData.range.to,
+    setFilters,
+  ]);
 
   const toastAlert =
     alerts.latestAlert && toastDismissed !== alerts.latestAlert.id
@@ -161,21 +177,21 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse-fast shadow-[0_0_8px_#06b6d4]" />
             <span className="text-[10px] font-black uppercase text-cyan-400/60 tracking-[0.3em]">
-              System Active
+              Operacao ativa
             </span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-cyan-100 to-slate-400 bg-clip-text text-transparent tracking-tighter leading-tight">
             {getGreeting(new Date())},{" "}
-            <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">Time</span>
+            <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">equipe</span>
           </h1>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 px-3 py-1.5 shadow-[0_0_22px_rgba(6,182,212,0.15)]">
               <Activity size={12} />
-              Live telemetry
+              Dados em tempo real
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 shadow-[0_0_22px_rgba(16,185,129,0.15)]">
               <Sparkles size={12} />
-              {data?.metrics?.activeCampaigns || 0} campanhas ativas
+              {data?.metrics?.activeCampaigns ?? data?.campaigns?.length ?? 0} campanhas ativas
             </span>
           </div>
         </div>
@@ -200,7 +216,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             >
               <span className="inline-flex items-center gap-2">
                 <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
-                {isSigningOut ? "Shutting down..." : "Exit"}
+                {isSigningOut ? "Saindo..." : "Sair"}
               </span>
             </button>
           </div>

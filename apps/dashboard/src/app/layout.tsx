@@ -22,7 +22,7 @@ const fontDisplay = Sora({
 export const metadata: Metadata = {
   title: "Start Metric — Inteligência de ROI para Tráfego Pago",
   description:
-    "Plataforma de análise de performance para gestores de tráfego. Monitore ROAS, criativos e ROI em tempo real.",
+    "Plataforma de análise de performance para gestores de tráfego. Monitore ROAS, lucro e ROI em tempo real.",
   keywords: ["tráfego pago", "meta ads", "ROAS", "gestão de campanhas", "ROI"],
 };
 

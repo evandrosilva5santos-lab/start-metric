@@ -40,9 +40,12 @@ export const StateBoundary: React.FC<StateBoundaryProps> = ({
     }
 
     if (isEmpty) {
-        // Fazemos o cast para 'any' para evitar que o TS reclame caso o EmptyState espere apenas title/description
-        const Empty = EmptyState as any;
-        return <Empty title="No data" description={emptyMessage} message={emptyMessage} action={emptyAction} />;
+        return (
+            <div className="space-y-4">
+                <EmptyState title="Sem dados" description={emptyMessage} />
+                {emptyAction ? <div className="flex justify-center">{emptyAction}</div> : null}
+            </div>
+        );
     }
 
     return <>{children}</>;

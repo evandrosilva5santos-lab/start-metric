@@ -7,7 +7,6 @@ import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   TrendingUp,
-  Activity,
   Wallet,
   Settings,
   LogOut,
@@ -18,11 +17,10 @@ import {
 import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Overview",       href: "/" },
-  { icon: TrendingUp,      label: "Performance",    href: "/performance" },
-  { icon: Activity,        label: "Criativos",      href: "/criativos" },
-  { icon: Wallet,          label: "Contas",         href: "/accounts" },
-  { icon: Settings,        label: "Integrações",    href: "/settings" },
+  { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: TrendingUp, label: "Performance", href: "/performance" },
+  { icon: Wallet, label: "Contas", href: "/accounts" },
+  { icon: Settings, label: "Integrações", href: "/settings" },
 ];
 
 export function Header() {
