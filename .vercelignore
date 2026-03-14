@@ -1,0 +1,11 @@
+node_modules
+apps/api/node_modules
+apps/dashboard/node_modules
+apps/meta-ad-spy
+packages/*/node_modules
+**/.next
+**/dist
+**/.turbo
+*.log
+.env
+.env.*
