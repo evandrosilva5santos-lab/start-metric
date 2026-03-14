@@ -18,10 +18,10 @@ type CampaignsTableProps = {
 
 export function CampaignsTable({ campaigns }: CampaignsTableProps) {
   return (
-    <div className="glass rounded-2xl p-8 min-h-[500px] relative overflow-hidden group">
+    <section className="glass rounded-3xl p-6 lg:p-8 min-h-[500px] relative overflow-hidden group border-white/10">
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-500/[0.02] rounded-full blur-[100px] -translate-y-1/2 translate-x-1/3 pointer-events-none" />
 
-      <div className="flex items-center justify-between mb-8 relative z-10">
+      <div className="flex items-center justify-between mb-6 lg:mb-8 relative z-10">
         <div>
           <h2 className="text-lg font-black text-white uppercase tracking-[0.2em] flex items-center gap-3">
             <span className="w-2 h-6 bg-cyan-500 rounded-sm shadow-[0_0_15px_rgba(6,189,212,0.5)]" />
@@ -65,7 +65,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
             ) : (
               campaigns.map((campaign) => (
                 <tr key={campaign.campaignId} className="group/row transition-all duration-300">
-                  <td className="px-6 py-5 glass-card-row-left rounded-l-2xl border-white/5 border-y border-l bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 rounded-l-2xl border-white/5 border-y border-l bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <div>
                       <p className="text-xs font-black text-white uppercase tracking-wider group-hover/row:text-cyan-400 transition-colors">
                         {campaign.campaignName}
@@ -75,22 +75,22 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                       </p>
                     </div>
                   </td>
-                  <td className="px-6 py-5 border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <span className="text-[10px] font-black uppercase text-slate-400 tracking-widest">
                       {campaign.accountName}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <span className="text-xs font-black text-white text-mono">
                       {formatCurrency(campaign.spend)}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <span className="text-xs font-black text-slate-300 text-mono">
                       {formatCurrency(campaign.revenue)}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <div className="flex flex-col items-end">
                       <span
                         className={cn(
@@ -112,7 +112,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 text-right border-white/5 border-y bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <span
                       className={cn(
                         "text-xs font-black text-mono",
@@ -122,7 +122,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                       {formatCurrency(campaign.grossProfit)}
                     </span>
                   </td>
-                  <td className="px-6 py-5 text-right rounded-r-2xl border-white/5 border-y border-r bg-white/[0.02] group-hover/row:bg-white/[0.05] group-hover/row:border-cyan-500/30 transition-all">
+                  <td className="px-6 py-5 text-right rounded-r-2xl border-white/5 border-y border-r bg-white/[0.02] group-hover/row:bg-white/[0.06] group-hover/row:border-cyan-500/30 transition-all">
                     <span
                       className={cn(
                         "px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest",
@@ -140,6 +140,6 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           </tbody>
         </table>
       </div>
-    </div>
+    </section>
   );
 }

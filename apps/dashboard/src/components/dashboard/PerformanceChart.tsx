@@ -32,19 +32,31 @@ type PerformanceChartProps = {
 
 export function PerformanceChart({ data }: PerformanceChartProps) {
   return (
-    <div className="lg:col-span-2 glass rounded-2xl p-6 h-[380px] relative overflow-hidden group">
-      <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+    <section className="glass rounded-3xl p-6 lg:p-7 h-[380px] lg:h-[410px] relative overflow-hidden group border-white/10">
+      <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
         <TrendingUp size={48} className="text-cyan-400" />
       </div>
-      <h2 className="text-base font-black text-white mb-1 uppercase tracking-widest flex items-center gap-2">
-        <span className="w-1 h-4 bg-cyan-500 rounded-full" />
-        Curva de Performance
-      </h2>
-      <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase tracking-widest">
-        // Monitoramento de performance em tempo real
-      </p>
+      <div className="flex items-start justify-between gap-4 mb-6">
+        <div>
+          <h2 className="text-base font-black text-white mb-1 uppercase tracking-widest flex items-center gap-2">
+            <span className="w-1 h-4 bg-cyan-500 rounded-full" />
+            Curva de Performance
+          </h2>
+          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+            // Monitoramento de performance em tempo real
+          </p>
+        </div>
+        <div className="hidden sm:flex items-center gap-2 text-[10px] font-black uppercase tracking-widest">
+          <span className="px-2.5 py-1 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300">
+            Spend
+          </span>
+          <span className="px-2.5 py-1 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300">
+            Revenue
+          </span>
+        </div>
+      </div>
 
-      <div className="h-[250px] w-full">
+      <div className="h-[270px] lg:h-[285px] w-full">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data}>
             <defs>
@@ -61,7 +73,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
               strokeDasharray="3 3"
               stroke="#1e293b"
               vertical={false}
-              opacity={0.5}
+              opacity={0.45}
             />
             <XAxis
               dataKey="date"
@@ -83,7 +95,7 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
               content={({ active, payload, label }) => {
                 if (active && payload && payload.length) {
                   return (
-                    <div className="glass p-4 rounded-xl border border-white/10 shadow-2xl backdrop-blur-xl">
+                    <div className="glass p-4 rounded-2xl border border-white/10 shadow-2xl backdrop-blur-xl">
                       <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-3 border-b border-white/5 pb-2">
                         Data: {formatDateLabel(label)}
                       </p>
@@ -137,6 +149,8 @@ export function PerformanceChart({ data }: PerformanceChartProps) {
           </AreaChart>
         </ResponsiveContainer>
       </div>
-    </div>
+
+      <div className="mt-4 h-px w-full bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+    </section>
   );
 }

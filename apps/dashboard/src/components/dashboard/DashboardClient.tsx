@@ -12,12 +12,14 @@ import { useAlerts } from "@/hooks/useAlerts";
 import type { DashboardData } from "@/lib/dashboard/types";
 import { useAppStore } from "@/store/data-store";
 import { useAppQuery } from "@/hooks/useAppQuery";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 import { cn } from "@/lib/utils";
 import { DashboardFilters } from "./DashboardFilters";
 import { KpiGrid } from "./KpiGrid";
 import { PerformanceChart } from "./PerformanceChart";
 import { PeriodSummary } from "./PeriodSummary";
 import { CampaignsTable } from "./CampaignsTable";
+import { SkeletonCard, SkeletonChart, SkeletonTable } from "@/components/ui/Skeleton";
 
 type DashboardClientProps = {
   initialData: DashboardData;
@@ -51,14 +53,14 @@ function DashboardSkeleton() {
     <>
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-5 mb-8">
         {Array.from({ length: 5 }).map((_, index) => (
-          <div key={index} className="glass rounded-2xl p-5 h-[156px] animate-pulse" />
+          <SkeletonCard key={index} />
         ))}
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-        <div className="glass rounded-2xl h-[360px] lg:col-span-2 animate-pulse" />
-        <div className="glass rounded-2xl h-[360px] animate-pulse" />
+        <SkeletonChart className="lg:col-span-2" />
+        <SkeletonChart />
       </div>
-      <div className="glass rounded-2xl h-[420px] animate-pulse" />
+      <SkeletonTable />
     </>
   );
 }
@@ -68,8 +70,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [toastDismissed, setToastDismissed] = useState<string | null>(null);
 
-  const { filters, setFilters } = useAppStore();
+  const filters = useAppStore((state) => state.filters);
   const alerts = useAlerts();
+  const { fadeInUp, fadeInContent } = useReducedMotion();
 
   const queryKey = useMemo(
     () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatus],
@@ -79,6 +82,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const { data, isPending, isFetching, error } = useAppQuery({
     queryKey,
     syncGlobalState: true,
+    globalStateKey: "dashboard:main-query",
     queryFn: async (): Promise<DashboardData> => {
       const response = await fetch(`/api/dashboard?${buildQueryString(filters)}`, {
         method: "GET",
@@ -142,9 +146,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       {/* Header */}
       <motion.header
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1] }}
+        initial={fadeInUp.initial}
+        animate={fadeInUp.animate}
+        transition={fadeInUp.transition}
         className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between mb-8 px-6 py-8 glass rounded-3xl relative z-10 noise-overlay border-white/5"
       >
         <div className="relative">
@@ -200,9 +204,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
 
       {/* Content */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8, delay: 0.2, ease: [0.23, 1, 0.32, 1] }}
+        initial={fadeInContent.initial}
+        animate={fadeInContent.animate}
+        transition={fadeInContent.transition}
         className={cn(
           "transition-all duration-300 relative z-10",
           isFetching && "opacity-60 grayscale-[0.3]",
