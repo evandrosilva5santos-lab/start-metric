@@ -28,19 +28,22 @@
 - [x] Review and normalize Claude/Gemini parallel changes in `components/hooks/store`.
 - [x] Ensure loading/error states are integrated with global UI state manager.
 - [x] Remove placeholder imports/types that broke compilation in new hooks/stores.
+- [x] Eliminar warnings de lint no `apps/api` sem quebrar testes/typecheck.
 
 ## Quality Gates
-- [x] `npm run lint` (passou; warnings não bloqueantes no `apps/api`)
+- [x] `npm run lint` (passou sem warnings)
 - [x] `npm run typecheck` (passou no monorepo com `turbo run typecheck`)
 - [x] `npm test` (passou; suíte Jest do `apps/api` verde)
 
 ## File List
 - [x] `apps/dashboard/src/app/globals.css`
+- [x] `apps/dashboard/src/app/layout.tsx`
 - [x] `apps/dashboard/src/components/alerts/AlertRulesConfig.tsx`
 - [x] `apps/dashboard/src/components/dashboard/CampaignsTable.tsx`
 - [x] `apps/dashboard/src/components/dashboard/DashboardClient.tsx`
 - [x] `apps/dashboard/src/components/dashboard/DashboardFilters.tsx`
 - [x] `apps/dashboard/src/components/dashboard/KpiGrid.tsx`
+- [x] `apps/dashboard/src/components/layout/Header.tsx`
 - [x] `apps/dashboard/src/components/layout/GlobalStatusOverlay.tsx`
 - [x] `apps/dashboard/src/components/dashboard/PerformanceChart.tsx`
 - [x] `apps/dashboard/src/components/dashboard/PeriodSummary.tsx`
@@ -56,3 +59,11 @@
 - [x] `apps/dashboard/src/store/useCampaignStore.ts`
 - [x] `apps/dashboard/src/components/campaigns.ts`
 - [x] `apps/api/src/test-database.ts`
+- [x] `apps/api/src/auth/current-user.decorator.ts`
+- [x] `apps/api/src/auth/jwt.strategy.ts`
+- [x] `apps/api/src/campaigns/campaigns.service.ts`
+- [x] `apps/api/src/main.ts`
+- [x] `apps/api/src/meta/meta.service.ts`
+- [x] `apps/api/src/sync/sync.controller.ts`
+- [x] `apps/api/src/sync/sync.processor.ts`
+- [x] `apps/dashboard/public/noise.svg`

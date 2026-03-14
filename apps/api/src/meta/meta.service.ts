@@ -5,6 +5,29 @@ interface MetaApiErrorData {
   message?: string;
 }
 
+type GraphApiParams = Record<string, string | number | boolean | undefined>;
+type MetaProfileResponse = {
+  id: string;
+  name?: string;
+};
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
+}
+
+function extractMetaApiError(value: unknown): MetaApiErrorData | undefined {
+  if (!isRecord(value)) return undefined;
+  const maybeError = value.error;
+  if (!isRecord(maybeError)) return undefined;
+
+  const code =
+    typeof maybeError.code === 'number' ? maybeError.code : undefined;
+  const message =
+    typeof maybeError.message === 'string' ? maybeError.message : undefined;
+
+  return { code, message };
+}
+
 export class MetaApiError extends Error {
   constructor(
     public message: string,
@@ -28,24 +51,37 @@ export class MetaService {
   private readonly maxRetries = 3;
   private readonly baseRetryDelayMs = 500;
 
-  async fetchAdAccounts(token: string) {
-    return this.callGraphApi('me/adaccounts', token, {
-      fields: 'id,name,account_status,currency,timezone',
-    });
+  async fetchAdAccounts(
+    token: string,
+  ): Promise<Record<string, unknown> | unknown[]> {
+    return this.callGraphApi<Record<string, unknown> | unknown[]>(
+      'me/adaccounts',
+      token,
+      {
+        fields: 'id,name,account_status,currency,timezone',
+      },
+    );
   }
 
-  async fetchCampaigns(adAccountId: string, token: string) {
-    return this.callGraphApi(`${adAccountId}/campaigns`, token, {
-      fields: 'id,name,status,objective,daily_budget,budget_remaining',
-    });
+  async fetchCampaigns(
+    adAccountId: string,
+    token: string,
+  ): Promise<Record<string, unknown> | unknown[]> {
+    return this.callGraphApi<Record<string, unknown> | unknown[]>(
+      `${adAccountId}/campaigns`,
+      token,
+      {
+        fields: 'id,name,status,objective,daily_budget,budget_remaining',
+      },
+    );
   }
 
   async fetchInsights(
     adAccountId: string,
     token: string,
     dateRange?: { startDate: string; endDate: string },
-  ) {
-    const params: Record<string, any> = {
+  ): Promise<Record<string, unknown> | unknown[]> {
+    const params: GraphApiParams = {
       fields:
         'campaign_id,campaign_name,spend,conversions,reach,impressions,ctr,cpc',
       time_range: dateRange ? JSON.stringify(dateRange) : undefined,
@@ -53,32 +89,41 @@ export class MetaService {
       time_increment: 1,
     };
 
-    return this.callGraphApi(`${adAccountId}/insights`, token, params);
+    return this.callGraphApi<Record<string, unknown> | unknown[]>(
+      `${adAccountId}/insights`,
+      token,
+      params,
+    );
   }
 
-  async validateToken(token: string) {
+  async validateToken(token: string): Promise<MetaProfileResponse | null> {
     try {
-      const response = await this.callGraphApi('me', token, {
-        fields: 'id,name,email',
-      });
+      const response = await this.callGraphApi<MetaProfileResponse>(
+        'me',
+        token,
+        {
+          fields: 'id,name,email',
+        },
+      );
+
       return {
         id: response.id,
         name: response.name,
       };
-    } catch (error: any) {
-      if (error.isTokenExpired?.()) {
+    } catch (error: unknown) {
+      if (error instanceof MetaApiError && error.isTokenExpired()) {
         return null;
       }
       throw error;
     }
   }
 
-  private async callGraphApi(
+  private async callGraphApi<T extends Record<string, unknown> | unknown[]>(
     endpoint: string,
     token: string,
-    params: Record<string, any> = {},
+    params: GraphApiParams = {},
     attempt = 1,
-  ): Promise<any> {
+  ): Promise<T> {
     const url = new URL(`${this.graphApiUrl}/${endpoint}`);
     url.searchParams.append('access_token', token);
 
@@ -90,10 +135,10 @@ export class MetaService {
 
     try {
       const response = await fetch(url.toString());
-      const data = await response.json();
+      const data: unknown = await response.json();
 
       if (!response.ok) {
-        const error = data.error as MetaApiErrorData;
+        const error = extractMetaApiError(data);
         const metaError = new MetaApiError(
           error?.message || 'Unknown error',
           error?.code,
@@ -101,10 +146,16 @@ export class MetaService {
         throw metaError;
       }
 
-      return data;
-    } catch (error: any) {
+      return data as T;
+    } catch (error: unknown) {
       // Retry logic for 5xx errors
-      if (error instanceof TypeError || error.code >= 500) {
+      const shouldRetry =
+        error instanceof TypeError ||
+        (error instanceof MetaApiError &&
+          typeof error.code === 'number' &&
+          error.code >= 500);
+
+      if (shouldRetry) {
         if (attempt <= this.maxRetries) {
           const delay = this.baseRetryDelayMs * Math.pow(2, attempt - 1);
           await new Promise((resolve) => setTimeout(resolve, delay));

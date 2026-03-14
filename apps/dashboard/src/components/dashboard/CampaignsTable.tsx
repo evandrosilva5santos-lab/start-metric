@@ -19,9 +19,9 @@ type CampaignsTableProps = {
 
 export function CampaignsTable({ campaigns }: CampaignsTableProps) {
   return (
-    <section className="glass rounded-[2rem] p-6 lg:p-8 min-h-[500px] relative overflow-hidden group/table noise-overlay border-white/5">
+    <section className="glass glass-2 rounded-[2rem] p-6 lg:p-8 min-h-[500px] relative overflow-hidden group/table noise-overlay border-white/5">
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/[0.04] rounded-full blur-[120px] -transition-all duration-1000 group-hover/table:-translate-y-1/4 translate-x-1/4 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/[0.04] rounded-full blur-[120px] transition-all duration-1000 group-hover/table:-translate-y-1/4 translate-x-1/4 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/[0.04] rounded-full blur-[100px] translate-y-1/4 -translate-x-1/4 pointer-events-none" />
 
       {/* Cybernetic Scan Line */}
@@ -57,7 +57,71 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
         </div>
       </div>
 
-      <div className="overflow-x-auto relative z-10 custom-scrollbar-thin">
+      <div className="md:hidden relative z-10 space-y-3">
+        {campaigns.length === 0 ? (
+          <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] p-8 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-600">
+              Sincronizando Datastream
+            </p>
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+              {"// Aguardando sinais dos servidores"}
+            </p>
+          </div>
+        ) : (
+          campaigns.map((campaign, idx) => (
+            <motion.article
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.04, duration: 0.4 }}
+              key={campaign.campaignId}
+              className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4"
+            >
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <p className="text-xs font-black uppercase tracking-wide text-slate-100">
+                    {campaign.campaignName}
+                  </p>
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                    {campaign.accountName}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border",
+                    campaign.status === "ACTIVE"
+                      ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
+                      : "bg-slate-800/40 text-slate-500 border-slate-700/60",
+                  )}
+                >
+                  {statusLabel(campaign.status)}
+                </span>
+              </div>
+              <div className="mt-4 grid grid-cols-2 gap-3 text-[10px]">
+                <div>
+                  <p className="text-slate-500 uppercase tracking-widest">Gasto</p>
+                  <p className="mt-1 font-black text-slate-200">{formatCurrency(campaign.spend)}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 uppercase tracking-widest">Receita</p>
+                  <p className="mt-1 font-black text-slate-100">{formatCurrency(campaign.revenue)}</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 uppercase tracking-widest">ROAS</p>
+                  <p className="mt-1 font-black text-cyan-300">{campaign.roas.toFixed(2)}x</p>
+                </div>
+                <div>
+                  <p className="text-slate-500 uppercase tracking-widest">Lucro</p>
+                  <p className={cn("mt-1 font-black", campaign.grossProfit >= 0 ? "text-emerald-300" : "text-red-300")}>
+                    {formatCurrency(campaign.grossProfit)}
+                  </p>
+                </div>
+              </div>
+            </motion.article>
+          ))
+        )}
+      </div>
+
+      <div className="hidden md:block overflow-x-auto relative z-10 custom-scrollbar-thin">
         <table className="w-full text-left border-separate border-spacing-y-3 min-w-[900px]">
           <caption className="sr-only">Desempenho de Campanhas por Vetor</caption>
           <thead>

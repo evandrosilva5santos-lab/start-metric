@@ -26,7 +26,7 @@ export function KpiGrid({ kpis }: KpiGridProps) {
       trend: { value: "Período", isPositive: true, label: "" },
       icon: DollarSign,
       color: "#22d3ee",
-      className: "xl:col-span-4",
+      className: "xl:col-span-6",
     },
     {
       title: "Receita Atribuída",
@@ -34,7 +34,7 @@ export function KpiGrid({ kpis }: KpiGridProps) {
       trend: { value: "Período", isPositive: true, label: "" },
       icon: TrendingUp,
       color: "#34d399",
-      className: "xl:col-span-4",
+      className: "xl:col-span-6",
     },
     {
       title: "Lucro Bruto",
@@ -42,7 +42,7 @@ export function KpiGrid({ kpis }: KpiGridProps) {
       trend: { value: "Receita - Gasto", isPositive: kpis.grossProfit >= 0, label: "" },
       icon: TrendingUp,
       color: "#34d399",
-      className: "xl:col-span-4",
+      className: "xl:col-span-3",
     },
     {
       title: "ROAS",
@@ -66,7 +66,7 @@ export function KpiGrid({ kpis }: KpiGridProps) {
       trend: { value: "Atribuídas", isPositive: true, label: "" },
       icon: Sparkles,
       color: "#38bdf8",
-      className: "xl:col-span-6",
+      className: "xl:col-span-3",
     },
   ];
 

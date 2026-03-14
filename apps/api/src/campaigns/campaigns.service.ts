@@ -7,6 +7,13 @@ import {
 import { PrismaService } from '../prisma.service';
 import { MetaService } from '../meta/meta.service';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return 'Unknown error';
+}
+
 @Injectable()
 export class CampaignsService {
   constructor(
@@ -15,7 +22,11 @@ export class CampaignsService {
   ) {}
 
   async findAll(orgId: string, adAccountId?: string) {
-    const where: any = { org_id: orgId };
+    const where: {
+      org_id: string;
+      ad_account_id?: string;
+    } = { org_id: orgId };
+
     if (adAccountId) {
       where.ad_account_id = adAccountId;
     }
@@ -68,9 +79,9 @@ export class CampaignsService {
     try {
       await this.metaService.fetchCampaigns(campaign.ad_account_id, token);
       // In real implementation, would call Meta API to update
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw new BadRequestException(
-        `Failed to update campaign: ${error.message}`,
+        `Failed to update campaign: ${getErrorMessage(error)}`,
       );
     }
 
@@ -96,9 +107,9 @@ export class CampaignsService {
     try {
       await this.metaService.fetchCampaigns(campaign.ad_account_id, token);
       // In real implementation, would call Meta API to update
-    } catch (error: any) {
+    } catch (error: unknown) {
       throw new BadRequestException(
-        `Failed to update budget: ${error.message}`,
+        `Failed to update budget: ${getErrorMessage(error)}`,
       );
     }
 

@@ -16,6 +16,7 @@ const CAMPAIGN_ERROR_KEY = 'campaigns:error';
 interface CampaignState {
     campaigns: Campaign[];
     isLoading: boolean;
+    hasInitialFetch: boolean;
     error: string | null;
 
     // Actions
@@ -27,6 +28,7 @@ interface CampaignState {
 export const useCampaignStore = create<CampaignState>((set) => ({
     campaigns: [],
     isLoading: false,
+    hasInitialFetch: false,
     error: null,
 
     fetchCampaigns: async (apiCall) => {
@@ -37,7 +39,7 @@ export const useCampaignStore = create<CampaignState>((set) => ({
 
         try {
             const data = await apiCall();
-            set({ campaigns: data, isLoading: false });
+            set({ campaigns: data, isLoading: false, hasInitialFetch: true });
         } catch (error: unknown) {
             const message = getErrorMessage(error);
             set({ error: message, isLoading: false });

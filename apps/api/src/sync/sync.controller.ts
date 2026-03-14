@@ -18,15 +18,17 @@ export class SyncController {
   @Post('account/:id')
   async syncAccount(
     @Param('id') adAccountId: string,
-    @CurrentUser() user: User,
+    @CurrentUser() _user: User,
   ) {
+    void _user;
     // TODO: Validate that user owns this account
     const job = await this.syncService.enqueueSyncAccount(adAccountId);
     return { message: 'Sync job enqueued', jobId: job.id };
   }
 
   @Post('all')
-  async syncAllAccounts(@CurrentUser() user: User) {
+  async syncAllAccounts(@CurrentUser() _user: User) {
+    void _user;
     // TODO: Sync only accounts owned by user's org
     return this.syncService.enqueueAllActiveAccounts();
   }

@@ -127,7 +127,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   if (error) {
     return (
       <main className="flex-1 p-6 lg:p-8 overflow-y-auto min-w-0">
-        <div className="glass rounded-3xl p-8 border border-red-500/30">
+        <div className="glass glass-2 rounded-3xl p-8 border border-red-500/30">
           <h2 className="text-lg font-bold text-red-300 mb-2">Erro ao carregar dados</h2>
           <p className="text-sm text-slate-300">Tente atualizar a página ou ajustar os filtros.</p>
         </div>
@@ -141,7 +141,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary/10 blur-[120px] rounded-full animate-float opacity-50" />
         <div className="absolute bottom-[-5%] left-[-5%] w-[35%] h-[35%] bg-violet-500/10 blur-[120px] rounded-full animate-float-delayed opacity-40" />
         <div className="absolute top-[35%] left-[50%] w-[35%] h-[35%] -translate-x-1/2 bg-emerald-500/10 blur-[130px] rounded-full animate-float opacity-30" />
-        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.03] mix-blend-overlay" />
+        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.025] mix-blend-overlay" />
       </div>
 
       <AlertToast
@@ -155,7 +155,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
         initial={fadeInUp.initial}
         animate={fadeInUp.animate}
         transition={fadeInUp.transition}
-        className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between mb-8 px-5 lg:px-7 py-6 lg:py-7 glass rounded-[2rem] relative z-10 noise-overlay border-white/10"
+        className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between mb-8 px-5 lg:px-7 py-6 lg:py-7 glass glass-2 rounded-[2rem] relative z-10 noise-overlay border-white/10"
       >
         <div className="relative space-y-2">
           <div className="flex items-center gap-3">
@@ -169,11 +169,11 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">Time</span>
           </h1>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 px-3 py-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 px-3 py-1.5 shadow-[0_0_22px_rgba(6,182,212,0.15)]">
               <Activity size={12} />
               Live telemetry
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5">
+            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 shadow-[0_0_22px_rgba(16,185,129,0.15)]">
               <Sparkles size={12} />
               {data?.metrics?.activeCampaigns || 0} campanhas ativas
             </span>
@@ -196,7 +196,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               onClick={handleSignOut}
               disabled={isSigningOut}
               aria-label="Sair da conta"
-              className="glass rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-all disabled:opacity-60 group border-white/10"
+              className="glass glass-1 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-all disabled:opacity-60 group border-white/10"
             >
               <span className="inline-flex items-center gap-2">
                 <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />

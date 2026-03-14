@@ -4,6 +4,13 @@ import type { Job } from 'bull';
 import { PrismaService } from '../prisma.service';
 import { MetaService } from '../meta/meta.service';
 
+function getErrorMessage(error: unknown): string {
+  if (error instanceof Error && error.message) {
+    return error.message;
+  }
+  return 'Unknown error';
+}
+
 @Processor('meta-sync')
 export class SyncProcessor {
   private readonly logger = new Logger(SyncProcessor.name);
@@ -31,7 +38,7 @@ export class SyncProcessor {
       }
 
       // TODO: Decrypt token
-      const token = account.token_encrypted; // This would be decrypted in real implementation
+      // const _token = account.token_encrypted; // This would be decrypted in real implementation
 
       // Fetch campaigns and insights from Meta API
       // const campaigns = await this.metaService.fetchCampaigns(adAccountId, token);
@@ -45,9 +52,9 @@ export class SyncProcessor {
 
       this.logger.debug(`Successfully synced account ${adAccountId}`);
       return { success: true, adAccountId };
-    } catch (error: any) {
+    } catch (error: unknown) {
       this.logger.error(
-        `Failed to sync account ${adAccountId}: ${error.message}`,
+        `Failed to sync account ${adAccountId}: ${getErrorMessage(error)}`,
       );
       throw error;
     }

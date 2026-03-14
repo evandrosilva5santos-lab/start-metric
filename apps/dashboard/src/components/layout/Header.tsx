@@ -51,8 +51,8 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-[60] w-full border-b border-[#1e293b] bg-[#020617]/80 backdrop-blur-2xl">
-      <div className="max-w-7xl mx-auto px-4 lg:px-8 h-16 flex items-center justify-between gap-8">
+    <header className="sticky top-0 z-[60] w-full border-b border-cyan-500/10 bg-[#020617]/70 backdrop-blur-2xl noise-overlay">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 h-[72px] flex items-center justify-between gap-6">
         {/* Logo */}
         <Link href="/" className="relative flex items-center gap-3 group shrink-0">
           <div className="relative">
@@ -72,23 +72,23 @@ export function Header() {
         </Link>
 
         {/* Desktop Nav */}
-        <nav className="hidden lg:flex items-center gap-1 flex-1 px-4">
+        <nav className="hidden lg:flex items-center gap-2 flex-1 px-4">
           {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
             const active = isActive(href);
             return (
               <Link
                 key={label}
                 href={href}
-                className={`relative px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all duration-300 flex items-center gap-2 ${
+                className={`relative px-4 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.18em] transition-all duration-300 flex items-center gap-2 border ${
                   active
-                    ? "text-white bg-white/[0.03] shadow-lg"
-                    : "text-slate-500 hover:text-slate-200 hover:bg-white/[0.02]"
+                    ? "text-white bg-white/[0.05] border-cyan-400/25 shadow-[0_10px_30px_rgba(6,182,212,0.16)]"
+                    : "text-slate-500 border-white/5 hover:text-slate-200 hover:bg-white/[0.02] hover:border-white/10"
                 }`}
               >
                 {active && (
                   <motion.div
                     layoutId="header-active"
-                    className="absolute bottom-0 left-1/2 -translate-x-1/2 w-8 h-[2px] bg-cyan-400 rounded-t-full shadow-[0_0_8px_#22d3ee]"
+                    className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[1px] bg-cyan-300 rounded-b-full shadow-[0_0_8px_#22d3ee]"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
@@ -104,8 +104,8 @@ export function Header() {
 
         {/* User Desktop */}
         <div className="hidden lg:flex items-center gap-4 shrink-0">
-          <div className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white/[0.02] border border-white/5">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 flex items-center justify-center border border-white/10">
+          <div className="glass glass-1 flex items-center gap-2.5 px-3 py-1.5 rounded-full border-white/10">
+            <div className="w-6 h-6 rounded-full bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 flex items-center justify-center border border-white/10 shadow-[0_0_18px_rgba(6,182,212,0.25)]">
               <span className="text-cyan-400 font-bold text-[10px] uppercase">
                 {userEmail?.[0] || "U"}
               </span>
@@ -117,7 +117,7 @@ export function Header() {
           <button
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="p-2 text-slate-500 hover:text-red-400 transition-colors rounded-xl hover:bg-red-500/10"
+            className="glass glass-1 p-2 text-slate-500 hover:text-red-400 transition-colors rounded-xl border-white/10 hover:border-red-500/30"
             title="Sair"
           >
             <LogOut size={18} />
@@ -140,7 +140,7 @@ export function Header() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden border-t border-[#1e293b] bg-[#020617]"
+            className="lg:hidden border-t border-cyan-500/10 bg-[#020617]/95 backdrop-blur-3xl"
           >
             <div className="px-4 py-4 space-y-2">
               {NAV_ITEMS.map(({ icon: Icon, label, href }) => {
@@ -150,10 +150,10 @@ export function Header() {
                     key={label}
                     href={href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold uppercase tracking-wider transition-all duration-300 ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 border ${
                       active
-                        ? "bg-white/[0.04] text-white border border-white/5 shadow-2xl"
-                        : "text-slate-500"
+                        ? "bg-white/[0.05] text-white border-cyan-400/25 shadow-[0_10px_30px_rgba(6,182,212,0.16)]"
+                        : "text-slate-500 border-white/5"
                     }`}
                   >
                     <Icon size={18} className={active ? "text-cyan-400" : ""} />

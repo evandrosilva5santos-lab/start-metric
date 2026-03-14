@@ -32,10 +32,11 @@ type PerformanceChartProps = {
 
 export function PerformanceChart({ data }: PerformanceChartProps) {
   return (
-    <section className="glass rounded-3xl p-6 lg:p-7 h-[380px] lg:h-[410px] relative overflow-hidden group border-white/10">
+    <section className="glass glass-2 rounded-3xl p-6 lg:p-7 h-[380px] lg:h-[410px] relative overflow-hidden group border-white/10 noise-overlay">
       <div className="absolute top-0 right-0 p-5 opacity-10 group-hover:opacity-20 transition-opacity">
         <TrendingUp size={48} className="text-cyan-400" />
       </div>
+      <div className="absolute -bottom-20 -left-10 w-52 h-52 rounded-full bg-cyan-500/10 blur-[80px] pointer-events-none" />
       <div className="flex items-start justify-between gap-4 mb-6">
         <div>
           <h2 className="text-base font-black text-white mb-1 uppercase tracking-widest flex items-center gap-2">

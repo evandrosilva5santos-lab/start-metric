@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionTemplate, useMotionValue } from "framer-motion";
-import { LucideIcon, TrendingUp, TrendingDown } from "lucide-react";
+import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface StatCardProps {
@@ -12,7 +12,7 @@ interface StatCardProps {
     isPositive: boolean;
     label?: string;
   };
-  icon: LucideIcon;
+  icon: React.ElementType;
   color: string;
   delay?: number;
   className?: string;
@@ -48,7 +48,7 @@ export function StatCard({
       onMouseMove={handleMouseMove}
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       className={cn(
-        "glass rounded-3xl p-5 lg:p-6 flex flex-col gap-5 relative overflow-hidden group cursor-default noise-overlay min-h-[164px] border-white/10",
+        "glass glass-1 rounded-3xl p-5 lg:p-6 flex flex-col gap-5 relative overflow-hidden group cursor-default noise-overlay min-h-[164px] border-white/10",
         className,
       )}
     >
@@ -98,7 +98,7 @@ export function StatCard({
       </div>
 
       <div className="relative z-10 mt-1">
-        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2 flex items-center gap-2 group-hover:text-slate-400 transition-colors">
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.25em] mb-2 flex items-center gap-2 group-hover:text-slate-300 transition-colors text-hud">
           <span className="w-3 h-[1px] bg-slate-800 group-hover:w-5 group-hover:bg-cyan-500/50 transition-all duration-500" />
           {title}
         </p>

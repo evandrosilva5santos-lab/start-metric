@@ -13,14 +13,14 @@ export const useCampaignData = (
     options: UseCampaignDataOptions = {},
 ) => {
     const { autoFetch = true } = options;
-    const { campaigns, isLoading, error, fetchCampaigns, clearError } = useCampaignStore();
+    const { campaigns, isLoading, hasInitialFetch, error, fetchCampaigns, clearError } = useCampaignStore();
 
     useEffect(() => {
         if (!autoFetch || !fetcher) return;
-        if (campaigns.length === 0 && !isLoading) {
+        if (!hasInitialFetch && !isLoading) {
             void fetchCampaigns(fetcher);
         }
-    }, [autoFetch, fetcher, campaigns.length, isLoading, fetchCampaigns]);
+    }, [autoFetch, fetcher, hasInitialFetch, isLoading, fetchCampaigns]);
 
     const refetch = async () => {
         if (!fetcher) return;
