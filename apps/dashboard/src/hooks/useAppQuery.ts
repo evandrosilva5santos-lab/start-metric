@@ -1,3 +1,5 @@
+"use client";
+
 import { useQuery, UseQueryOptions, UseQueryResult } from "@tanstack/react-query";
 import { useUIStore } from "@/store/ui-store";
 import { useEffect, useMemo } from "react";

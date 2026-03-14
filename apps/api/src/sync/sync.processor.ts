@@ -46,7 +46,9 @@ export class SyncProcessor {
       this.logger.debug(`Successfully synced account ${adAccountId}`);
       return { success: true, adAccountId };
     } catch (error: any) {
-      this.logger.error(`Failed to sync account ${adAccountId}: ${error.message}`);
+      this.logger.error(
+        `Failed to sync account ${adAccountId}: ${error.message}`,
+      );
       throw error;
     }
   }

@@ -1,5 +1,11 @@
 import { PrismaClient } from '../generated/prisma/client.js';
 
+type ErrorLike = {
+  code?: string;
+  name?: string;
+  message?: string;
+};
+
 async function testDatabase() {
   const connectionString = process.env.DATABASE_URL;
 
@@ -9,11 +15,7 @@ async function testDatabase() {
   }
 
   const prisma = new PrismaClient({
-    datasources: {
-      db: {
-        url: connectionString,
-      },
-    },
+    accelerateUrl: connectionString,
   });
 
   try {
@@ -92,16 +94,21 @@ async function testDatabase() {
     console.log(`  • Tabelas Principais: ✅ Acessíveis`);
     console.log(`  • Relacionamentos: ✅ Funcionais`);
     console.log(`  • Múltiplos Schemas: ✅ Configurado (auth + public)\n`);
+  } catch (error: unknown) {
+    const parsed = (error as ErrorLike) ?? {};
+    const errorCode = parsed.code ?? parsed.name ?? 'UNKNOWN_ERROR';
+    const errorMessage = parsed.message ?? 'Erro desconhecido';
 
-  } catch (error: any) {
     console.error('❌ ERRO NA CONEXÃO:\n');
-    console.error(`  Tipo: ${error.code || error.name}`);
-    console.error(`  Mensagem: ${error.message}\n`);
+    console.error(`  Tipo: ${errorCode}`);
+    console.error(`  Mensagem: ${errorMessage}\n`);
 
-    if (error.code === 'P1002') {
+    if (errorCode === 'P1002') {
       console.error('  → Problema: Não conseguiu conectar ao banco de dados');
-      console.error('  → Solução: Verifique se DATABASE_URL está correta em .env\n');
-    } else if (error.code === 'P1008') {
+      console.error(
+        '  → Solução: Verifique se DATABASE_URL está correta em .env\n',
+      );
+    } else if (errorCode === 'P1008') {
       console.error('  → Problema: Timeout na conexão');
       console.error('  → Solução: O Supabase pode estar indisponível\n');
     }
@@ -112,4 +119,4 @@ async function testDatabase() {
   }
 }
 
-testDatabase();
+void testDatabase();

@@ -1,4 +1,4 @@
-import { z, ZodSchema } from "zod";
+import { ZodSchema } from "zod";
 import { NextResponse } from "next/server";
 
 export function parseSearchParams<T>(

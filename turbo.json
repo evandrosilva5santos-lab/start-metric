@@ -12,6 +12,7 @@
     "lint": {
       "dependsOn": ["^lint"]
     },
+    "typecheck": {},
     "test": {
       "dependsOn": ["^test"]
     }

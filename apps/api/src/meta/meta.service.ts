@@ -46,7 +46,8 @@ export class MetaService {
     dateRange?: { startDate: string; endDate: string },
   ) {
     const params: Record<string, any> = {
-      fields: 'campaign_id,campaign_name,spend,conversions,reach,impressions,ctr,cpc',
+      fields:
+        'campaign_id,campaign_name,spend,conversions,reach,impressions,ctr,cpc',
       time_range: dateRange ? JSON.stringify(dateRange) : undefined,
       level: 'campaign',
       time_increment: 1,
@@ -93,7 +94,10 @@ export class MetaService {
 
       if (!response.ok) {
         const error = data.error as MetaApiErrorData;
-        const metaError = new MetaApiError(error?.message || 'Unknown error', error?.code);
+        const metaError = new MetaApiError(
+          error?.message || 'Unknown error',
+          error?.code,
+        );
         throw metaError;
       }
 

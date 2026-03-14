@@ -1,25 +1,38 @@
+"use client";
+
 import { useEffect } from 'react';
 import { useCampaignStore } from '@/store/useCampaignStore';
+import type { DashboardCampaignRow as Campaign } from '@/lib/dashboard/types';
 
-// Assume this is the fetcher provided by the backend team
-import { getCampaigns } from '@/api/campaigns';
+type UseCampaignDataOptions = {
+    autoFetch?: boolean;
+};
 
-export const useCampaignData = () => {
+export const useCampaignData = (
+    fetcher?: () => Promise<Campaign[]>,
+    options: UseCampaignDataOptions = {},
+) => {
+    const { autoFetch = true } = options;
     const { campaigns, isLoading, error, fetchCampaigns, clearError } = useCampaignStore();
 
     useEffect(() => {
-        // Only fetch if we don't already have data to prevent unnecessary renders,
-        // or implement proper revalidation logic depending on the caching strategy.
+        if (!autoFetch || !fetcher) return;
         if (campaigns.length === 0 && !isLoading) {
-            fetchCampaigns(getCampaigns);
+            void fetchCampaigns(fetcher);
         }
-    }, [campaigns.length, isLoading, fetchCampaigns]);
+    }, [autoFetch, fetcher, campaigns.length, isLoading, fetchCampaigns]);
+
+    const refetch = async () => {
+        if (!fetcher) return;
+        await fetchCampaigns(fetcher);
+    };
 
     return {
         campaigns,
         isLoading,
         error,
         isEmpty: !isLoading && !error && campaigns.length === 0,
-        clearError
+        clearError,
+        refetch,
     };
 };

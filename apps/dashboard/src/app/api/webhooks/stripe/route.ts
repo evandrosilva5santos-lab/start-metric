@@ -3,6 +3,31 @@ import { createClient } from "@supabase/supabase-js";
 
 export const dynamic = "force-dynamic";
 
+type StripeWebhookItem = {
+  product_id: string;
+  product_name: string;
+  quantity?: number;
+  unit_price: number;
+};
+
+type StripeWebhookPayload = {
+  org_id: string;
+  external_order_id: string;
+  status?: string;
+  total_amount?: number;
+  currency?: string;
+  customer_email?: string;
+  customer_name?: string;
+  tracking_session_id?: string;
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  attribution_fbc?: string;
+  attribution_fbp?: string;
+  click_id?: string;
+  items?: StripeWebhookItem[];
+};
+
 export async function POST(req: Request) {
   // Supabase Service Role client (bypasses RLS)
   const supabase = createClient(
@@ -11,7 +36,7 @@ export async function POST(req: Request) {
   );
 
   try {
-    const payload = await req.json();
+    const payload = (await req.json()) as StripeWebhookPayload;
 
     // Idempotência básica para testes (espera { org_id, external_order_id, status, total_amount, ... })
     // No MVP focado na POC, aceitamos um POST direto se as propriedades básicas existirem.
@@ -69,7 +94,7 @@ export async function POST(req: Request) {
 
     // Inserir items se existirem
     if (items.length > 0) {
-      const orderItems = items.map((item: any) => ({
+      const orderItems = items.map((item: StripeWebhookItem) => ({
         order_id: order.id,
         product_id: item.product_id,
         product_name: item.product_name,
@@ -93,8 +118,9 @@ export async function POST(req: Request) {
     
     return NextResponse.json({ success: true, order_id: order.id });
 
-  } catch (err: any) {
-    console.error("Webhook Error:", err);
-    return NextResponse.json({ error: err.message || "Unknown error" }, { status: 500 });
+  } catch (error: unknown) {
+    console.error("Webhook Error:", error);
+    const message = error instanceof Error ? error.message : "Unknown error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

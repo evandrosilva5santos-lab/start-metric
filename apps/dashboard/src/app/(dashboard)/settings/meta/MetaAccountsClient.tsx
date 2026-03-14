@@ -18,6 +18,7 @@ import {
   Database,
   Facebook
 } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
 interface AdAccount {
   id: string;
@@ -46,7 +47,7 @@ const ERROR_MESSAGES: Record<string, string> = {
   unexpected: "Erro inesperado. Tente novamente em instantes.",
 };
 
-const STATUS_CONFIG: Record<string, { label: string; className: string; icon: any }> = {
+const STATUS_CONFIG: Record<string, { label: string; className: string; icon: LucideIcon }> = {
   active: { 
     label: "Ativo", 
     className: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",

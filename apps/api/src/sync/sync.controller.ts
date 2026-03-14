@@ -16,7 +16,10 @@ export class SyncController {
   constructor(private syncService: SyncService) {}
 
   @Post('account/:id')
-  async syncAccount(@Param('id') adAccountId: string, @CurrentUser() user: User) {
+  async syncAccount(
+    @Param('id') adAccountId: string,
+    @CurrentUser() user: User,
+  ) {
     // TODO: Validate that user owns this account
     const job = await this.syncService.enqueueSyncAccount(adAccountId);
     return { message: 'Sync job enqueued', jobId: job.id };

@@ -191,6 +191,10 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
       },
       chart: [],
       campaigns: [],
+      metrics: {
+        activeCampaigns: 0,
+        totalCampaigns: 0,
+      },
       generatedAt: new Date().toISOString(),
     };
   }
@@ -315,6 +319,10 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
     kpis,
     chart,
     campaigns: campaignsOutput,
+    metrics: {
+      activeCampaigns: campaigns.filter((campaign) => (campaign.status ?? "").toUpperCase() === "ACTIVE").length,
+      totalCampaigns: campaigns.length,
+    },
     generatedAt: new Date().toISOString(),
   };
 }

@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useAppStore } from "@/store/data-store";
 import { statusLabel } from "@/lib/utils";

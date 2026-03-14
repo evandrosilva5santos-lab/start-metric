@@ -69,7 +69,9 @@ export class CampaignsService {
       await this.metaService.fetchCampaigns(campaign.ad_account_id, token);
       // In real implementation, would call Meta API to update
     } catch (error: any) {
-      throw new BadRequestException(`Failed to update campaign: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to update campaign: ${error.message}`,
+      );
     }
 
     return this.prisma.campaigns.update({
@@ -95,7 +97,9 @@ export class CampaignsService {
       await this.metaService.fetchCampaigns(campaign.ad_account_id, token);
       // In real implementation, would call Meta API to update
     } catch (error: any) {
-      throw new BadRequestException(`Failed to update budget: ${error.message}`);
+      throw new BadRequestException(
+        `Failed to update budget: ${error.message}`,
+      );
     }
 
     return this.prisma.campaigns.update({
