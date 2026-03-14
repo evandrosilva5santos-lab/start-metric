@@ -4,21 +4,14 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  LayoutDashboard,
-  TrendingUp,
-  Activity,
   Wallet,
-  Settings,
-  LogOut,
   RefreshCw,
   ArrowRight,
-  ChevronRight,
   AlertCircle,
   CheckCircle2,
   Clock,
   XCircle,
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -76,14 +69,6 @@ const STATUS_STYLES = {
   },
 };
 
-const NAV_ITEMS = [
-  { icon: LayoutDashboard, label: "Dashboard",       href: "/"           },
-  { icon: TrendingUp,      label: "Performance Ads", href: "/performance" },
-  { icon: Activity,        label: "Criativos",       href: "/criativos"  },
-  { icon: Wallet,          label: "Contas Meta",      href: "/accounts", active: true },
-  { icon: Settings,        label: "Integrações",     href: "/settings"   },
-];
-
 // ── Skeleton ─────────────────────────────────────────────────────────────────
 
 function AccountSkeleton() {
@@ -110,7 +95,6 @@ export default function AccountsPage() {
   const [loading, setLoading]   = useState(true);
   const [syncing, setSyncing]   = useState(false);
   const [error, setError]       = useState<string | null>(null);
-  const [isSigningOut, setIsSigningOut] = useState(false);
 
   const fetchAccounts = useCallback(async (showSyncSpinner = false) => {
     if (showSyncSpinner) setSyncing(true);
@@ -135,72 +119,12 @@ export default function AccountsPage() {
 
   useEffect(() => { fetchAccounts(); }, [fetchAccounts]);
 
-  async function handleSignOut() {
-    setIsSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.href = "/auth";
-  }
-
   return (
-    <div className="flex min-h-screen text-slate-200">
-      {/* ── SIDEBAR ──────────────────────────────────────────────── */}
-      <aside className="w-64 h-screen sticky top-0 glass-solid border-r flex flex-col p-4 shrink-0">
-        {/* Logo */}
-        <div className="flex items-center gap-3 px-2 mb-10">
-          <div className="w-8 h-8 rounded-xl bg-cyan-400/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 font-bold text-xs tracking-widest">
-            SM
-          </div>
-          <span className="font-extrabold text-lg tracking-tight text-white">
-            START METRIC
-          </span>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 space-y-1">
-          {NAV_ITEMS.map(({ icon: Icon, label, href, active }) => (
-            <button
-              key={label}
-              onClick={() => router.push(href)}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm transition-all duration-200 ${
-                active
-                  ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 font-semibold"
-                  : "text-slate-500 hover:bg-slate-800/60 hover:text-slate-200 border border-transparent"
-              }`}
-            >
-              <Icon size={18} />
-              {label}
-              {active && <ChevronRight size={14} className="ml-auto opacity-50" />}
-            </button>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div className="border-t border-slate-800/60 pt-4 space-y-2">
-          <div className="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-slate-800/50 transition-colors cursor-pointer">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-400 to-indigo-500 flex items-center justify-center text-slate-900 font-bold text-xs shrink-0">
-              EV
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-slate-200 truncate">Evandro Santos</p>
-              <p className="text-[10px] text-slate-600 truncate">gestor@agencia.com</p>
-            </div>
-          </div>
-          <button
-            onClick={handleSignOut}
-            disabled={isSigningOut}
-            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-slate-600 hover:text-red-400 hover:bg-red-500/5 transition-all duration-200 border border-transparent disabled:opacity-60"
-          >
-            <LogOut size={16} />
-            {isSigningOut ? "Saindo..." : "Sair"}
-          </button>
-        </div>
-      </aside>
-
+    <>
       {/* ── MAIN ─────────────────────────────────────────────────── */}
       <main className="flex-1 p-8 overflow-y-auto min-w-0">
         {/* Header */}
-        <header className="flex items-center justify-between mb-10">
+        <header className="flex items-center gap-4 mb-10">
           <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
             <p className="text-[11px] text-cyan-400/70 uppercase tracking-[0.2em] font-semibold mb-1">
               Meta Ads
@@ -210,6 +134,7 @@ export default function AccountsPage() {
             </h1>
           </motion.div>
 
+          {/* Sync Button */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -327,6 +252,6 @@ export default function AccountsPage() {
           </div>
         )}
       </main>
-    </div>
+    </>
   );
 }

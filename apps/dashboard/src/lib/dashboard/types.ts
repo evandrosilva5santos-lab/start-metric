@@ -65,5 +65,9 @@ export type DashboardData = {
   kpis: DashboardKpis;
   chart: DashboardChartPoint[];
   campaigns: DashboardCampaignRow[];
+  metrics: {
+    activeCampaigns: number;
+    totalCampaigns: number;
+  };
   generatedAt: string;
 };

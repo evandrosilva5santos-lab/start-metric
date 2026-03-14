@@ -23,14 +23,14 @@ Dashboard de performance de tráfego pago com foco em ROI, tempo e organização
 
 ## 🧭 Current Trajectory
 
-**Step 1: Auditoria da Fundação de Design e Layout Base**
-Estamos na fase de análise e preparação do layout para suportar os dados reais do Supabase.
+**Refatoração Visual 2026 (Elite UI)**
+Estamos transformando a base visual do Dashboard. Focando em Estética de Alto Impacto, Micro-animações com Framer Motion e Layouts Imersivos que elevam a percepção de valor do produto.
 
 ## 👥 Squad Status
 
 | Agent | Task | Status |
 | :--- | :--- | :--- |
-| @frontend-specialist | Design System & Layout | 🏗️ Iniciando |
+| **Antigravity** | Design Lead & Visual Excellence | 🚀 Otimizando UI/UX |
 | @backend-specialist | Supabase Integration & RLS | 🔍 Validando |
 | @orchestrator | Coordination | 🟢 Ativo |
 

@@ -36,8 +36,8 @@ export class CampaignsController {
 
   @Get()
   async listCampaigns(
-    @Query('adAccountId') adAccountId?: string,
     @CurrentUser() user: User,
+    @Query('adAccountId') adAccountId?: string,
   ) {
     return this.campaignsService.findAll(user.orgId, adAccountId);
   }

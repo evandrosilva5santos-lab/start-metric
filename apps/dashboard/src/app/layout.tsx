@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { TrackingBootstrap } from "@/components/tracking/TrackingBootstrap";
+import { GlobalStatusOverlay } from "@/components/layout/GlobalStatusOverlay";
 
 export const metadata: Metadata = {
   title: "Start Metric — Inteligência de ROI para Tráfego Pago",
@@ -20,6 +21,7 @@ export default function RootLayout({
     <html lang="pt-BR" className="dark">
       <body className="font-sans antialiased bg-grid">
         <QueryProvider>
+          <GlobalStatusOverlay />
           <Suspense fallback={null}>
             <TrackingBootstrap />
           </Suspense>
