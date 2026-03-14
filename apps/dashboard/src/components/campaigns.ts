@@ -1,4 +1,4 @@
-import { createClient } from "@/utils/supabase/client"; // Ajuste o caminho caso o seu utilitário fique em @/lib/supabase
+import { createClient } from "@/lib/supabase/client";
 import type { DashboardCampaignRow as Campaign } from "@/lib/dashboard/types";
 
 export const getCampaigns = async (): Promise<Campaign[]> => {
