@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Meta Ad Spy — Inteligência de Criativos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <div class="logo">
+        <span class="logo-icon">⚡</span>
+        <span class="logo-text">Meta Ad <span class="gradient-text">Spy</span></span>
+      </div>
+      <div class="header-badge">
+        <span class="dot"></span>
+        <span>API v25.0</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Search -->
+  <section class="hero">
+    <div class="hero-content">
+      <h1 class="hero-title">
+        Descubra os Criativos<br />
+        <span class="gradient-text">Mais Escalados</span> da Meta
+      </h1>
+      <p class="hero-subtitle">
+        Busque por palavras-chave e encontre anúncios ativos em todo o Facebook e Instagram
+      </p>
+
+      <!-- Config Token -->
+      <div class="token-bar" id="tokenBar">
+        <span class="token-label">🔑 Access Token:</span>
+        <input type="password" id="accessToken" placeholder="Cole seu Meta Access Token aqui..." class="token-input" />
+        <button class="btn-save-token" onclick="saveToken()">Salvar</button>
+      </div>
+
+      <!-- Search Box -->
+      <div class="search-container">
+        <div class="search-box">
+          <span class="search-icon">🔍</span>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Ex: emagrecimento, curso online, suplemento..."
+            onkeydown="if(event.key==='Enter') search()"
+          />
+          <button class="btn-search" onclick="search()">
+            <span id="searchBtnText">Buscar Anúncios</span>
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+          <div class="filter-group">
+            <label>País</label>
+            <select id="country" class="filter-select">
+              <option value="BR">🇧🇷 Brasil</option>
+              <option value="US">🇺🇸 Estados Unidos</option>
+              <option value="PT">🇵🇹 Portugal</option>
+              <option value="ALL">🌍 Todos</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Tipo de Anúncio</label>
+            <select id="adType" class="filter-select">
+              <option value="ALL">Todos</option>
+              <option value="POLITICAL_AND_ISSUE_ADS">Políticos / Sociais</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Status</label>
+            <select id="adStatus" class="filter-select">
+              <option value="ACTIVE">Ativos</option>
+              <option value="INACTIVE">Inativos</option>
+              <option value="ALL">Todos</option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label>Resultados</label>
+            <select id="limit" class="filter-select">
+              <option value="10">10</option>
+              <option value="25" selected>25</option>
+              <option value="50">50</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Bar -->
+  <div class="stats-bar" id="statsBar" style="display:none">
+    <div class="stat-item">
+      <span class="stat-value" id="totalAds">0</span>
+      <span class="stat-label">Anúncios Encontrados</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="totalPages">0</span>
+      <span class="stat-label">Páginas Únicas</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="avgSpend">-</span>
+      <span class="stat-label">Gasto Predominante</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat-item">
+      <span class="stat-value" id="searchTerm">-</span>
+      <span class="stat-label">Termo Buscado</span>
+    </div>
+  </div>
+
+  <!-- Sort Controls -->
+  <div class="sort-bar" id="sortBar" style="display:none">
+    <span class="sort-label">Ordenar por:</span>
+    <button class="sort-btn active" onclick="sortResults('spend')" id="sort-spend">💰 Maior Gasto</button>
+    <button class="sort-btn" onclick="sortResults('impressions')" id="sort-impressions">👁️ Mais Impressões</button>
+    <button class="sort-btn" onclick="sortResults('page')" id="sort-page">📄 Página</button>
+
+    <div class="view-toggle">
+      <button class="view-btn active" id="view-grid" onclick="setView('grid')" title="Grid">⬛</button>
+      <button class="view-btn" id="view-list" onclick="setView('list')" title="Lista">☰</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" id="loading" style="display:none">
+    <div class="loading-spinner"></div>
+    <p>Buscando criativos na Meta Ad Library...</p>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-box" id="errorBox" style="display:none">
+    <span class="error-icon">⚠️</span>
+    <div>
+      <strong>Erro na busca</strong>
+      <p id="errorMsg"></p>
+    </div>
+    <button onclick="closeError()" class="error-close">✕</button>
+  </div>
+
+  <!-- Results Grid -->
+  <main class="results-container" id="resultsContainer">
+    <!-- Empty State -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">🎯</div>
+      <h3>Pronto para espionar a concorrência</h3>
+      <p>Digite uma palavra-chave acima e descubra quais anúncios estão sendo escalados no momento</p>
+      <div class="empty-examples">
+        <span class="example-tag" onclick="quickSearch('emagrecimento')">emagrecimento</span>
+        <span class="example-tag" onclick="quickSearch('curso online')">curso online</span>
+        <span class="example-tag" onclick="quickSearch('suplemento')">suplemento</span>
+        <span class="example-tag" onclick="quickSearch('imóveis')">imóveis</span>
+        <span class="example-tag" onclick="quickSearch('renda extra')">renda extra</span>
+      </div>
+    </div>
+
+    <div class="results-grid" id="resultsGrid"></div>
+  </main>
+
+  <!-- Ad Detail Modal -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-content" id="modalContent"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

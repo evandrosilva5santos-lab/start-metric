@@ -6,10 +6,7 @@ Abaixo está o plano de execução para a consolidação e escala do sistema de 
 *Essas informações são vitais e NUNCA devem ser removidas.*
 
 - **Meta Ads App**: `1471696211057442` (Status: Ativo)
-- **Supabase Project ID**: `etjqbqorawnnvdlmztka`
 - **Supabase URL**: `https://etjqbqorawnnvdlmztka.supabase.co`
-- **Supabase Anon Key**: `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImV0anFicW9yYXdubnZkbG16dGthIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMxMDQ3MzYsImV4cCI6MjA4ODY4MDczNn0.LuLbWvZEt90ha53_36LgWQ_9tXY4tm0Fd03Q5lIruz0`
-- **Supabase Publishable Key**: `sb_publishable_yXCAttxfMpkiLqDJdxjKJA_8sBcMKqM`
 - **Vercel Project**: `start-metric` (`prj_IP5D0g6svenC7k0uWJgOxgAoSK8m`)
 - **Git Remote**: `https://github.com/evandrosilva5santos-lab/start-metric`
 

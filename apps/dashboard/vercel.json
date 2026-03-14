@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/meta-sync",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/alerts-monitor",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
