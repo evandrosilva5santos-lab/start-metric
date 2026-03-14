@@ -336,10 +336,12 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                     {/* Nome + Sobrenome */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        <label htmlFor="firstName" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                           Nome
                         </label>
                         <input
+                          id="firstName"
+                          name="firstName"
                           type="text"
                           value={firstName}
                           onChange={(e) => setFirstName(e.target.value)}
@@ -350,10 +352,12 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        <label htmlFor="lastName" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                           Sobrenome
                         </label>
                         <input
+                          id="lastName"
+                          name="lastName"
                           type="text"
                           value={lastName}
                           onChange={(e) => setLastName(e.target.value)}
@@ -367,10 +371,12 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
 
                     {/* Telefone */}
                     <div className="space-y-2">
-                      <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      <label htmlFor="phone" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                         Telefone
                       </label>
                       <input
+                        id="phone"
+                        name="phone"
                         type="tel"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
@@ -385,10 +391,12 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
 
                 {/* E-mail */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                  <label htmlFor="email" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     E-mail
                   </label>
                   <input
+                    id="email"
+                    name="email"
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
@@ -401,11 +409,13 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
 
                 {/* Senha */}
                 <div className="space-y-2">
-                  <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                  <label htmlFor="password" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                     Senha
                   </label>
                   <div className="relative">
                     <input
+                      id="password"
+                      name="password"
                       type={showPwd ? "text" : "password"}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
@@ -454,11 +464,13 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                 {/* Confirmar senha */}
                 {tab === "signup" && (
                   <div className="space-y-2">
-                    <label className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                    <label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
                       Confirmar senha
                     </label>
                     <div className="relative">
                       <input
+                        id="confirmPassword"
+                        name="confirmPassword"
                         type={showConfirmPwd ? "text" : "password"}
                         value={confirmPassword}
                         onChange={(e) => setConfirmPassword(e.target.value)}
