@@ -6,6 +6,7 @@
   "private": true,
   "license": "UNLICENSED",
   "scripts": {
+    "prebuild": "prisma generate",
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -30,6 +31,7 @@
     "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schedule": "^6.1.1",
     "@start-metric/db": "*",
+    "@prisma/client": "latest",
     "@types/bull": "^3.15.9",
     "bull": "^4.16.5",
     "class-transformer": "^0.5.1",
@@ -63,7 +65,8 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "prisma": "latest"
   },
   "jest": {
     "moduleFileExtensions": [
