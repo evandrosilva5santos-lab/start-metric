@@ -1,7 +1,5 @@
 import React, { ReactNode } from 'react';
 
-// Note: The actual visual implementations (Skeleton, ErrorMsg) 
-// are delegated to the Design Lead's UI library.
 import { SkeletonLoader } from '@/components/ui/SkeletonLoader';
 import { ErrorAlert } from '@/components/ui/ErrorAlert';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -15,10 +13,6 @@ interface StateBoundaryProps {
     children: ReactNode;
 }
 
-/**
- * StateBoundary intercepts the render lifecycle to automatically 
- * display Skeletons, Errors, or Empty states based on the passed props.
- */
 export const StateBoundary: React.FC<StateBoundaryProps> = ({
     isLoading,
     error,
@@ -36,7 +30,12 @@ export const StateBoundary: React.FC<StateBoundaryProps> = ({
     }
 
     if (isEmpty) {
-        return <EmptyState message={emptyMessage} action={emptyAction} />;
+        return (
+            <div className="space-y-4">
+                <EmptyState title="No data" description={emptyMessage} />
+                {emptyAction ? <div className="flex justify-center">{emptyAction}</div> : null}
+            </div>
+        );
     }
 
     return <>{children}</>;

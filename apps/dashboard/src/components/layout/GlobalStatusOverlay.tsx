@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import { useUIStore } from "@/store/ui-store";
 import { Loader2, AlertCircle } from "lucide-react";
