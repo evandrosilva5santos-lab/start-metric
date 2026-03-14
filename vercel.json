@@ -1,0 +1,16 @@
+{
+  "buildCommand": "cd apps/dashboard && npm run build",
+  "outputDirectory": "apps/dashboard/.next",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/meta-sync",
+      "schedule": "0 3 * * *"
+    },
+    {
+      "path": "/api/cron/alerts-monitor",
+      "schedule": "*/15 * * * *"
+    }
+  ]
+}
