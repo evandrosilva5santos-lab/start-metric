@@ -300,50 +300,61 @@ AS $$
 $$;
 
 -- AD ACCOUNTS
+DROP POLICY IF EXISTS "ad_accounts_select_org" ON ad_accounts;
 CREATE POLICY "ad_accounts_select_org"
   ON ad_accounts FOR SELECT
   USING (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "ad_accounts_insert_org" ON ad_accounts;
 CREATE POLICY "ad_accounts_insert_org"
   ON ad_accounts FOR INSERT
   WITH CHECK (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "ad_accounts_update_org" ON ad_accounts;
 CREATE POLICY "ad_accounts_update_org"
   ON ad_accounts FOR UPDATE
   USING (org_id = auth_org_id())
   WITH CHECK (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "ad_accounts_delete_org" ON ad_accounts;
 CREATE POLICY "ad_accounts_delete_org"
   ON ad_accounts FOR DELETE
   USING (org_id = auth_org_id());
 
 -- CAMPAIGNS
+DROP POLICY IF EXISTS "campaigns_select_org" ON campaigns;
 CREATE POLICY "campaigns_select_org"
   ON campaigns FOR SELECT
   USING (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "campaigns_insert_org" ON campaigns;
 CREATE POLICY "campaigns_insert_org"
   ON campaigns FOR INSERT
   WITH CHECK (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "campaigns_update_org" ON campaigns;
 CREATE POLICY "campaigns_update_org"
   ON campaigns FOR UPDATE
   USING (org_id = auth_org_id())
   WITH CHECK (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "campaigns_delete_org" ON campaigns;
 CREATE POLICY "campaigns_delete_org"
   ON campaigns FOR DELETE
   USING (org_id = auth_org_id());
 
 -- DAILY METRICS
+DROP POLICY IF EXISTS "daily_metrics_select_org" ON daily_metrics;
 CREATE POLICY "daily_metrics_select_org"
   ON daily_metrics FOR SELECT
   USING (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "daily_metrics_insert_org" ON daily_metrics;
 CREATE POLICY "daily_metrics_insert_org"
   ON daily_metrics FOR INSERT
   WITH CHECK (org_id = auth_org_id());
 
+DROP POLICY IF EXISTS "daily_metrics_update_org" ON daily_metrics;
 CREATE POLICY "daily_metrics_update_org"
   ON daily_metrics FOR UPDATE
   USING (org_id = auth_org_id())
