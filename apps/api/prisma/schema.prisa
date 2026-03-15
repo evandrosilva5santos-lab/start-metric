@@ -706,28 +706,3 @@ model attributions {
 
   @@schema("public")
 }
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-
-// ============================================================================
-// ATTRIBUTION TABLES (Feature 1 - Lucro Real)
-// ============================================================================
-
-/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
-  org_id        String    @db.Uuid
-  click_id      String    @unique
-  campaign_id   String?   @db.Uuid
-  adset_id      String?   @db.Uuid
-  ad_id         String?   @db.Uuid
-  utm_source    String?
-  utm_medium    String?
-  utm_campaign  String?
-  fbc           String?
-  fbp           String?
-  ip_address    String?
-  user_agent    String?
-  landed_at     DateTime  @default(now()) @db.Timestamptz(6)
-  converted_at  DateTime? @db.Timestamptz(6)
-
-  @@schema("public")
-}
