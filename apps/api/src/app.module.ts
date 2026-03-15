@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { BullModule } from '@nestjs/bull';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaService } from './prisma.service';
 import { AuthModule } from './auth/auth.module';
 import { MetaModule } from './meta/meta.module';
 import { AdsModule } from './ads/ads.module';
@@ -11,6 +10,7 @@ import { CampaignsModule } from './campaigns/campaigns.module';
 import { SyncModule } from './sync/sync.module';
 import { StripeWebhookModule } from './webhooks/stripe/stripe.module';
 import { JwtAuthGuard } from './auth/auth.guard';
+import { PrismaModule } from './prisma.module';
 
 @Module({
   imports: [
@@ -24,6 +24,7 @@ import { JwtAuthGuard } from './auth/auth.guard';
         port: parseInt(process.env.REDIS_PORT || '6379'),
       },
     }),
+    PrismaModule,
     AuthModule,
     MetaModule,
     AdsModule,
@@ -34,12 +35,11 @@ import { JwtAuthGuard } from './auth/auth.guard';
   controllers: [AppController],
   providers: [
     AppService,
-    PrismaService,
     {
       provide: 'APP_GUARD',
       useClass: JwtAuthGuard,
     },
   ],
-  exports: [PrismaService, AuthModule],
+  exports: [AuthModule],
 })
 export class AppModule {}

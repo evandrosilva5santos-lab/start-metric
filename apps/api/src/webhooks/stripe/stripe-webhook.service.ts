@@ -3,6 +3,48 @@ import { ConfigService } from '@nestjs/config';
 import Stripe from 'stripe';
 import { PrismaService } from '../../prisma.service';
 import { createAttributionEngine } from '@start-metric/attribution';
+import type { Order } from '@start-metric/types';
+
+function toNumber(value: unknown): number {
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return Number(value);
+  if (value && typeof value === 'object' && 'toNumber' in value) {
+    return (value as { toNumber: () => number }).toNumber();
+  }
+  return 0;
+}
+
+function mapOrderForAttribution(order: {
+  id: string;
+  org_id: string;
+  stripe_checkout_session_id: string;
+  stripe_payment_intent_id: string;
+  amount_total: unknown;
+  amount_subtotal: unknown;
+  amount_tax: unknown;
+  amount_refunded: unknown;
+  currency: string;
+  status: string;
+  metadata: unknown;
+  created_at: Date;
+  updated_at: Date;
+}): Order {
+  return {
+    id: order.id,
+    org_id: order.org_id,
+    stripe_checkout_session_id: order.stripe_checkout_session_id,
+    stripe_payment_intent_id: order.stripe_payment_intent_id,
+    amount_total: toNumber(order.amount_total),
+    amount_subtotal: toNumber(order.amount_subtotal),
+    amount_tax: toNumber(order.amount_tax),
+    amount_refunded: toNumber(order.amount_refunded),
+    currency: order.currency,
+    status: order.status as Order['status'],
+    metadata: (order.metadata ?? {}) as Order['metadata'],
+    created_at: order.created_at.toISOString(),
+    updated_at: order.updated_at.toISOString(),
+  };
+}
 
 @Injectable()
 export class StripeWebhookService {
@@ -27,8 +69,9 @@ export class StripeWebhookService {
         signature,
         this.webhookSecret,
       );
-    } catch (err) {
-      this.logger.error(`Webhook signature verification failed: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'unknown error';
+      this.logger.error(`Webhook signature verification failed: ${message}`);
       throw new UnauthorizedException('Invalid signature');
     }
 
@@ -36,7 +79,7 @@ export class StripeWebhookService {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutSessionCompleted(event.data.object as Stripe.Checkout.Session);
+        await this.handleCheckoutSessionCompleted(event.data.object);
         break;
 
       case 'charge.refunded':
@@ -45,7 +88,7 @@ export class StripeWebhookService {
         break;
 
       case 'payment_intent.payment_failed':
-        await this.handlePaymentFailed(event.data.object as Stripe.PaymentIntent);
+        await this.handlePaymentFailed(event.data.object);
         break;
 
       default:
@@ -53,7 +96,9 @@ export class StripeWebhookService {
     }
   }
 
-  private async handleCheckoutSessionCompleted(session: Stripe.Checkout.Session) {
+  private async handleCheckoutSessionCompleted(
+    session: Stripe.Checkout.Session,
+  ) {
     this.logger.log(`Checkout session completed: ${session.id}`);
 
     // Extrair metadata do checkout
@@ -74,10 +119,10 @@ export class StripeWebhookService {
         stripe_checkout_session_id: session.id,
         stripe_payment_intent_id: session.payment_intent as string,
         amount_subtotal: (session.amount_subtotal || 0) / 100,
-        amount_tax: (session.total_details?.tax_amount_submission || 0) / 100,
+        amount_tax: (session.total_details?.amount_tax || 0) / 100,
         amount_total: (session.amount_total || 0) / 100,
         amount_refunded: 0,
-        currency: session.currency.toUpperCase(),
+        currency: (session.currency ?? 'brl').toUpperCase(),
         status: 'complete',
         metadata: {
           click_id: metadata.click_id,
@@ -100,14 +145,19 @@ export class StripeWebhookService {
 
     // Atribuir order à campanha
     const attributionEngine = createAttributionEngine(this.prisma as any);
-    const result = await attributionEngine.attributeOrder(order, {
-      model: 'last_click',
-      conversionWindowDays: 30,
-      fallbackToUtm: true,
-    });
+    const result = await attributionEngine.attributeOrder(
+      mapOrderForAttribution(order),
+      {
+        model: 'last_click',
+        conversionWindowDays: 30,
+        fallbackToUtm: true,
+      },
+    );
 
     if (result.attribution) {
-      this.logger.log(`Order ${order.id} attributed to campaign ${result.attribution.campaign_id}`);
+      this.logger.log(
+        `Order ${order.id} attributed to campaign ${result.attribution.campaign_id}`,
+      );
     } else {
       this.logger.warn(`Order ${order.id} could not be attributed`);
     }
@@ -151,7 +201,9 @@ export class StripeWebhookService {
     });
 
     if (sessions.data.length === 0) {
-      this.logger.warn(`No checkout session found for payment intent ${paymentIntent.id}`);
+      this.logger.warn(
+        `No checkout session found for payment intent ${paymentIntent.id}`,
+      );
       return;
     }
 
@@ -172,10 +224,10 @@ export class StripeWebhookService {
         stripe_checkout_session_id: session.id,
         stripe_payment_intent_id: paymentIntent.id,
         amount_subtotal: (session.amount_subtotal || 0) / 100,
-        amount_tax: (session.total_details?.tax_amount_submission || 0) / 100,
+        amount_tax: (session.total_details?.amount_tax || 0) / 100,
         amount_total: (session.amount_total || 0) / 100,
         amount_refunded: 0,
-        currency: session.currency.toUpperCase(),
+        currency: (session.currency ?? 'brl').toUpperCase(),
         status: 'failed',
         metadata: metadata as any,
         created_at: new Date(),
@@ -183,6 +235,8 @@ export class StripeWebhookService {
       },
     });
 
-    this.logger.log(`Failed order created for payment intent ${paymentIntent.id}`);
+    this.logger.log(
+      `Failed order created for payment intent ${paymentIntent.id}`,
+    );
   }
 }

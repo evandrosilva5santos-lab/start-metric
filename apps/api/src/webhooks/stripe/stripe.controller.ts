@@ -1,5 +1,14 @@
-import { Controller, Post, RawBodyRequest, Headers, HttpStatus, HttpCode } from '@nestjs/common';
-import { Request } from 'express';
+import {
+  BadRequestException,
+  Controller,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+} from '@nestjs/common';
+import type { RawBodyRequest } from '@nestjs/common';
+import type { Request } from 'express';
 import { StripeWebhookService } from './stripe-webhook.service';
 
 @Controller('webhooks/stripe')
@@ -9,9 +18,13 @@ export class StripeWebhookController {
   @Post()
   @HttpCode(HttpStatus.OK)
   async handleWebhook(
-    @RawBodyRequest() req: RawBodyRequest<Request>,
+    @Req() req: RawBodyRequest<Request>,
     @Headers('stripe-signature') signature: string,
   ) {
+    if (!req.rawBody) {
+      throw new BadRequestException('Missing raw request body');
+    }
+
     await this.stripeWebhookService.processWebhook(req.rawBody, signature);
     return { received: true };
   }

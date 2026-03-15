@@ -88,6 +88,72 @@
 
 ---
 
+## 🔬 Research Track (R&D Lead) — Próxima Feature
+
+### Feature alvo pesquisada
+
+**Feature 2: Relatórios Inteligentes** (Data Aggregation + Template Builder + Scheduler + Histórico + Preview).
+
+### Recomendação arquitetural (2026-03-15)
+
+**Decisão recomendada:** implementar Feature 2 com **pipeline assíncrono no `apps/api` (NestJS) usando fila durável**, mantendo o `apps/dashboard` focado em UI/BFF.
+
+**Stack recomendada por fase:**
+- Fase 2.1 (agora): **BullMQ no NestJS** (o projeto já usa `@nestjs/bull` + `bull`), com jobs dedicados para `report.generate` e `report.dispatch`.
+- Fase 2.2 (upgrade): migrar para **BullMQ Job Schedulers** (`upsertJobScheduler`) para recorrência sem duplicidade operacional.
+- Fase 2.3 (alternativa de simplificação): avaliar **Supabase Queues (pgmq)** se quisermos reduzir dependência de Redis no médio prazo.
+
+### Por que esta decisão
+
+- Aproveita infra já presente (Nest + fila), reduz risco de arquitetura paralela.
+- Separa execução longa de geração/envio de relatório da camada de request HTTP.
+- Facilita idempotência e retries por etapa (gerar, persistir, enviar).
+- Mantém coerência com Feature 3 (WhatsApp), que já depende de workers e scheduler.
+
+### Padrões obrigatórios para Feature 2
+
+- **Transactional Outbox** para publicação confiável de eventos internos após persistência no Postgres.
+- **Idempotency keys** para jobs e envios (especialmente quando acionados por cron/webhook).
+- **Job state machine** clara: `pending -> generating -> completed|failed -> sent|failed`.
+- **Tenant isolation** por `org_id` em toda execução e consulta.
+- **Observabilidade mínima**: correlation_id por execução + métricas de latência/falha por job.
+
+### Playbook de crescimento (growth-engine aplicado ao plano)
+
+**North Star da Feature 2:** `% de organizações com relatório automático ativo e entregue com sucesso`.
+
+**Métricas de ativação (primeiros 14 dias):**
+- `report_template_created_rate`
+- `scheduled_report_activation_rate`
+- `first_report_time_to_value` (cadastro até primeiro relatório concluído)
+- `scheduled_report_success_rate`
+- `report_open_or_view_rate` (preview/download)
+
+**Loops de crescimento:**
+- Loop de retenção: agendamento semanal + histórico de performance por cliente.
+- Loop de expansão: template compartilhável por organização/conta.
+- Loop de monetização: limites por plano (quantidade de agendamentos e canais de envio).
+
+### Plano tático (ordem de execução)
+
+- [ ] Definir schema de `report_templates`, `scheduled_reports`, `report_executions`.
+- [ ] Criar jobs `report.generate` e `report.dispatch` no `apps/api`.
+- [ ] Implementar agregador canônico (mesmas fórmulas do dashboard).
+- [ ] Entregar preview no dashboard + histórico com status.
+- [ ] Habilitar scheduler recorrente e retries com backoff.
+- [ ] Instrumentar métricas de ativação/entrega no produto.
+
+### Riscos e mitigação
+
+- Risco: dupla execução por cron/redeploy.
+  Mitigação: idempotency key + lock distribuído por `(org_id, scheduled_report_id, period)`.
+- Risco: divergência entre dashboard e relatório.
+  Mitigação: centralizar cálculos em serviço único de agregação.
+- Risco: timeout em geração dentro de rota HTTP.
+  Mitigação: geração sempre em worker assíncrono.
+
+---
+
 ## 👥 Squad
 
 | Agente | Responsabilidade | Status |

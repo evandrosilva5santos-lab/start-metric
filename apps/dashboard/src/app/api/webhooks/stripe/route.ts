@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
+import { createHmac } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -37,8 +38,7 @@ function verifyStripeSignature(payload: string, signature: string): boolean {
   if (!STRIPE_WEBHOOK_SECRET) return true; // Skip verification in development
 
   try {
-    const crypto = require("crypto");
-    const hmac = crypto.createHmac("sha256", STRIPE_WEBHOOK_SECRET);
+    const hmac = createHmac("sha256", STRIPE_WEBHOOK_SECRET);
     const digest = hmac.update(payload).digest("hex");
 
     // Stripe signature format: t=timestamp,v1=signature
