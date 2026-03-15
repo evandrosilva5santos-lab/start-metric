@@ -7,10 +7,15 @@ type EmptyStateProps = {
   icon?: LucideIcon;
   title: string;
   description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+    variant?: "primary" | "secondary";
+  };
   className?: string;
 };
 
-export function EmptyState({ icon: Icon = Search, title, description, className }: EmptyStateProps) {
+export function EmptyState({ icon: Icon = Search, title, description, action, className }: EmptyStateProps) {
   return (
     <div
       className={cn(
@@ -36,9 +41,23 @@ export function EmptyState({ icon: Icon = Search, title, description, className 
       </h3>
       
       {description && (
-        <p className="text-sm text-slate-400 max-w-[280px] font-medium leading-relaxed relative z-10">
+        <p className="text-sm text-slate-400 max-w-[280px] font-medium leading-relaxed relative z-10 mb-6">
           {description}
         </p>
+      )}
+
+      {action && (
+        <button
+          onClick={action.onClick}
+          className={cn(
+            "relative z-10 px-6 py-3 rounded-2xl text-sm font-black uppercase tracking-wider transition-all duration-300",
+            action.variant === "primary"
+              ? "bg-gradient-to-r from-cyan-500 to-indigo-500 text-white shadow-lg shadow-cyan-500/25 hover:shadow-cyan-500/40 hover:scale-105"
+              : "bg-white/10 text-slate-300 border border-white/10 hover:bg-white/20 hover:text-white"
+          )}
+        >
+          {action.label}
+        </button>
       )}
 
       <div className="mt-8 relative z-10">

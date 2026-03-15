@@ -116,12 +116,12 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       adAccountId: initialData.filters.adAccountId,
       campaignStatus: initialData.filters.campaignStatus,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    initialData.filters.adAccountId,
-    initialData.filters.campaignStatus,
     initialData.range.from,
     initialData.range.to,
-    setFilters,
+    initialData.filters.adAccountId,
+    initialData.filters.campaignStatus,
   ]);
 
   const toastAlert =
@@ -191,7 +191,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 shadow-[0_0_22px_rgba(16,185,129,0.15)]">
               <Sparkles size={12} />
-              {data?.metrics?.activeCampaigns ?? data?.campaigns?.length ?? 0} campanhas ativas
+              {data?.campaigns?.length ?? 0} campanhas ativas
             </span>
           </div>
         </div>

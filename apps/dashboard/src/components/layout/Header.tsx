@@ -6,8 +6,6 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
-  TrendingUp,
-  Wallet,
   Settings,
   LogOut,
   Menu,
@@ -18,9 +16,7 @@ import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
-  { icon: TrendingUp, label: "Performance", href: "/performance" },
-  { icon: Wallet, label: "Contas", href: "/accounts" },
-  { icon: Settings, label: "Integrações", href: "/settings" },
+  { icon: Settings, label: "Configurações", href: "/settings" },
 ];
 
 export function Header() {
