@@ -26,3 +26,21 @@ export function SkeletonChart({ className }: SkeletonProps) {
 export function SkeletonTable() {
   return <Skeleton className="h-[420px] rounded-3xl" />;
 }
+
+export function SkeletonKpi({ className }: SkeletonProps) {
+  return (
+    <div className={cn("glass glass-2 rounded-[2rem] p-6 border-white/10 relative overflow-hidden", className)}>
+      {/* Icon placeholder */}
+      <div className="w-12 h-12 rounded-2xl bg-white/5 mb-4 animate-pulse" />
+      {/* Value placeholder */}
+      <div className="h-8 w-32 bg-white/5 rounded-lg mb-2 animate-pulse" />
+      {/* Title placeholder */}
+      <div className="h-4 w-24 bg-white/5 rounded-lg mb-4 animate-pulse" />
+      {/* Trend placeholder */}
+      <div className="h-3 w-20 bg-white/5 rounded-lg animate-pulse" />
+
+      {/* Shine effect */}
+      <div className="absolute top-0 -left-[100%] w-full h-full bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shine pointer-events-none" />
+    </div>
+  );
+}

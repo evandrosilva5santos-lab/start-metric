@@ -9,6 +9,7 @@ import { MetaModule } from './meta/meta.module';
 import { AdsModule } from './ads/ads.module';
 import { CampaignsModule } from './campaigns/campaigns.module';
 import { SyncModule } from './sync/sync.module';
+import { StripeWebhookModule } from './webhooks/stripe/stripe.module';
 import { JwtAuthGuard } from './auth/auth.guard';
 
 @Module({
@@ -28,6 +29,7 @@ import { JwtAuthGuard } from './auth/auth.guard';
     AdsModule,
     CampaignsModule,
     SyncModule,
+    StripeWebhookModule,
   ],
   controllers: [AppController],
   providers: [

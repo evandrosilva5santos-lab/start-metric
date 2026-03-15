@@ -19,7 +19,7 @@ import { KpiGrid } from "./KpiGrid";
 import { PerformanceChart } from "./PerformanceChart";
 import { PeriodSummary } from "./PeriodSummary";
 import { CampaignsTable } from "./CampaignsTable";
-import { SkeletonCard, SkeletonChart, SkeletonTable } from "@/components/ui/Skeleton";
+import { SkeletonCard, SkeletonChart, SkeletonTable, SkeletonKpi } from "@/components/ui/Skeleton";
 
 type DashboardClientProps = {
   initialData: DashboardData;
@@ -51,17 +51,26 @@ function buildQueryString(filters: DashboardFiltersState): string {
 function DashboardSkeleton() {
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-12 gap-4 lg:gap-5 mb-8">
-        {Array.from({ length: 6 }).map((_, index) => (
-          <div
-            key={index}
-            className={cn(
-              index === 5 ? "xl:col-span-6" : index < 3 ? "xl:col-span-4" : "xl:col-span-3",
-            )}
-          >
-            <SkeletonCard />
-          </div>
-        ))}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-12 gap-4 lg:gap-5 mb-6 lg:mb-8">
+        {/* KPI Skeletons - layout matches KpiGrid */}
+        <div className="xl:col-span-6">
+          <SkeletonKpi />
+        </div>
+        <div className="xl:col-span-6">
+          <SkeletonKpi />
+        </div>
+        <div className="xl:col-span-3">
+          <SkeletonKpi />
+        </div>
+        <div className="xl:col-span-3">
+          <SkeletonKpi />
+        </div>
+        <div className="xl:col-span-3">
+          <SkeletonKpi />
+        </div>
+        <div className="xl:col-span-3">
+          <SkeletonKpi />
+        </div>
       </div>
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
         <SkeletonChart className="xl:col-span-8 h-[410px]" />
