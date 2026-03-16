@@ -19,6 +19,7 @@ export default function AuthPage({ searchParams }: Props) {
     <AuthPageClient
       nextParam={getParam(resolvedParams, "next")}
       errorParam={getParam(resolvedParams, "error")}
+      messageParam={getParam(resolvedParams, "message")}
     />
   );
 }

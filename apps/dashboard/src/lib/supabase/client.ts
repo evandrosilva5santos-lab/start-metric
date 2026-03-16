@@ -4,11 +4,13 @@ import type { Database } from "./types";
 type SupabaseEnvName = "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
 function requireEnv(name: SupabaseEnvName): string {
-  const value = process.env[name];
+  const fallbackName =
+    name === "NEXT_PUBLIC_SUPABASE_URL" ? "SUPABASE_URL" : "SUPABASE_ANON_KEY";
+  const value = process.env[name] ?? process.env[fallbackName];
   if (!value) {
     throw new Error(
-      `[supabase/client] Missing required environment variable: ${name}. ` +
-        "Configure it in your deployment provider and local .env file.",
+      `[supabase/client] Missing required environment variable: ${name} (fallback: ${fallbackName}). ` +
+        "Configure it in your deployment provider and local .env file, then redeploy.",
     );
   }
   return value;

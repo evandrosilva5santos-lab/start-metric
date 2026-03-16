@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, AlertTriangle } from "lucide-react";
+import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const MIN_PASSWORD_LENGTH = 8;
@@ -73,14 +73,19 @@ const FEATURES = [
 type AuthPageClientProps = {
   nextParam: string | null;
   errorParam: string | null;
+  messageParam?: string | null;
 };
 
-export default function AuthPageClient({ nextParam, errorParam }: AuthPageClientProps) {
+export default function AuthPageClient({ nextParam, errorParam, messageParam }: AuthPageClientProps) {
   const router = useRouter();
   const nextPath = sanitizeNextPath(nextParam);
   const queryError = mapAuthPageError(errorParam);
+  const querySuccess = messageParam === "password_updated"
+    ? "Senha redefinida com sucesso! Faça login para continuar."
+    : null;
 
   const [tab, setTab] = useState<"login" | "signup">("login");
+  const [view, setView] = useState<"auth" | "forgot">("auth");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
@@ -94,6 +99,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [redirecting, setRedirecting] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
 
   // Debug: verificar env vars ao carregar o componente
   useEffect(() => {
@@ -118,6 +124,35 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
   function resetFeedback() {
     setError(null);
     setSuccessMessage(null);
+  }
+
+  async function handleForgotPassword(e: React.FormEvent) {
+    e.preventDefault();
+    resetFeedback();
+    setLoading(true);
+
+    let supabase;
+    try {
+      supabase = createClient();
+    } catch {
+      setLoading(false);
+      setError("Erro de configuração. Recarregue a página e tente novamente.");
+      return;
+    }
+
+    const redirectUrl = new URL("/auth/reset-password", window.location.origin);
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
+      forgotEmail.trim(),
+      { redirectTo: redirectUrl.toString() },
+    );
+
+    setLoading(false);
+    if (resetError) {
+      setError("Não foi possível enviar o e-mail. Verifique o endereço e tente novamente.");
+      return;
+    }
+
+    setSuccessMessage("E-mail enviado! Verifique sua caixa de entrada e clique no link para redefinir sua senha.");
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -355,27 +390,110 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
             <span className="text-white font-bold tracking-tight">START METRIC</span>
           </div>
 
-          <div className="flex gap-1 p-1 glass rounded-xl mb-8 border-none">
-            {(["login", "signup"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => {
-                  setTab(t);
-                  resetFeedback();
-                  setPasswordTouched(false);
-                }}
-                className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                  tab === t
-                    ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20"
-                    : "text-slate-500 hover:text-slate-300"
-                }`}
-              >
-                {t === "login" ? "Entrar" : "Criar conta"}
-              </button>
-            ))}
-          </div>
-
+          {/* Tela de Esqueci Senha */}
           <AnimatePresence mode="wait">
+            {view === "forgot" && (
+              <motion.div
+                key="forgot"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+              >
+                <button
+                  type="button"
+                  onClick={() => { resetFeedback(); setView("auth"); }}
+                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-8"
+                >
+                  <ChevronLeft size={14} />
+                  Voltar para o login
+                </button>
+
+                <h2 className="text-2xl font-bold text-white mb-1">Redefinir senha</h2>
+                <p className="text-slate-500 text-sm mb-8">
+                  Informe seu e-mail e enviaremos um link para você criar uma nova senha.
+                </p>
+
+                <form onSubmit={handleForgotPassword} className="space-y-5">
+                  <div className="space-y-2">
+                    <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      E-mail
+                    </label>
+                    <input
+                      id="forgotEmail"
+                      type="email"
+                      value={forgotEmail}
+                      onChange={(e) => setForgotEmail(e.target.value)}
+                      placeholder="gestor@agencia.com.br"
+                      required
+                      autoComplete="email"
+                      className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                    />
+                  </div>
+
+                  <AnimatePresence>
+                    {error && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm"
+                      >
+                        {error}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <AnimatePresence>
+                    {successMessage && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0 }}
+                        className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-400 text-sm"
+                      >
+                        {successMessage}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  <motion.button
+                    type="submit"
+                    disabled={loading || !!successMessage}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    className="w-full py-3.5 rounded-xl bg-cyan-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 glow-primary-sm hover:bg-cyan-300 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                  >
+                    {loading ? <Loader2 size={18} className="animate-spin" /> : "Enviar link de redefinição"}
+                  </motion.button>
+                </form>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {view === "auth" && (
+            <div className="flex gap-1 p-1 glass rounded-xl mb-8 border-none">
+              {(["login", "signup"] as const).map((t) => (
+                <button
+                  key={t}
+                  onClick={() => {
+                    setTab(t);
+                    resetFeedback();
+                    setPasswordTouched(false);
+                  }}
+                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    tab === t
+                      ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20"
+                      : "text-slate-500 hover:text-slate-300"
+                  }`}
+                >
+                  {t === "login" ? "Entrar" : "Criar conta"}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {view === "auth" && <AnimatePresence mode="wait">
             <motion.div
               key={tab}
               initial={{ opacity: 0, y: 10 }}
@@ -561,7 +679,11 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
 
                 {tab === "login" && (
                   <div className="text-right">
-                    <button type="button" className="text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors">
+                    <button
+                      type="button"
+                      onClick={() => { resetFeedback(); setForgotEmail(email); setView("forgot"); }}
+                      className="text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors"
+                    >
                       Esqueci minha senha
                     </button>
                   </div>
@@ -581,14 +703,14 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                 </AnimatePresence>
 
                 <AnimatePresence>
-                  {successMessage && (
+                  {(successMessage ?? querySuccess) && (
                     <motion.div
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
                       className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-400 text-sm"
                     >
-                      {successMessage}
+                      {successMessage ?? querySuccess}
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -625,7 +747,7 @@ export default function AuthPageClient({ nextParam, errorParam }: AuthPageClient
                 .
               </p>
             </motion.div>
-          </AnimatePresence>
+          </AnimatePresence>}
         </motion.div>
       </div>
     </div>
