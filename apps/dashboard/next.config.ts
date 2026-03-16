@@ -14,7 +14,7 @@ const ContentSecurityPolicy = [
     : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://*.supabase.co",
-  "font-src 'self'",
+  "font-src 'self' https://use.typekit.net https://p.typekit.net",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.facebook.com",
   "frame-src 'none'",
   "object-src 'none'",
@@ -35,12 +35,23 @@ const securityHeaders = [
   },
 ];
 
+const publicSupabaseUrl =
+  process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.SUPABASE_URL ?? "";
+const publicSupabaseAnonKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+  process.env.SUPABASE_ANON_KEY ??
+  "";
+
 const nextConfig: NextConfig = {
   // Turbopack tries to infer a workspace root by walking up for lockfiles.
   // In the Codex sandbox this can hit restricted folders (e.g. Desktop root),
   // so we pin the root to this app directory.
   turbopack: {
     root: path.resolve(__dirname, "../../"),
+  },
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: publicSupabaseUrl,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: publicSupabaseAnonKey,
   },
 
   async headers() {
