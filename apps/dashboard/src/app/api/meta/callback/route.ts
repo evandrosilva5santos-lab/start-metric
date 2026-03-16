@@ -19,17 +19,17 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state");
   const errorParam = url.searchParams.get("error");
 
-  const dashboardUrl = new URL("/", url.origin);
+  const metaSettingsUrl = new URL("/settings/meta", url.origin);
 
   // Usuário cancelou no lado Meta
   if (errorParam) {
-    dashboardUrl.searchParams.set("error", "oauth_denied");
-    return NextResponse.redirect(dashboardUrl.toString());
+    metaSettingsUrl.searchParams.set("error", "oauth_denied");
+    return NextResponse.redirect(metaSettingsUrl.toString());
   }
 
   if (!code || !state) {
-    dashboardUrl.searchParams.set("error", "missing_params");
-    return NextResponse.redirect(dashboardUrl.toString());
+    metaSettingsUrl.searchParams.set("error", "missing_params");
+    return NextResponse.redirect(metaSettingsUrl.toString());
   }
 
   // ── Validação CSRF ────────────────────────────────────────
@@ -46,8 +46,8 @@ export async function GET(request: Request) {
   const { data: { user } } = await supabase.auth.getUser();
 
   if (!user) {
-    dashboardUrl.searchParams.set("error", "unauthenticated");
-    return NextResponse.redirect(dashboardUrl.toString());
+    metaSettingsUrl.searchParams.set("error", "unauthenticated");
+    return NextResponse.redirect(metaSettingsUrl.toString());
   }
 
   try {
@@ -64,16 +64,16 @@ export async function GET(request: Request) {
 
     const orgId = profile?.org_id;
     if (!orgId) {
-      dashboardUrl.searchParams.set("error", "no_organization");
-      return NextResponse.redirect(dashboardUrl.toString());
+      metaSettingsUrl.searchParams.set("error", "no_organization");
+      return NextResponse.redirect(metaSettingsUrl.toString());
     }
 
     // ── Buscar contas de anúncios vinculadas ao token ───────
     const adAccounts = await fetchAdAccounts(accessToken);
 
     if (adAccounts.length === 0) {
-      dashboardUrl.searchParams.set("error", "no_ad_accounts");
-      return NextResponse.redirect(dashboardUrl.toString());
+      metaSettingsUrl.searchParams.set("error", "no_ad_accounts");
+      return NextResponse.redirect(metaSettingsUrl.toString());
     }
 
     // ── Criptografar token ──────────────────────────────────
@@ -100,19 +100,19 @@ export async function GET(request: Request) {
 
     if (upsertError) {
       console.error("[meta/callback] Erro ao salvar ad_accounts:", upsertError);
-      dashboardUrl.searchParams.set("error", "save_failed");
-      return NextResponse.redirect(dashboardUrl.toString());
+      metaSettingsUrl.searchParams.set("error", "save_failed");
+      return NextResponse.redirect(metaSettingsUrl.toString());
     }
 
-    // ── Limpar cookie CSRF ──────────────────────────────────
-    dashboardUrl.searchParams.set("connected", "true");
-    const response = NextResponse.redirect(dashboardUrl.toString());
+    // ── Limpar cookie CSRF e redirecionar para settings/meta ─
+    metaSettingsUrl.searchParams.set("connected", "true");
+    const response = NextResponse.redirect(metaSettingsUrl.toString());
     response.cookies.set("meta_oauth_state", "", { maxAge: 0, path: "/" });
 
     return response;
   } catch (err) {
     console.error("[meta/callback] Erro inesperado:", err);
-    dashboardUrl.searchParams.set("error", "unexpected");
-    return NextResponse.redirect(dashboardUrl.toString());
+    metaSettingsUrl.searchParams.set("error", "unexpected");
+    return NextResponse.redirect(metaSettingsUrl.toString());
   }
 }

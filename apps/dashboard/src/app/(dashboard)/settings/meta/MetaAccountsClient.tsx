@@ -4,7 +4,8 @@
 // Componente client: exibe contas conectadas, feedback de OAuth e ações.
 // Estilo Premium: Glassmorphism, Framer Motion e Lucide Icons.
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   RefreshCw, 
@@ -66,10 +67,19 @@ const STATUS_CONFIG: Record<string, { label: string; className: string; icon: Lu
 };
 
 export default function MetaAccountsClient({ accounts, flashConnected, flashError }: Props) {
+  const router = useRouter();
   const [syncingId, setSyncingId] = useState<string | null>(null);
   const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
   const [localAccounts, setLocalAccounts] = useState<AdAccount[]>(accounts);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Após OAuth bem-sucedido, o upsert pode ainda não ter propagado quando o
+  // Server Component renderizou. Aguarda 1.5s e força um re-fetch dos dados.
+  useEffect(() => {
+    if (!flashConnected) return;
+    const timer = setTimeout(() => router.refresh(), 1500);
+    return () => clearTimeout(timer);
+  }, [flashConnected, router]);
 
   const errorMessage = flashError ? ERROR_MESSAGES[flashError] ?? "Erro ao conectar. Tente novamente." : null;
 
