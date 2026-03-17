@@ -1,0 +1,38 @@
+{
+  "name": "@start-metric/reports",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./aggregator": {
+      "types": "./dist/aggregator.d.ts",
+      "import": "./dist/aggregator.js"
+    },
+    "./builder": {
+      "types": "./dist/builder.d.ts",
+      "import": "./dist/builder.js"
+    },
+    "./scheduler": {
+      "types": "./dist/scheduler.d.ts",
+      "import": "./dist/scheduler.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@start-metric/types": "*"
+  },
+  "peerDependencies": {
+    "@prisma/client": "*"
+  },
+  "files": [
+    "dist"
+  ]
+}

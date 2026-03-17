@@ -8,8 +8,8 @@ const exportQuerySchema = z.object({
   from: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (YYYY-MM-DD)"),
   to: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Formato de data inválido (YYYY-MM-DD)"),
   adAccountId: z.string().optional(),
-  clientId: z.string().optional(),
   campaignStatus: z.string().optional(),
+  campaignObjectives: z.string().optional(),
 });
 
 export async function GET(request: NextRequest) {
@@ -56,9 +56,7 @@ export async function GET(request: NextRequest) {
         status,
         objective,
         ad_account_id,
-        client_id,
         account:ad_accounts!inner(name),
-        client:clients!inner(name),
         metrics:daily_metrics!inner(spend, revenue_attributed, conversions, impressions, clicks, date)
       `)
       .eq("org_id", orgId)
@@ -69,12 +67,18 @@ export async function GET(request: NextRequest) {
       query = query.eq("ad_account_id", params.adAccountId);
     }
 
-    if (params.clientId) {
-      query = query.eq("client_id", params.clientId);
+    if (params.campaignStatus && params.campaignStatus !== "all") {
+      const statuses = params.campaignStatus.split(",").map(s => s.toUpperCase().trim());
+      if (statuses.length > 0) {
+        query = query.in("status", statuses);
+      }
     }
 
-    if (params.campaignStatus && params.campaignStatus !== "all") {
-      query = query.eq("status", params.campaignStatus.toUpperCase());
+    if (params.campaignObjectives) {
+      const objectives = params.campaignObjectives.split(",").map(o => o.trim()).filter(Boolean);
+      if (objectives.length > 0) {
+        query = query.in("objective", objectives);
+      }
     }
 
     const { data: rawData, error } = await query;
@@ -93,7 +97,6 @@ export async function GET(request: NextRequest) {
         campaignMap.set(campaignId, {
           campaignName: row.name,
           accountName: row.account?.name || "—",
-          clientName: row.client?.name || "—",
           status: row.status || "—",
           objective: row.objective || "—",
           spend: 0,
@@ -105,13 +108,14 @@ export async function GET(request: NextRequest) {
       }
 
       const campaign = campaignMap.get(campaignId);
-      const metrics = row.metrics || {};
+      // metrics is an array from the join
+      const metrics = Array.isArray(row.metrics) ? row.metrics[0] : row.metrics;
 
-      campaign.spend += Number(metrics.spend) || 0;
-      campaign.revenue += Number(metrics.revenue_attributed) || 0;
-      campaign.conversions += Number(metrics.conversions) || 0;
-      campaign.impressions += Number(metrics.impressions) || 0;
-      campaign.clicks += Number(metrics.clicks) || 0;
+      campaign.spend += Number(metrics?.spend) || 0;
+      campaign.revenue += Number(metrics?.revenue_attributed) || 0;
+      campaign.conversions += Number(metrics?.conversions) || 0;
+      campaign.impressions += Number(metrics?.impressions) || 0;
+      campaign.clicks += Number(metrics?.clicks) || 0;
     }
 
     // Calcular métricas derivadas
@@ -140,7 +144,6 @@ export async function GET(request: NextRequest) {
     const headers = [
       "Campanha",
       "Conta",
-      "Cliente",
       "Status",
       "Objetivo",
       "Investimento",
@@ -160,7 +163,6 @@ export async function GET(request: NextRequest) {
     const rows = campaigns.map((c) => [
       `"${c.campaignName}"`,
       `"${c.accountName}"`,
-      `"${c.clientName}"`,
       `"${c.status}"`,
       `"${c.objective}"`,
       c.spend.toFixed(2),

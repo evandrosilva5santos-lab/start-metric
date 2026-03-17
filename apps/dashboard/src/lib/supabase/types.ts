@@ -64,6 +64,69 @@ export type Database = {
           },
         ]
       }
+      whatsapp_instances: {
+        Row: {
+          api_key: string | null
+          api_url: string | null
+          client_id: string | null
+          created_at: string
+          id: string
+          instance_name: string
+          last_connected_at: string | null
+          org_id: string
+          phone_number: string | null
+          qr_code: string | null
+          status: string
+          updated_at: string
+          webhook_url: string | null
+        }
+        Insert: {
+          api_key?: string | null
+          api_url?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          instance_name: string
+          last_connected_at?: string | null
+          org_id: string
+          phone_number?: string | null
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Update: {
+          api_key?: string | null
+          api_url?: string | null
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          instance_name?: string
+          last_connected_at?: string | null
+          org_id?: string
+          phone_number?: string | null
+          qr_code?: string | null
+          status?: string
+          updated_at?: string
+          webhook_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_instances_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "whatsapp_instances_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_accounts: {
         Row: {
           client_id: string | null

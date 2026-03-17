@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, ChevronLeft } from "lucide-react";
@@ -101,23 +101,6 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
   const [passwordTouched, setPasswordTouched] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
 
-  // Debug: verificar env vars ao carregar o componente
-  useEffect(() => {
-    console.log("[AUTH PAGE] Environment check on mount:", {
-      hasUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      urlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30),
-    });
-
-    // Tentar criar o client para testar
-    try {
-      const testClient = createClient();
-      console.log("[AUTH PAGE] Supabase client test: SUCCESS");
-    } catch (err) {
-      console.error("[AUTH PAGE] Supabase client test: FAILED", err);
-    }
-  }, []);
-
   const passwordRules = usePasswordRules(password);
   const passwordValid = passwordRules.every((r) => r.met);
 
@@ -160,19 +143,10 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
     resetFeedback();
     setLoading(true);
 
-    // Debug: verificar se as env vars estão disponíveis
-    console.log("[AUTH] Environment check:", {
-      hasSupabaseUrl: !!process.env.NEXT_PUBLIC_SUPABASE_URL,
-      hasSupabaseKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      supabaseUrlPrefix: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + "...",
-    });
-
     let supabase;
     try {
       supabase = createClient();
-      console.log("[AUTH] Supabase client created successfully");
-    } catch (err) {
-      console.error("[AUTH] Failed to create Supabase client:", err);
+    } catch {
       setLoading(false);
       setError("Erro de configuração. Recarregue a página e tente novamente.");
       return;
@@ -232,13 +206,6 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
     const signupRedirectUrl = new URL("/auth/callback", window.location.origin);
     signupRedirectUrl.searchParams.set("next", nextPath);
 
-    console.log("[AUTH SIGNUP] Starting signup with:", {
-      email: trimmedEmail,
-      name: fullName,
-      phone: trimmedPhone,
-      redirectUrl: signupRedirectUrl.toString(),
-    });
-
     const { data, error: signupError } = await supabase.auth.signUp({
       email: trimmedEmail,
       password,
@@ -252,18 +219,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
       },
     });
 
-    console.log("[AUTH SIGNUP] Response:", {
-      hasData: !!data,
-      hasUser: !!data?.user,
-      hasSession: !!data?.session,
-      userId: data?.user?.id,
-      error: signupError?.message,
-      errorName: signupError?.name,
-      errorStatus: signupError?.status,
-    });
-
     if (signupError) {
-      console.error("[AUTH SIGNUP] Error:", signupError);
       setLoading(false);
       setError(mapAuthError(signupError.message));
       return;
@@ -271,18 +227,14 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
 
     // Verificar se o usuário foi criado mas não tem session (esperado com email confirmation)
     if (!data.user) {
-      console.error("[AUTH SIGNUP] No user returned from signup");
       setLoading(false);
       setError("Erro ao criar usuário. Tente novamente.");
       return;
     }
 
     if (data.session) {
-      console.log("[AUTH SIGNUP] Unexpected session received, signing out");
       await supabase.auth.signOut();
     }
-
-    console.log("[AUTH SIGNUP] Success, user created:", data.user.id);
     setLoading(false);
     setSuccessMessage("Cadastro criado! Verifique seu e-mail e clique no link de confirmação para ativar sua conta.");
     setPassword("");

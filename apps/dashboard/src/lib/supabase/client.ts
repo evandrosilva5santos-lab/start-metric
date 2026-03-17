@@ -1,15 +1,18 @@
 import { createBrowserClient } from "@supabase/ssr";
 import type { Database } from "./types";
 
-type SupabaseEnvName = "NEXT_PUBLIC_SUPABASE_URL" | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
+type PublicSupabaseEnvName =
+  | "NEXT_PUBLIC_SUPABASE_URL"
+  | "NEXT_PUBLIC_SUPABASE_ANON_KEY";
 
-function requireEnv(name: SupabaseEnvName): string {
-  const fallbackName =
-    name === "NEXT_PUBLIC_SUPABASE_URL" ? "SUPABASE_URL" : "SUPABASE_ANON_KEY";
-  const value = process.env[name] ?? process.env[fallbackName];
+function requirePublicEnv(
+  name: PublicSupabaseEnvName,
+  rawValue: string | undefined,
+): string {
+  const value = rawValue?.trim();
   if (!value) {
     throw new Error(
-      `[supabase/client] Missing required environment variable: ${name} (fallback: ${fallbackName}). ` +
+      `[supabase/client] Missing required environment variable: ${name}. ` +
         "Configure it in your deployment provider and local .env file, then redeploy.",
     );
   }
@@ -18,7 +21,13 @@ function requireEnv(name: SupabaseEnvName): string {
 
 export function createClient() {
   return createBrowserClient<Database>(
-    requireEnv("NEXT_PUBLIC_SUPABASE_URL"),
-    requireEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY"),
+    requirePublicEnv(
+      "NEXT_PUBLIC_SUPABASE_URL",
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+    ),
+    requirePublicEnv(
+      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    ),
   );
 }

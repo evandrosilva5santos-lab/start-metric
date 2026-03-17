@@ -11,6 +11,8 @@ Objetivo: colocar o `apps/dashboard` no ar (Vercel) para conectar Meta Ads e vis
 Configure em Vercel (Environment Variables):
 - `NEXT_PUBLIC_SUPABASE_URL`
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_URL` (recomendado tambem, para Edge Runtime/proxy)
+- `SUPABASE_ANON_KEY` (recomendado tambem, para Edge Runtime/proxy)
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only; necessario para cron)
 - `SUPABASE_ENCRYPTION_KEY` (>= 32 chars; server-only)
 - `META_APP_ID` (server-only)
@@ -20,6 +22,7 @@ Configure em Vercel (Environment Variables):
 
 Observacao:
 - `META_REDIRECT_URI` agora e opcional. Se voce usa dominio custom, pode setar para fixar o callback.
+- Se voce alterar variaveis `NEXT_PUBLIC_*`, faca novo deploy para o bundle do browser receber os valores.
 
 ## 3) Meta OAuth Redirect URIs (Meta Developer Console)
 Adicione como "Valid OAuth Redirect URIs" (pelo menos estes):

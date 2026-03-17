@@ -3,6 +3,9 @@
 import { cn, statusLabel } from "@/lib/utils";
 import type { DashboardCampaignRow } from "@/lib/dashboard/types";
 import { motion } from "framer-motion";
+import { ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useAppStore } from "@/store/data-store";
 
 function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", {
@@ -13,11 +16,130 @@ function formatCurrency(value: number): string {
   });
 }
 
+type SortField = keyof Pick<DashboardCampaignRow, 'campaignName' | 'accountName' | 'spend' | 'revenue' | 'roas' | 'grossProfit' | 'status'>;
+type SortDirection = 'asc' | 'desc' | null;
+
 type CampaignsTableProps = {
   campaigns: DashboardCampaignRow[];
 };
 
+const ITEMS_PER_PAGE = 15;
+
+function SortableHeader({
+  children,
+  field,
+  sortField,
+  sortDirection,
+  onSort,
+}: {
+  children: React.ReactNode;
+  field: SortField;
+  sortField: SortField | null;
+  sortDirection: SortDirection;
+  onSort: (field: SortField) => void;
+}) {
+  const isActive = sortField === field;
+
+  return (
+    <th
+      scope="col"
+      className="px-6 pb-2 cursor-pointer hover:text-cyan-400 transition-colors group select-none"
+      onClick={() => onSort(field)}
+    >
+      <div className="flex items-center gap-2">
+        {children}
+        <span className="opacity-0 group-hover:opacity-60 transition-opacity">
+          {isActive && sortDirection === 'asc' ? (
+            <ArrowUp size={12} className="text-cyan-400" />
+          ) : isActive && sortDirection === 'desc' ? (
+            <ArrowDown size={12} className="text-cyan-400" />
+          ) : (
+            <ArrowUpDown size={12} />
+          )}
+        </span>
+      </div>
+    </th>
+  );
+}
+
 export function CampaignsTable({ campaigns }: CampaignsTableProps) {
+  const [sortField, setSortField] = useState<SortField | null>('grossProfit');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      if (sortDirection === 'asc') {
+        setSortDirection('desc');
+      } else if (sortDirection === 'desc') {
+        setSortDirection(null);
+        setSortField(null);
+      } else {
+        setSortDirection('asc');
+      }
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const sortedCampaigns = useMemo(() => {
+    if (!sortField || !sortDirection) return campaigns;
+
+    return [...campaigns].sort((a, b) => {
+      const aValue = a[sortField];
+      const bValue = b[sortField];
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return sortDirection === 'asc'
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+
+      if (typeof aValue === 'number' && typeof bValue === 'number') {
+        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      }
+
+      return 0;
+    });
+  }, [campaigns, sortField, sortDirection]);
+
+  const totalPages = Math.ceil(sortedCampaigns.length / ITEMS_PER_PAGE);
+  const paginatedCampaigns = sortedCampaigns.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const handleExportCSV = () => {
+    const filters = useAppStore.getState().filters;
+    const params = new URLSearchParams();
+    params.set('from', filters.from);
+    params.set('to', filters.to);
+    params.set('adAccountId', filters.adAccountId);
+
+    if (filters.campaignStatuses.length > 0) {
+      params.set('campaignStatus', filters.campaignStatuses.join(','));
+    }
+
+    if (filters.campaignObjectives.length > 0) {
+      params.set('campaignObjectives', filters.campaignObjectives.join(','));
+    }
+
+    window.location.href = `/api/analytics/export?${params.toString()}`;
+  };
+
+  const getRoasColor = (roas: number) => {
+    if (roas >= 3) {
+      return "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]";
+    } else if (roas >= 1.5) {
+      return "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,189,212,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(6,189,212,0.6)]";
+    } else if (roas >= 1) {
+      return "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]";
+    } else {
+      return "text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(248,113,113,0.6)]";
+    }
+  };
+
   return (
     <section className="glass glass-2 rounded-[2rem] p-6 lg:p-8 min-h-[500px] relative overflow-hidden group/table noise-overlay border-white/5">
       {/* Decorative background elements */}
@@ -42,18 +164,30 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
             Telemetria de Fluxo de Caixa
           </p>
         </div>
-        
-        <div className="flex items-center gap-3 glass px-5 py-3 rounded-2xl border-white/10 shadow-2xl backdrop-blur-xl shrink-0 group/stat hover:border-cyan-500/30 transition-colors">
-          <div className="relative flex h-3 w-3">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-40"></span>
-            <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_10px_#22d3ee]"></span>
+
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 glass px-5 py-3 rounded-2xl border-white/10 shadow-2xl backdrop-blur-xl shrink-0 group/stat hover:border-cyan-500/30 transition-colors">
+            <div className="relative flex h-3 w-3">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-40"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_10px_#22d3ee]"></span>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest leading-none">Status da Rede</span>
+              <span className="text-[11px] font-black uppercase text-slate-200 tracking-widest mt-1">
+                <span className="text-cyan-400 mr-1">{campaigns.length}</span> Campanhas Listadas
+              </span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest leading-none">Status da Rede</span>
-            <span className="text-[11px] font-black uppercase text-slate-200 tracking-widest mt-1">
-              <span className="text-cyan-400 mr-1">{campaigns.length}</span> Vetores Ativos
-            </span>
-          </div>
+
+          {campaigns.length > 0 && (
+            <button
+              onClick={handleExportCSV}
+              className="glass px-4 py-3 rounded-2xl border-white/10 shadow-2xl backdrop-blur-xl shrink-0 hover:border-cyan-500/30 transition-all hover:bg-cyan-500/10 group"
+              title="Exportar CSV"
+            >
+              <Download size={18} className="text-slate-400 group-hover:text-cyan-400 transition-colors" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -68,7 +202,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
             </p>
           </div>
         ) : (
-          campaigns.map((campaign, idx) => (
+          paginatedCampaigns.map((campaign, idx) => (
             <motion.article
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: 1, y: 0 }}
@@ -107,7 +241,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                 </div>
                 <div>
                   <p className="text-slate-500 uppercase tracking-widest">ROAS</p>
-                  <p className="mt-1 font-black text-cyan-300">{campaign.roas.toFixed(2)}x</p>
+                  <p className={cn("mt-1 font-black", getRoasColor(campaign.roas))}>{campaign.roas.toFixed(2)}x</p>
                 </div>
                 <div>
                   <p className="text-slate-500 uppercase tracking-widest">Lucro</p>
@@ -126,13 +260,62 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           <caption className="sr-only">Desempenho de Campanhas por Vetor</caption>
           <thead>
             <tr className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">
-              <th scope="col" className="px-6 pb-2">Identificador de Campanha</th>
-              <th scope="col" className="px-6 pb-2">Unidade Operacional</th>
-              <th scope="col" className="px-6 pb-2 text-right">Aporte (Invest.)</th>
-              <th scope="col" className="px-6 pb-2 text-right">Retorno (Bruto)</th>
-              <th scope="col" className="px-6 pb-2 text-right">Eficiência (ROAS)</th>
-              <th scope="col" className="px-6 pb-2 text-right">Resultado Real</th>
-              <th scope="col" className="px-6 pb-2 text-right">Estado</th>
+              <SortableHeader
+                field="campaignName"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Identificador de Campanha
+              </SortableHeader>
+              <SortableHeader
+                field="accountName"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Unidade Operacional
+              </SortableHeader>
+              <SortableHeader
+                field="spend"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Aporte (Invest.)
+              </SortableHeader>
+              <SortableHeader
+                field="revenue"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Retorno (Bruto)
+              </SortableHeader>
+              <SortableHeader
+                field="roas"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Eficiência (ROAS)
+              </SortableHeader>
+              <SortableHeader
+                field="grossProfit"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Resultado Real
+              </SortableHeader>
+              <SortableHeader
+                field="status"
+                sortField={sortField}
+                sortDirection={sortDirection}
+                onSort={handleSort}
+              >
+                Estado
+              </SortableHeader>
             </tr>
           </thead>
           <tbody>
@@ -155,12 +338,12 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                 </td>
               </tr>
             ) : (
-              campaigns.map((campaign, idx) => (
-                <motion.tr 
+              paginatedCampaigns.map((campaign, idx) => (
+                <motion.tr
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: idx * 0.05, duration: 0.5, ease: "easeOut" }}
-                  key={campaign.campaignId} 
+                  key={campaign.campaignId}
                   className="group/row transition-all duration-500"
                 >
                   <td className="px-6 py-5 rounded-l-3xl border-white/[0.04] border-y border-l bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all relative overflow-hidden shadow-sm group-hover/row:shadow-cyan-500/5">
@@ -175,55 +358,46 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                       </p>
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-5 border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
                     <span className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-white/[0.03] text-[9px] font-black uppercase text-slate-400 tracking-[0.15em] transition-colors group-hover/row:text-slate-300 inline-block overflow-hidden max-w-[140px] truncate shadow-inner">
                       {campaign.accountName}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
                     <span className="text-xs font-black text-slate-400 tracking-tight font-mono group-hover/row:text-slate-200 transition-colors">
                       {formatCurrency(campaign.spend)}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
                     <span className="text-sm font-black text-white tracking-tighter font-mono group-hover/row:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] transition-all">
                       {formatCurrency(campaign.revenue)}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
                     <div className="flex flex-col items-end">
-                      <span
-                        className={cn(
-                          "text-base font-black font-mono transition-all duration-500",
-                          campaign.roas >= 2
-                            ? "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]"
-                            : campaign.roas >= 1.2
-                              ? "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,189,212,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(6,189,212,0.6)]"
-                              : "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]"
-                        )}
-                      >
+                      <span className={cn("text-base font-black font-mono transition-all duration-500", getRoasColor(campaign.roas))}>
                         {campaign.roas.toFixed(2)}<span className="text-[10px] ml-0.5 opacity-60">x</span>
                       </span>
                     </div>
                   </td>
-                  
+
                   <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
                     <span
                       className={cn(
                         "text-xs font-black font-mono transition-all duration-500",
-                        campaign.grossProfit >= 0 
-                          ? "text-emerald-400 group-hover/row:text-emerald-300" 
+                        campaign.grossProfit >= 0
+                          ? "text-emerald-400 group-hover/row:text-emerald-300"
                           : "text-red-400 group-hover/row:text-red-300",
                       )}
                     >
                       {formatCurrency(campaign.grossProfit)}
                     </span>
                   </td>
-                  
+
                   <td className="px-6 py-5 text-right rounded-r-3xl border-white/[0.04] border-y border-r bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all w-36">
                     <div className="flex justify-end">
                       <div
@@ -247,9 +421,74 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           </tbody>
         </table>
       </div>
-      
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="mt-8 flex items-center justify-between gap-4 relative z-10">
+          <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">
+            Página <span className="text-cyan-400">{currentPage}</span> de {totalPages}
+            <span className="mx-2">•</span>
+            {sortedCampaigns.length} campanhas
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              disabled={currentPage === 1}
+              className={cn(
+                "glass px-4 py-2 rounded-xl border-white/10 transition-all",
+                "disabled:opacity-40 disabled:cursor-not-allowed",
+                "hover:border-cyan-500/30 hover:bg-cyan-500/10"
+              )}
+            >
+              <ChevronLeft size={16} />
+            </button>
+
+            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+              let pageNum;
+              if (totalPages <= 5) {
+                pageNum = i + 1;
+              } else if (currentPage <= 3) {
+                pageNum = i + 1;
+              } else if (currentPage >= totalPages - 2) {
+                pageNum = totalPages - 4 + i;
+              } else {
+                pageNum = currentPage - 2 + i;
+              }
+
+              return (
+                <button
+                  key={pageNum}
+                  onClick={() => setCurrentPage(pageNum)}
+                  className={cn(
+                    "glass px-4 py-2 rounded-xl border transition-all text-xs font-black uppercase tracking-wider",
+                    currentPage === pageNum
+                      ? "border-cyan-500/50 bg-cyan-500/20 text-cyan-300"
+                      : "border-white/10 text-slate-500 hover:border-cyan-500/30 hover:bg-cyan-500/10"
+                  )}
+                >
+                  {pageNum}
+                </button>
+              );
+            })}
+
+            <button
+              onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+              disabled={currentPage === totalPages}
+              className={cn(
+                "glass px-4 py-2 rounded-xl border-white/10 transition-all",
+                "disabled:opacity-40 disabled:cursor-not-allowed",
+                "hover:border-cyan-500/30 hover:bg-cyan-500/10"
+              )}
+            >
+              <ChevronRight size={16} />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Table Footer / Visual Finish */}
-      {campaigns.length > 0 && (
+      {campaigns.length > 0 && totalPages <= 1 && (
         <div className="mt-8 flex items-center justify-between px-2 relative z-10 opacity-60 hover:opacity-100 transition-opacity">
             <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">
                 Atualizado em {new Date().toLocaleTimeString("pt-BR")}

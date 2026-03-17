@@ -1,7 +1,8 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
+import { isPlatformAdminEmail } from "@/lib/admin/access";
 
-const PUBLIC_PATHS = ["/auth"];
+const PUBLIC_PATHS = ["/auth", "/admin/auth"];
 
 // Use server-side vars (without NEXT_PUBLIC_ prefix) in Edge Runtime.
 // In Vercel, also define SUPABASE_URL and SUPABASE_ANON_KEY (duplicates of
@@ -24,6 +25,9 @@ function sanitizeNextPath(next: string) {
 
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
+  const isAdminAuthPath = pathname === "/admin/auth" || pathname.startsWith("/admin/auth/");
+  const isAdminProtectedPath = isAdminPath && !isAdminAuthPath;
 
   const response = NextResponse.next({
     request: {
@@ -71,6 +75,16 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
+  if (!user && isAdminProtectedPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = "/admin/auth";
+    url.searchParams.set(
+      "next",
+      sanitizeNextPath(`${pathname}${request.nextUrl.search}`),
+    );
+    return NextResponse.redirect(url);
+  }
+
   if (!user) {
     const url = request.nextUrl.clone();
     url.pathname = "/auth";
@@ -78,6 +92,18 @@ export async function proxy(request: NextRequest) {
       "next",
       sanitizeNextPath(`${pathname}${request.nextUrl.search}`),
     );
+    return NextResponse.redirect(url);
+  }
+
+  if (isAdminProtectedPath && !isPlatformAdminEmail(user.email)) {
+    const url = request.nextUrl.clone();
+    url.pathname = authedLandingPath;
+    return NextResponse.redirect(url);
+  }
+
+  if (isAdminAuthPath) {
+    const url = request.nextUrl.clone();
+    url.pathname = isPlatformAdminEmail(user.email) ? "/admin" : authedLandingPath;
     return NextResponse.redirect(url);
   }
 
