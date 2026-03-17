@@ -30,6 +30,7 @@ type DashboardFiltersState = {
   to: string;
   adAccountId: string;
   campaignStatus: string;
+  clientId: string;
 };
 
 function getGreeting(date: Date) {
@@ -45,6 +46,7 @@ function buildQueryString(filters: DashboardFiltersState): string {
     to: filters.to,
     adAccountId: filters.adAccountId,
     campaignStatus: filters.campaignStatus,
+    clientId: filters.clientId,
   }).toString();
 }
 
@@ -92,8 +94,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const { fadeInUp, fadeInContent } = useReducedMotion();
 
   const queryKey = useMemo(
-    () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatus],
-    [filters.from, filters.to, filters.adAccountId, filters.campaignStatus],
+    () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatus, filters.clientId],
+    [filters.from, filters.to, filters.adAccountId, filters.campaignStatus, filters.clientId],
   );
 
   const { data, isPending, isFetching, error } = useAppQuery({
@@ -118,20 +120,29 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     return () => clearInterval(interval);
   }, [queryClient]);
 
+  // Sincroniza filtros do servidor com o Zustand no mount para evitar refetch desnecessário
   useEffect(() => {
-    setFilters({
+    const currentFilters = useAppStore.getState().filters;
+    const initialFilters = {
       from: initialData.range.from,
       to: initialData.range.to,
       adAccountId: initialData.filters.adAccountId,
       campaignStatus: initialData.filters.campaignStatus,
-    });
+      clientId: initialData.filters.clientId || "all",
+    };
+
+    const hasDiff =
+      currentFilters.from !== initialFilters.from ||
+      currentFilters.to !== initialFilters.to ||
+      currentFilters.adAccountId !== initialFilters.adAccountId ||
+      currentFilters.campaignStatus !== initialFilters.campaignStatus ||
+      currentFilters.clientId !== initialFilters.clientId;
+
+    if (hasDiff) {
+      setFilters(initialFilters);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    initialData.range.from,
-    initialData.range.to,
-    initialData.filters.adAccountId,
-    initialData.filters.campaignStatus,
-  ]);
+  }, [initialData, setFilters]);
 
   const toastAlert =
     alerts.latestAlert && toastDismissed !== alerts.latestAlert.id
@@ -191,7 +202,9 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           </div>
           <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-cyan-100 to-slate-400 bg-clip-text text-transparent tracking-tighter leading-tight">
             {getGreeting(new Date())},{" "}
-            <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">equipe</span>
+            <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">
+              {data?.userProfile?.name?.split(" ")[0].toLowerCase() ?? "equipe"}
+            </span>
           </h1>
           <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
             <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 px-3 py-1.5 shadow-[0_0_22px_rgba(6,182,212,0.15)]">
@@ -200,7 +213,7 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
             </span>
             <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 shadow-[0_0_22px_rgba(16,185,129,0.15)]">
               <Sparkles size={12} />
-              {data?.campaigns?.length ?? 0} campanhas ativas
+              {data?.campaigns?.length ?? 0} campanhas listadas
             </span>
           </div>
         </div>

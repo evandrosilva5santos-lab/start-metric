@@ -87,7 +87,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
-    .select("org_id")
+    .select("org_id, name")
     .eq("id", user.id)
     .single();
 
@@ -96,6 +96,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   }
 
   const orgId = profile.org_id as string;
+  const userProfile = { name: profile.name as string | null };
 
   const { data: accountsData, error: accountsError } = await supabase
     .from("ad_accounts")
@@ -108,6 +109,16 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   }
 
   const accounts = (accountsData ?? []) as AccountRow[];
+
+  // Buscar clientes
+  const { data: clientsData, error: clientsError } = await supabase
+    .from("clients")
+    .select("id, name")
+    .eq("org_id", orgId)
+    .is("archived_at", null)
+    .order("name", { ascending: true });
+
+  const clients = (clientsData ?? []) as Array<{ id: string; name: string }>;
 
   const { data: orgData } = await supabase
     .from("organizations")
@@ -128,6 +139,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   const from = isValidDate(inputFilters.from) ? inputFilters.from : defaultFrom;
   const to = isValidDate(inputFilters.to) ? inputFilters.to : defaultTo;
   const adAccountId = inputFilters.adAccountId ?? "all";
+  const clientId = inputFilters.clientId ?? "all";
   const campaignStatus = resolveStatusFilter(inputFilters.campaignStatus);
 
   let campaignsQuery = supabase
@@ -195,6 +207,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
         activeCampaigns: 0,
         totalCampaigns: 0,
       },
+      userProfile,
       generatedAt: new Date().toISOString(),
     };
   }
@@ -337,6 +350,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
       activeCampaigns: campaigns.filter((campaign) => (campaign.status ?? "").toUpperCase() === "ACTIVE").length,
       totalCampaigns: campaigns.length,
     },
+    userProfile,
     generatedAt: new Date().toISOString(),
   };
 }

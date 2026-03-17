@@ -3,6 +3,7 @@ export type DashboardFilters = {
   to?: string;
   adAccountId?: string;
   campaignStatus?: string;
+  clientId?: string;
 };
 
 export type DashboardKpis = {
@@ -48,6 +49,11 @@ export type DashboardAccountOption = {
   timezone: string | null;
 };
 
+export type DashboardClientOption = {
+  id: string;
+  name: string;
+};
+
 export type DashboardData = {
   timezone: string;
   range: {
@@ -57,10 +63,12 @@ export type DashboardData = {
   filters: {
     adAccountId: string;
     campaignStatus: string;
+    clientId: string;
   };
   filterOptions: {
     accounts: DashboardAccountOption[];
     statuses: string[];
+    clients: DashboardClientOption[];
   };
   kpis: DashboardKpis;
   chart: DashboardChartPoint[];
@@ -68,6 +76,9 @@ export type DashboardData = {
   metrics: {
     activeCampaigns: number;
     totalCampaigns: number;
+  };
+  userProfile?: {
+    name: string | null;
   };
   generatedAt: string;
 };

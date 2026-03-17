@@ -14,8 +14,59 @@ export type Database = {
   }
   public: {
     Tables: {
+      clients: {
+        Row: {
+          archived_at: string | null
+          created_at: string
+          email: string | null
+          id: string
+          logo_url: string | null
+          name: string
+          notes: string | null
+          org_id: string
+          phone: string | null
+          updated_at: string
+          whatsapp: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name: string
+          notes?: string | null
+          org_id: string
+          phone?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          logo_url?: string | null
+          name?: string
+          notes?: string | null
+          org_id?: string
+          phone?: string | null
+          updated_at?: string
+          whatsapp?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "clients_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_accounts: {
         Row: {
+          client_id: string | null
           connected_at: string | null
           currency: string | null
           external_id: string
@@ -31,6 +82,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          client_id?: string | null
           connected_at?: string | null
           currency?: string | null
           external_id: string
@@ -46,6 +98,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          client_id?: string | null
           connected_at?: string | null
           currency?: string | null
           external_id?: string
@@ -66,6 +119,13 @@ export type Database = {
             columns: ["org_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ad_accounts_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]

@@ -11,6 +11,7 @@ interface DataState {
     to: string;
     adAccountId: string;
     campaignStatus: string;
+    clientId: string;
   };
   setSelectedClient: (clientId: string | null) => void;
   setSelectedOrganization: (orgId: string | null) => void;
@@ -23,6 +24,7 @@ const DEFAULT_FILTERS = {
   to: new Date().toISOString().split('T')[0],
   adAccountId: 'all',
   campaignStatus: 'all',
+  clientId: 'all',
 };
 
 export const useAppStore = create<DataState>()(
