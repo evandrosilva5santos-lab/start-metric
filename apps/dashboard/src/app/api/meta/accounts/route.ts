@@ -43,7 +43,7 @@ export async function GET(): Promise<NextResponse> {
     );
   }
 
-  const response: AccountRow[] = (data ?? []).map((row) => {
+  const accounts: AccountRow[] = (data ?? []).map((row) => {
     const code = statusToCode(row.status);
     return {
       id: row.id,
@@ -54,5 +54,5 @@ export async function GET(): Promise<NextResponse> {
     };
   });
 
-  return NextResponse.json(response);
+  return NextResponse.json({ data: accounts });
 }

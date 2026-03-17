@@ -45,8 +45,12 @@ export async function GET() {
       return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
     }
 
-    // Buscar clientes com contagem de ad_accounts
-    const { data: clients, error } = await supabase
+    // Buscar clientes com contagem de ad_accounts (com fallback se embedded count falhar)
+    let clients: ClientListRow[] | null = null;
+    let clientsError = null;
+
+    // Tentar com embedded count primeiro
+    const { data: clientsWithCount, error: countError } = await supabase
       .from("clients")
       .select(`
         id,
@@ -65,9 +69,40 @@ export async function GET() {
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
-    if (error) {
-      console.error("Erro ao buscar clientes:", error);
-      return NextResponse.json({ error: "Erro ao buscar clientes" }, { status: 500 });
+    if (countError) {
+      // Se embedded count falhar, buscar sem count e calcular depois
+      console.warn("Embedded count falhou, buscando clientes sem contagem:", countError);
+      const { data: clientsWithoutCount, error: basicError } = await supabase
+        .from("clients")
+        .select(`
+          id,
+          name,
+          email,
+          phone,
+          whatsapp,
+          logo_url,
+          notes,
+          archived_at,
+          created_at,
+          updated_at
+        `)
+        .eq("org_id", profile.org_id)
+        .is("archived_at", null)
+        .order("created_at", { ascending: false });
+
+      if (basicError) {
+        console.error("Erro ao buscar clientes (fallback):", basicError);
+        return NextResponse.json({ error: "Erro ao buscar clientes" }, { status: 500 });
+      }
+
+      clients = (clientsWithoutCount ?? []).map((c) => ({
+        ...c,
+        ad_accounts: [],
+      })) as ClientListRow[];
+      clientsError = null;
+    } else {
+      clients = clientsWithCount;
+      clientsError = null;
     }
 
     const { data: whatsappInstances, error: whatsappError } = await supabase
