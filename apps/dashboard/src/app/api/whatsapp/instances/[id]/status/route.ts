@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { createEvolutionClient } from '../../../../../../../../../packages/whatsapp/src/client';
+import { createEvolutionClient } from '@/lib/whatsapp/evolution';
 
 export async function GET(
   request: Request,
@@ -15,12 +15,12 @@ export async function GET(
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
     const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
-
+    if (!profile?.org_id) return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
     const { data: instance, error: instanceError } = await supabase
       .from('whatsapp_instances')
       .select('*')
       .eq('id', id)
-      .eq('org_id', profile?.org_id)
+      .eq('org_id', profile.org_id)
       .single();
 
     if (instanceError || !instance) {

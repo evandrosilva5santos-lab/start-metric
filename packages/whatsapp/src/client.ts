@@ -62,8 +62,8 @@ export class EvolutionClient {
 }
 
 export function createEvolutionClient(): EvolutionClient {
-  const url = process.env.EVOLUTION_API_URL;
-  const key = process.env.EVOLUTION_API_KEY;
+  const url = process.env.EVOLUTION_API_URL || process.env.EVOLUTION_API_BASE_URL;
+  const key = process.env.EVOLUTION_API_KEY || process.env.EVOLUTION_API_GLOBAL_TOKEN;
   if (!url || !key) throw new Error('EVOLUTION_API_URL and EVOLUTION_API_KEY are required');
 
   // Limpa trailing slash se existir na URL

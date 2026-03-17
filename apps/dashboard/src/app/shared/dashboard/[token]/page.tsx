@@ -58,7 +58,7 @@ export default async function SharedDashboardPage({
     // 3. Buscar dados da organização (para marca branca)
     const { data: organization, error: orgError } = await supabase
       .from("organizations")
-      .select("id, name, logo_url")
+      .select("id, name")
       .eq("id", org_id)
       .single();
 
@@ -66,7 +66,7 @@ export default async function SharedDashboardPage({
       redirect("/?error=Organização não encontrada");
     }
 
-    const typedOrganization = organization as { id: string; name: string; logo_url: string | null };
+    const typedOrganization = { ...organization, logo_url: null as string | null };
 
     // 4. Buscar campanhas do cliente (últimas 14 dias)
     const fourteenDaysAgo = new Date();

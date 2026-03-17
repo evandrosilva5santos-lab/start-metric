@@ -11,7 +11,7 @@ const GenerateTokenSchema = z.object({
   expires_in_days: z.number().min(1).max(365).default(30),
   password: z.string().min(4).optional().or(z.literal("")),
   max_accesses: z.number().int().positive().optional().nullable(),
-  metadata: z.record(z.unknown()).optional(),
+  metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
 type GenerateTokenRequest = z.infer<typeof GenerateTokenSchema>;

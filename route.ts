@@ -13,7 +13,8 @@ export async function POST(request: Request) {
         const secret = url.searchParams.get('secret');
 
         // Validate Webhook Secret (As per GO_LIVE_BASIC.md)
-        if (secret !== process.env.WHATSAPP_WEBHOOK_SECRET) {
+        const validSecret = process.env.WHATSAPP_WEBHOOK_SECRET || process.env.EVOLUTION_WEBHOOK_SECRET;
+        if (secret !== validSecret) {
             return NextResponse.json({ error: 'Unauthorized webhook access' }, { status: 401 });
         }
 

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
-  MessageCircle, QrCode, CheckCircle, WifiOff, Send, AlertCircle, Loader2, Smartphone, Shield, Zap
+  MessageCircle, QrCode, CheckCircle, WifiOff, Send, AlertCircle, Loader2, Smartphone, Shield, Zap, Users, Search
 } from 'lucide-react'
 
 interface WhatsAppConnectionPanelProps {
