@@ -2,8 +2,6 @@ export type DashboardFilters = {
   from?: string;
   to?: string;
   adAccountId?: string;
-  campaignStatus?: string;
-  clientId?: string;
   campaignStatuses?: string[];
   campaignObjectives?: string[];
 };
@@ -43,8 +41,6 @@ export type DashboardCampaignRow = {
   campaignName: string;
   accountId: string;
   accountName: string;
-  clientId?: string;
-  clientName?: string;
   status: string;
   objective?: string;
   spend: number;
@@ -69,11 +65,6 @@ export type DashboardAccountOption = {
   lastSyncedAt: string | null;
 };
 
-export type DashboardClientOption = {
-  id: string;
-  name: string;
-};
-
 export type DashboardData = {
   timezone: string;
   range: {
@@ -82,14 +73,13 @@ export type DashboardData = {
   };
   filters: {
     adAccountId: string;
-    campaignStatus: string;
-    clientId: string;
+    campaignStatuses: string[];
+    campaignObjectives: string[];
   };
   filterOptions: {
     accounts: DashboardAccountOption[];
     statuses: string[];
     objectives?: string[];
-    clients: DashboardClientOption[];
   };
   kpis: DashboardKpis;
   kpisComparison?: {

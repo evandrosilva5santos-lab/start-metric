@@ -15,7 +15,6 @@ type CampaignRow = {
   status: string | null;
   objective: string | null;
   ad_account_id: string;
-  client_id: string | null;
 };
 
 type MetricRow = {
@@ -72,9 +71,9 @@ function subDays(dateIso: string, days: number): string {
   return base.toISOString().slice(0, 10);
 }
 
-function resolveStatusFilter(value: string | undefined): string {
-  if (!value || value === "all") return "all";
-  return value.toUpperCase();
+function resolveStatusFilter(values: string[] | undefined): string[] {
+  if (!values || values.length === 0) return [];
+  return values.map(v => v.toUpperCase());
 }
 
 export async function getDashboardData(inputFilters: DashboardFilters = {}): Promise<DashboardData> {
@@ -113,16 +112,6 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   const accounts = (accountsData ?? []) as AccountRow[];
 
-  // Buscar clientes
-  const { data: clientsData, error: clientsError } = await supabase
-    .from("clients")
-    .select("id, name")
-    .eq("org_id", orgId)
-    .is("archived_at", null)
-    .order("name", { ascending: true });
-
-  const clients = (clientsData ?? []) as Array<{ id: string; name: string }>;
-
   const { data: orgData } = await supabase
     .from("organizations")
     .select("timezone")
@@ -142,20 +131,24 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   const from = isValidDate(inputFilters.from) ? inputFilters.from : defaultFrom;
   const to = isValidDate(inputFilters.to) ? inputFilters.to : defaultTo;
   const adAccountId = inputFilters.adAccountId ?? "all";
-  const clientId = inputFilters.clientId ?? "all";
-  const campaignStatus = resolveStatusFilter(inputFilters.campaignStatus);
+  const campaignStatuses = resolveStatusFilter(inputFilters.campaignStatuses);
+  const campaignObjectives = inputFilters.campaignObjectives ?? [];
 
   let campaignsQuery = supabase
     .from("campaigns")
-    .select("id, name, status, objective, ad_account_id, client_id")
+    .select("id, name, status, objective, ad_account_id")
     .eq("org_id", orgId);
 
   if (adAccountId !== "all") {
     campaignsQuery = campaignsQuery.eq("ad_account_id", adAccountId);
   }
 
-  if (campaignStatus !== "all") {
-    campaignsQuery = campaignsQuery.eq("status", campaignStatus);
+  if (campaignStatuses.length > 0) {
+    campaignsQuery = campaignsQuery.in("status", campaignStatuses);
+  }
+
+  if (campaignObjectives.length > 0) {
+    campaignsQuery = campaignsQuery.in("objective", campaignObjectives);
   }
 
   const { data: campaignsData, error: campaignsError } = await campaignsQuery;
@@ -182,8 +175,8 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
       range: { from, to },
       filters: {
         adAccountId,
-        campaignStatus,
-        clientId,
+        campaignStatuses,
+        campaignObjectives,
       },
       filterOptions: {
         accounts: accounts.map((account) => ({
@@ -201,10 +194,6 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
               .filter((o): o is string => Boolean(o))
           )
         ).sort(),
-        clients: clients.map((client) => ({
-          id: client.id,
-          name: client.name,
-        })),
       },
       kpis: {
         adSpend: 0,
@@ -228,6 +217,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
         totalCampaigns: 0,
       },
       userProfile,
+      lastSyncedAt: null,
       generatedAt: new Date().toISOString(),
     };
   }
@@ -345,8 +335,6 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
           accountName: account?.name ?? account?.external_id ?? "Conta sem nome",
           status: campaign.status ?? "UNKNOWN",
           objective: campaign.objective ?? undefined,
-          clientId: campaign.client_id ?? undefined,
-          clientName: undefined,
           spend: 0,
           revenue: 0,
           conversions: 0,
@@ -391,8 +379,8 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
     range: { from, to },
     filters: {
       adAccountId,
-      campaignStatus,
-      clientId,
+      campaignStatuses,
+      campaignObjectives,
     },
     filterOptions: {
       accounts: accounts.map((account) => ({
@@ -410,10 +398,6 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
             .filter((o): o is string => Boolean(o))
         )
       ).sort(),
-      clients: clients.map((client) => ({
-        id: client.id,
-        name: client.name,
-      })),
     },
     kpis,
     chart,

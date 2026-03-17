@@ -30,8 +30,8 @@ type DashboardFiltersState = {
   from: string;
   to: string;
   adAccountId: string;
-  campaignStatus: string;
-  clientId: string;
+  campaignStatuses: string[];
+  campaignObjectives: string[];
 };
 
 function getGreeting(date: Date) {
@@ -42,13 +42,21 @@ function getGreeting(date: Date) {
 }
 
 function buildQueryString(filters: DashboardFiltersState): string {
-  return new URLSearchParams({
+  const params = new URLSearchParams({
     from: filters.from,
     to: filters.to,
     adAccountId: filters.adAccountId,
-    campaignStatus: filters.campaignStatus,
-    clientId: filters.clientId,
-  }).toString();
+  });
+
+  if (filters.campaignStatuses.length > 0) {
+    params.set("campaignStatuses", filters.campaignStatuses.join(","));
+  }
+
+  if (filters.campaignObjectives.length > 0) {
+    params.set("campaignObjectives", filters.campaignObjectives.join(","));
+  }
+
+  return params.toString();
 }
 
 function DashboardSkeleton() {
@@ -113,8 +121,8 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
   const { fadeInUp, fadeInContent } = useReducedMotion();
 
   const queryKey = useMemo(
-    () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatus, filters.clientId],
-    [filters.from, filters.to, filters.adAccountId, filters.campaignStatus, filters.clientId],
+    () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatuses.join(","), filters.campaignObjectives.join(",")],
+    [filters.from, filters.to, filters.adAccountId, filters.campaignStatuses, filters.campaignObjectives],
   );
 
   const { data, isPending, isFetching, error } = useAppQuery({
@@ -146,16 +154,16 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
       from: initialData.range.from,
       to: initialData.range.to,
       adAccountId: initialData.filters.adAccountId,
-      campaignStatus: initialData.filters.campaignStatus,
-      clientId: initialData.filters.clientId || "all",
+      campaignStatuses: initialData.filters.campaignStatuses || [],
+      campaignObjectives: initialData.filters.campaignObjectives || [],
     };
 
     const hasDiff =
       currentFilters.from !== initialFilters.from ||
       currentFilters.to !== initialFilters.to ||
       currentFilters.adAccountId !== initialFilters.adAccountId ||
-      currentFilters.campaignStatus !== initialFilters.campaignStatus ||
-      currentFilters.clientId !== initialFilters.clientId;
+      JSON.stringify(currentFilters.campaignStatuses) !== JSON.stringify(initialFilters.campaignStatuses) ||
+      JSON.stringify(currentFilters.campaignObjectives) !== JSON.stringify(initialFilters.campaignObjectives);
 
     if (hasDiff) {
       setFilters(initialFilters);
