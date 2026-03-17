@@ -615,6 +615,206 @@ export type Database = {
           },
         ]
       }
+      shared_links: {
+        Row: {
+          access_count: number
+          access_type: string
+          client_id: string
+          created_at: string
+          created_by: string
+          expires_at: string
+          id: string
+          last_accessed_at: string | null
+          max_accesses: number | null
+          metadata: Json | null
+          org_id: string
+          password_hash: string | null
+          revoked_at: string | null
+          token: string
+        }
+        Insert: {
+          access_count?: number
+          access_type?: string
+          client_id: string
+          created_at?: string
+          created_by: string
+          expires_at: string
+          id?: string
+          last_accessed_at?: string | null
+          max_accesses?: number | null
+          metadata?: Json | null
+          org_id: string
+          password_hash?: string | null
+          revoked_at?: string | null
+          token: string
+        }
+        Update: {
+          access_count?: number
+          access_type?: string
+          client_id?: string
+          created_at?: string
+          created_by?: string
+          expires_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          max_accesses?: number | null
+          metadata?: Json | null
+          org_id?: string
+          password_hash?: string | null
+          revoked_at?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shared_links_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_links_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shared_links_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports_sent: {
+        Row: {
+          created_at: string
+          delivery_method: string
+          delivery_to: string | null
+          error_message: string | null
+          id: string
+          org_id: string
+          pdf_url: string | null
+          report_template_id: string | null
+          sent_at: string | null
+          shared_link_token: string | null
+          status: string
+          client_id: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_method: string
+          delivery_to?: string | null
+          error_message?: string | null
+          id?: string
+          org_id: string
+          pdf_url?: string | null
+          report_template_id?: string | null
+          sent_at?: string | null
+          shared_link_token?: string | null
+          status?: string
+          client_id: string
+        }
+        Update: {
+          created_at?: string
+          delivery_method?: string
+          delivery_to?: string | null
+          error_message?: string | null
+          id?: string
+          org_id?: string
+          pdf_url?: string | null
+          report_template_id?: string | null
+          sent_at?: string | null
+          shared_link_token?: string | null
+          status?: string
+          client_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_sent_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_sent_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_sent_report_template_id_fkey"
+            columns: ["report_template_id"]
+            isOneToOne: false
+            referencedRelation: "report_templates"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_sent_shared_link_token_fkey"
+            columns: ["shared_link_token"]
+            isOneToOne: false
+            referencedRelation: "shared_links"
+            referencedColumns: ["token"]
+          },
+        ]
+      }
+      report_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          frequency: string | null
+          id: string
+          includes_campaigns: boolean
+          includes_comparison: boolean
+          includes_kpis: boolean
+          is_active: boolean
+          layout: Json
+          name: string
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          frequency?: string | null
+          id?: string
+          includes_campaigns?: boolean
+          includes_comparison?: boolean
+          includes_kpis?: boolean
+          is_active?: boolean
+          layout: Json
+          name: string
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          frequency?: string | null
+          id?: string
+          includes_campaigns?: boolean
+          includes_comparison?: boolean
+          includes_kpis?: boolean
+          is_active?: boolean
+          layout?: Json
+          name?: string
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

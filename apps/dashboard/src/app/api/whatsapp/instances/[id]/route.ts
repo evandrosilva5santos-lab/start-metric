@@ -1,118 +1,50 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { createEvolutionClient, EvolutionApiError } from "@/lib/whatsapp/evolution";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-type Params = Promise<{ id: string }>;
-
-async function getAuthenticatedOrgId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { supabase, orgId: null, response: NextResponse.json({ error: "Não autorizado" }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile?.org_id) {
-    return {
-      supabase,
-      orgId: null,
-      response: NextResponse.json({ error: "Organização não encontrada" }, { status: 404 }),
-    };
-  }
-
-  return { supabase, orgId: profile.org_id, response: null };
-}
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createEvolutionClient } from '../../../../../../../../../packages/whatsapp/src/client';
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Params },
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
-  const { data: instance, error } = await supabase
-    .from("whatsapp_instances")
-    .select(`
-      id,
-      client_id,
-      instance_name,
-      phone_number,
-      status,
-      qr_code,
-      last_connected_at,
-      created_at,
-      updated_at
-    `)
-    .eq("id", id)
-    .eq("org_id", orgId)
-    .single();
-
-  if (error || !instance) {
-    return NextResponse.json({ error: "Instância WhatsApp não encontrada" }, { status: 404 });
-  }
-
-  return NextResponse.json({ data: instance });
-}
-
-export async function DELETE(
-  _request: Request,
-  { params }: { params: Params },
-) {
-  const { id } = await params;
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
-  const { data: instance, error: instanceError } = await supabase
-    .from("whatsapp_instances")
-    .select("id, org_id, instance_name")
-    .eq("id", id)
-    .eq("org_id", orgId)
-    .single();
-
-  if (instanceError || !instance) {
-    return NextResponse.json({ error: "Instância WhatsApp não encontrada" }, { status: 404 });
-  }
-
   try {
-    const evolution = createEvolutionClient();
-    await evolution.deleteInstance(instance.instance_name);
-  } catch (error) {
-    if (error instanceof EvolutionApiError) {
-      console.error("Falha ao deletar instância na Evolution:", error.message);
-    } else {
-      console.error("Falha inesperada ao deletar instância na Evolution:", error);
-    }
-    // Mantemos fluxo de soft delete local para não bloquear o usuário.
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+
+    const { searchParams } = new URL(request.url);
+    const query = searchParams.get('q')?.toLowerCase() || '';
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
+
+    const { data: instance, error: instanceError } = await supabase
+      .from('whatsapp_instances')
+      .select('*')
+      .eq('id', id)
+      .eq('org_id', profile?.org_id)
+      .single();
+
+    if (instanceError || !instance) return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
+
+    const evolutionClient = createEvolutionClient();
+    const allGroups = await evolutionClient.fetchGroups(instance.instance_name);
+
+    const safeGroups = allGroups.filter((group: any) => {
+      // Filtra pelo nome do grupo (suporta emojis nativamente)
+      if (query && !group.subject?.toLowerCase().includes(query)) return false;
+
+      // Validação de Segurança: verifica se o número da instância é um ADM no grupo
+      const botParticipant = group.participants?.find((p: any) =>
+        p.id.startsWith(instance.phone_number)
+      );
+
+      return botParticipant?.admin === 'admin' || botParticipant?.admin === 'superadmin';
+    });
+
+    return NextResponse.json({ data: safeGroups });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
-
-  const { error: updateError } = await supabase
-    .from("whatsapp_instances")
-    .update({
-      status: "deleted",
-      qr_code: null,
-      phone_number: null,
-    })
-    .eq("id", id)
-    .eq("org_id", orgId);
-
-  if (updateError) {
-    console.error("Erro ao marcar instância como deletada:", updateError);
-    return NextResponse.json({ error: "Erro ao remover instância WhatsApp" }, { status: 500 });
-  }
-
-  return NextResponse.json({ data: { deleted: true } });
 }
-

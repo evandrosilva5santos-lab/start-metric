@@ -1,203 +1,109 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
-import { createEvolutionClient, EvolutionApiError } from "@/lib/whatsapp/evolution";
-import type { Tables } from "@/lib/supabase/types";
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createEvolutionClient } from '../../../../../../../packages/whatsapp/src/client';
 
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-const createInstanceSchema = z.object({
-  client_id: z.string().uuid("client_id inválido"),
-});
-
-type InstanceRow = Tables<"whatsapp_instances"> & {
-  clients?: { id: string; name: string } | { id: string; name: string }[] | null;
-};
-
-function getClientName(clientData: InstanceRow["clients"]): string | null {
-  if (!clientData) return null;
-  if (Array.isArray(clientData)) return clientData[0]?.name ?? null;
-  return clientData.name;
-}
-
-async function getAuthenticatedOrgId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { supabase, orgId: null, response: NextResponse.json({ error: "Não autorizado" }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile?.org_id) {
-    return {
-      supabase,
-      orgId: null,
-      response: NextResponse.json({ error: "Organização não encontrada" }, { status: 404 }),
-    };
-  }
-
-  return { supabase, orgId: profile.org_id, response: null };
-}
-
-export async function GET(request: NextRequest) {
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
-  const clientIdFilter = request.nextUrl.searchParams.get("client_id");
-
-  let query = supabase
-    .from("whatsapp_instances")
-    .select(`
-      id,
-      client_id,
-      instance_name,
-      phone_number,
-      status,
-      qr_code,
-      last_connected_at,
-      created_at,
-      updated_at,
-      clients(id, name)
-    `)
-    .eq("org_id", orgId)
-    .neq("status", "deleted")
-    .order("created_at", { ascending: false });
-
-  if (clientIdFilter) {
-    query = query.eq("client_id", clientIdFilter);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error("Erro ao listar instâncias do WhatsApp:", error);
-    return NextResponse.json({ error: "Erro ao listar instâncias WhatsApp" }, { status: 500 });
-  }
-
-  const formatted = (data as InstanceRow[] | null)?.map((instance) => ({
-    id: instance.id,
-    client_id: instance.client_id,
-    client_name: getClientName(instance.clients),
-    instance_name: instance.instance_name,
-    phone_number: instance.phone_number,
-    status: instance.status,
-    qr_code: instance.qr_code,
-    last_connected_at: instance.last_connected_at,
-    created_at: instance.created_at,
-    updated_at: instance.updated_at,
-  })) ?? [];
-
-  return NextResponse.json({ data: formatted });
-}
-
-export async function POST(request: NextRequest) {
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
+export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const parsed = createInstanceSchema.parse(body);
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    const { data: client, error: clientError } = await supabase
-      .from("clients")
-      .select("id, name")
-      .eq("id", parsed.client_id)
-      .eq("org_id", orgId)
-      .is("archived_at", null)
+    const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
+    if (!profile?.org_id) return NextResponse.json({ error: 'Organization not found' }, { status: 400 });
+
+    const body = await request.json();
+    const { client_id, name, phone_number, is_primary } = body;
+
+    if (!client_id || !name || !phone_number) {
+      return NextResponse.json({ error: 'Faltam dados obrigatórios (cliente, nome ou telefone)' }, { status: 400 });
+    }
+
+    // Verificar se o cliente pertence à organização
+    const { data: client } = await supabase
+      .from('clients')
+      .select('id')
+      .eq('id', client_id)
+      .eq('org_id', profile.org_id)
       .single();
 
-    if (clientError || !client) {
-      return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
+    if (!client) {
+      return NextResponse.json({ error: 'Client not found or access denied' }, { status: 404 });
     }
 
-    const instanceName = `org-${orgId.slice(0, 8)}-client-${client.id.slice(0, 8)}-${Date.now()}`;
-    const evolution = createEvolutionClient();
+    // Gera um nome seguro para a API da Evolution (sem espaços ou caracteres especiais)
+    const safeName = name.replace(/[^a-zA-Z0-9]/g, '').toLowerCase().slice(0, 10);
+    const instanceName = `org-${profile.org_id.slice(0, 8)}-cli-${client_id.slice(0, 8)}-${safeName}-${Date.now()}`;
+    const evolutionClient = createEvolutionClient();
 
-    const createResponse = await evolution.createInstance(instanceName);
-    let qrCode = createResponse.qrcode?.base64 ?? null;
+    // 1. Criar instância na Evolution API
+    await evolutionClient.createInstance(instanceName);
 
-    if (!qrCode) {
-      const qrResponse = await evolution.getQRCode(instanceName);
-      qrCode = qrResponse.base64 ?? null;
+    // 2. Buscar o QR Code gerado inicialmente
+    let qrCode = null;
+    try {
+      const qrData = await evolutionClient.getQRCode(instanceName);
+      qrCode = qrData.base64 || null;
+    } catch (qrError) {
+      console.error('[WhatsApp] Failed to get immediate QR code:', qrError);
     }
 
-    const { data: inserted, error: insertError } = await supabase
-      .from("whatsapp_instances")
+    // 3. Salvar no banco de dados
+    const { data: instance, error: dbError } = await supabase
+      .from('whatsapp_instances')
       .insert({
-        org_id: orgId,
-        client_id: client.id,
+        org_id: profile.org_id,
+        client_id,
+        name,
+        phone_number,
+        is_primary: is_primary ?? true,
         instance_name: instanceName,
-        api_url: process.env.EVOLUTION_API_URL ?? null,
-        api_key: null,
-        status: "connecting",
-        qr_code: qrCode,
+        status: 'connecting',
+        qr_code: qrCode
       })
+      .select()
+      .single();
+
+    if (dbError) throw dbError;
+
+    return NextResponse.json({ data: instance });
+  } catch (error: any) {
+    console.error('[WhatsApp POST Instances] Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  }
+}
+
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+    const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
+    if (!profile?.org_id) return NextResponse.json({ error: 'Organization not found' }, { status: 400 });
+
+    const { data, error } = await supabase
+      .from('whatsapp_instances')
       .select(`
         id,
-        client_id,
+        name,
         instance_name,
-        phone_number,
         status,
-        qr_code,
+        phone_number,
+        is_primary,
+        target_group_id,
+        target_group_name,
         last_connected_at,
-        created_at,
-        updated_at,
-        clients(id, name)
+        client_id,
+        clients ( name )
       `)
-      .single();
+      .eq('org_id', profile.org_id)
+      .neq('status', 'deleted');
 
-    if (insertError || !inserted) {
-      console.error("Erro ao salvar instância no banco:", insertError);
-      try {
-        await evolution.deleteInstance(instanceName);
-      } catch (rollbackError) {
-        console.error("Falha no rollback da instância Evolution:", rollbackError);
-      }
-      return NextResponse.json({ error: "Erro ao salvar instância WhatsApp" }, { status: 500 });
-    }
+    if (error) throw error;
 
-    const formatted = inserted as InstanceRow;
-
-    return NextResponse.json(
-      {
-        data: {
-          id: formatted.id,
-          client_id: formatted.client_id,
-          client_name: getClientName(formatted.clients),
-          instance_name: formatted.instance_name,
-          phone_number: formatted.phone_number,
-          status: formatted.status,
-          qr_code: formatted.qr_code,
-          last_connected_at: formatted.last_connected_at,
-          created_at: formatted.created_at,
-          updated_at: formatted.updated_at,
-        },
-      },
-      { status: 201 },
-    );
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Dados inválidos", details: error.issues }, { status: 400 });
-    }
-
-    if (error instanceof EvolutionApiError) {
-      return NextResponse.json(
-        { error: `Evolution API: ${error.message}` },
-        { status: error.status >= 400 && error.status < 600 ? error.status : 502 },
-      );
-    }
-
-    console.error("Erro ao criar instância WhatsApp:", error);
-    return NextResponse.json({ error: "Erro interno ao criar instância WhatsApp" }, { status: 500 });
+    return NextResponse.json({ data });
+  } catch (error: any) {
+    console.error('[WhatsApp GET Instances] Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }

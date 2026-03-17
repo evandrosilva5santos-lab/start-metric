@@ -1,124 +1,52 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
-import { createEvolutionClient } from "@/lib/whatsapp/evolution";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-type Params = Promise<{ id: string }>;
-
-const testMessageSchema = z.object({
-  phone: z
-    .string()
-    .trim()
-    .min(8, "Telefone inválido")
-    .max(20, "Telefone inválido")
-    .regex(/^\+?[0-9]+$/, "Use apenas dígitos e opcional +")
-    .optional(),
-});
-
-async function getAuthenticatedOrgId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { supabase, orgId: null, response: NextResponse.json({ error: "Não autorizado" }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile?.org_id) {
-    return {
-      supabase,
-      orgId: null,
-      response: NextResponse.json({ error: "Organização não encontrada" }, { status: 404 }),
-    };
-  }
-
-  return { supabase, orgId: profile.org_id, response: null };
-}
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createEvolutionClient } from '../../../../../../../../../packages/whatsapp/src/client';
 
 export async function POST(
-  request: NextRequest,
-  { params }: { params: Params },
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
   try {
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
+
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
     const body = await request.json().catch(() => ({}));
-    const parsed = testMessageSchema.parse(body);
+    const phone = body.phone;
+
+    const { data: profile } = await supabase.from('profiles').select('org_id, phone').eq('id', user.id).single();
 
     const { data: instance, error: instanceError } = await supabase
-      .from("whatsapp_instances")
-      .select("id, org_id, instance_name, phone_number, status")
-      .eq("id", id)
-      .eq("org_id", orgId)
+      .from('whatsapp_instances')
+      .select('*')
+      .eq('id', id)
+      .eq('org_id', profile?.org_id)
       .single();
 
     if (instanceError || !instance) {
-      return NextResponse.json({ error: "Instância WhatsApp não encontrada" }, { status: 404 });
+      return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
     }
 
-    if (instance.status !== "connected") {
-      return NextResponse.json(
-        { error: "A instância precisa estar conectada para enviar teste" },
-        { status: 400 },
-      );
+    if (instance.status !== 'connected') {
+      return NextResponse.json({ error: 'Instance is not connected' }, { status: 400 });
     }
 
-    const phone = parsed.phone ?? instance.phone_number ?? "";
-    if (!phone) {
-      return NextResponse.json(
-        { error: "Informe um telefone para enviar a mensagem de teste" },
-        { status: 400 },
-      );
+    const targetPhone = phone || instance.phone_number || profile?.phone;
+    if (!targetPhone) {
+      return NextResponse.json({ error: 'No phone number available to send test message' }, { status: 400 });
     }
 
-    const evolution = createEvolutionClient();
-    const sendResult = await evolution.sendText(
-      instance.instance_name,
-      phone,
-      "✅ Teste de conexão — Start Metric",
-    );
+    const cleanPhone = targetPhone.replace(/\D/g, '');
+    const evolutionClient = createEvolutionClient();
 
-    if (!sendResult.success) {
-      return NextResponse.json(
-        { error: sendResult.error ?? "Falha ao enviar mensagem de teste" },
-        { status: 502 },
-      );
-    }
+    await evolutionClient.sendText(instance.instance_name, cleanPhone, "✅ Teste de conexão — Start Metric. O WhatsApp do seu cliente foi conectado com sucesso!");
 
-    if (phone !== instance.phone_number) {
-      await supabase
-        .from("whatsapp_instances")
-        .update({ phone_number: phone })
-        .eq("id", instance.id)
-        .eq("org_id", orgId);
-    }
-
-    return NextResponse.json({
-      data: {
-        sent: true,
-        message_id: sendResult.messageId ?? null,
-      },
-    });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json({ error: "Dados inválidos", details: error.issues }, { status: 400 });
-    }
-
-    console.error("Erro ao enviar mensagem de teste:", error);
-    return NextResponse.json({ error: "Erro interno ao enviar mensagem de teste" }, { status: 500 });
+    return NextResponse.json({ data: { sent: true, phone: cleanPhone } });
+  } catch (error: any) {
+    console.error('[WhatsApp Instance TEST POST] Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
 }
-

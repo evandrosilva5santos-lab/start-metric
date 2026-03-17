@@ -24,3 +24,27 @@ export function statusLabel(status: string): string {
   };
   return statusMap[status] || status;
 }
+
+/**
+ * Formata número em moeda brasileira (BRL).
+ */
+export function formatCurrency(value: number | null | undefined): string {
+  if (!value) return "R$ 0,00";
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+/**
+ * Formata número com separadores de milhares.
+ */
+export function formatNumber(value: number | null | undefined): string {
+  if (!value) return "0";
+  return new Intl.NumberFormat("pt-BR", {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}

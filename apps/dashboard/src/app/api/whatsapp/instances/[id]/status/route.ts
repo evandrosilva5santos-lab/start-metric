@@ -1,146 +1,80 @@
-import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import {
-  createEvolutionClient,
-  EvolutionApiError,
-  mapEvolutionStateToStatus,
-  type WhatsAppInstanceStatus,
-} from "@/lib/whatsapp/evolution";
-import type { Tables } from "@/lib/supabase/types";
-
-export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
-
-const QR_REFRESH_INTERVAL_MS = 55_000;
-
-type Params = Promise<{ id: string }>;
-type InstanceRow = Tables<"whatsapp_instances">;
-
-async function getAuthenticatedOrgId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return { supabase, orgId: null, response: NextResponse.json({ error: "Não autorizado" }, { status: 401 }) };
-  }
-
-  const { data: profile, error: profileError } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
-
-  if (profileError || !profile?.org_id) {
-    return {
-      supabase,
-      orgId: null,
-      response: NextResponse.json({ error: "Organização não encontrada" }, { status: 404 }),
-    };
-  }
-
-  return { supabase, orgId: profile.org_id, response: null };
-}
-
-function shouldRefreshQr(instance: InstanceRow): boolean {
-  if (instance.status === "connected" || instance.status === "deleted") {
-    return false;
-  }
-
-  if (!instance.qr_code) {
-    return true;
-  }
-
-  const lastUpdate = new Date(instance.updated_at).getTime();
-  if (Number.isNaN(lastUpdate)) {
-    return true;
-  }
-
-  return Date.now() - lastUpdate >= QR_REFRESH_INTERVAL_MS;
-}
+import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
+import { createEvolutionClient } from '../../../../../../../../../packages/whatsapp/src/client';
 
 export async function GET(
-  _request: Request,
-  { params }: { params: Params },
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
 ) {
-  const { id } = await params;
-  const { supabase, orgId, response } = await getAuthenticatedOrgId();
-  if (!orgId) return response;
-
-  const { data: instance, error: instanceError } = await supabase
-    .from("whatsapp_instances")
-    .select("*")
-    .eq("id", id)
-    .eq("org_id", orgId)
-    .single();
-
-  if (instanceError || !instance) {
-    return NextResponse.json({ error: "Instância WhatsApp não encontrada" }, { status: 404 });
-  }
-
-  const evolution = createEvolutionClient();
-  let nextStatus = instance.status;
-  let nextQrCode = instance.qr_code;
-  let lastConnectedAt = instance.last_connected_at;
-
   try {
-    const connection = await evolution.getConnectionState(instance.instance_name);
-    const mappedStatus = mapEvolutionStateToStatus(connection.instance.state);
-    nextStatus = mappedStatus;
+    const resolvedParams = await params;
+    const id = resolvedParams.id;
 
-    if (mappedStatus === "connected" && !lastConnectedAt) {
-      lastConnectedAt = new Date().toISOString();
-    }
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-    if (mappedStatus !== "connected" && shouldRefreshQr(instance as InstanceRow)) {
-      const qrResponse = await evolution.getQRCode(instance.instance_name);
-      nextQrCode = qrResponse.base64 ?? nextQrCode;
-      nextStatus = "connecting";
-    }
-  } catch (error) {
-    if (error instanceof EvolutionApiError) {
-      nextStatus = "error";
-    } else {
-      console.error("Erro inesperado ao buscar status WhatsApp:", error);
-      nextStatus = "error";
-    }
-  }
+    const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
 
-  const updatePayload: Partial<InstanceRow> = {};
-  if (nextStatus !== instance.status) updatePayload.status = nextStatus as WhatsAppInstanceStatus;
-  if (nextQrCode !== instance.qr_code) updatePayload.qr_code = nextQrCode;
-  if (lastConnectedAt !== instance.last_connected_at) updatePayload.last_connected_at = lastConnectedAt;
-
-  let finalRecord: InstanceRow = instance as InstanceRow;
-
-  if (Object.keys(updatePayload).length > 0) {
-    const { data: updated, error: updateError } = await supabase
-      .from("whatsapp_instances")
-      .update(updatePayload)
-      .eq("id", id)
-      .eq("org_id", orgId)
-      .select("*")
+    const { data: instance, error: instanceError } = await supabase
+      .from('whatsapp_instances')
+      .select('*')
+      .eq('id', id)
+      .eq('org_id', profile?.org_id)
       .single();
 
-    if (updateError || !updated) {
-      console.error("Erro ao atualizar status da instância WhatsApp:", updateError);
-      return NextResponse.json({ error: "Erro ao atualizar status da instância" }, { status: 500 });
+    if (instanceError || !instance) {
+      return NextResponse.json({ error: 'Instance not found' }, { status: 404 });
     }
 
-    finalRecord = updated as InstanceRow;
+    const evolutionClient = createEvolutionClient();
+
+    let stateData;
+    try {
+      stateData = await evolutionClient.getConnectionState(instance.instance_name);
+    } catch (e) {
+      console.error('Error fetching connection state:', e);
+      return NextResponse.json({ data: instance });
+    }
+
+    const apiState = stateData.instance?.state;
+    const newStatus = apiState === 'open' ? 'connected' : apiState === 'close' ? 'disconnected' : 'connecting';
+
+    let updateData: any = {};
+    let needsUpdate = false;
+
+    if (instance.status !== newStatus) {
+      updateData.status = newStatus;
+      needsUpdate = true;
+      if (newStatus === 'connected') {
+        updateData.last_connected_at = new Date().toISOString();
+      }
+    }
+
+    // Se não estiver conectado, tenta obter um QR Code novo caso o banco esteja desatualizado
+    if (newStatus === 'disconnected' || newStatus === 'connecting') {
+      try {
+        const qrData = await evolutionClient.getQRCode(instance.instance_name);
+        if (qrData.base64 && qrData.base64 !== instance.qr_code) {
+          updateData.qr_code = qrData.base64;
+          updateData.status = 'connecting';
+          needsUpdate = true;
+        }
+      } catch (qrErr) {
+        // Ignora erros de QR code expirado temporariamente
+      }
+    }
+
+    if (needsUpdate) {
+      await supabase.from('whatsapp_instances').update(updateData).eq('id', id);
+      Object.assign(instance, updateData);
+    }
+
+    return NextResponse.json({
+      data: { status: instance.status, qr_code: instance.qr_code, phone_number: instance.phone_number }
+    });
+  } catch (error: any) {
+    console.error('[WhatsApp Instance Status GET] Error:', error);
+    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
   }
-
-  return NextResponse.json({
-    data: {
-      id: finalRecord.id,
-      status: finalRecord.status,
-      qr_code: finalRecord.qr_code,
-      phone_number: finalRecord.phone_number,
-      last_connected_at: finalRecord.last_connected_at,
-      updated_at: finalRecord.updated_at,
-    },
-  });
 }
-
