@@ -37,8 +37,8 @@ export async function GET(request: Request) {
   const expectedState = cookieStore.get("meta_oauth_state")?.value;
 
   if (!expectedState || expectedState !== state) {
-    dashboardUrl.searchParams.set("error", "invalid_state");
-    return NextResponse.redirect(dashboardUrl.toString());
+    metaSettingsUrl.searchParams.set("error", "invalid_state");
+    return NextResponse.redirect(metaSettingsUrl.toString());
   }
 
   // ── Autenticação Supabase ─────────────────────────────────
