@@ -1,32 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import {
-  Users,
-  Plus,
-  Mail,
-  Phone,
-  MoreVertical,
-  Edit,
-  Archive,
-  Eye,
-  Loader2,
-} from "lucide-react";
+import { AnimatePresence } from "framer-motion";
+import { Users, Plus } from "lucide-react";
 import { ClientModal } from "@/components/clients/ClientModal";
+import { ClientCard, type ClientCardData } from "@/components/clients/ClientCard";
 
-type Client = {
-  id: string;
-  name: string;
-  email: string | null;
-  phone: string | null;
-  whatsapp: string | null;
-  logo_url: string | null;
-  notes: string | null;
-  accounts_count: number;
-  created_at: string;
-  updated_at: string;
-};
+type Client = ClientCardData;
 
 export function ClientsPageClient() {
   const [clients, setClients] = useState<Client[]>([]);
@@ -203,90 +183,13 @@ export function ClientsPageClient() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <AnimatePresence>
             {clients.map((client) => (
-              <motion.div
+              <ClientCard
                 key={client.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="group bg-slate-900/50 border border-slate-800 rounded-2xl p-5 hover:border-cyan-400/30 hover:shadow-lg hover:shadow-cyan-400/5 transition-all duration-300"
-              >
-                {/* Header do Card */}
-                <div className="flex items-start gap-4 mb-4">
-                  {/* Avatar */}
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400/20 to-indigo-600/20 flex items-center justify-center border border-cyan-400/20 flex-shrink-0">
-                    {client.logo_url ? (
-                      <img
-                        src={client.logo_url}
-                        alt={client.name}
-                        className="w-full h-full rounded-xl object-cover"
-                      />
-                    ) : (
-                      <span className="text-cyan-400 font-bold text-sm">
-                        {getInitials(client.name)}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-white truncate">
-                      {client.name}
-                    </h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="bg-slate-800 text-slate-400 rounded-full px-2 py-0.5 text-xs font-medium">
-                        {client.accounts_count} {client.accounts_count === 1 ? "conta" : "contas"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Actions */}
-                  <div className="flex items-center gap-1">
-                    <button
-                      onClick={() => handleEdit(client)}
-                      className="p-1.5 text-slate-400 hover:text-cyan-400 hover:bg-cyan-400/10 rounded-lg transition-colors"
-                      title="Editar"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => handleArchive(client.id)}
-                      className="p-1.5 text-slate-400 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-colors"
-                      title="Arquivar"
-                    >
-                      <Archive size={16} />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Contact Info */}
-                <div className="space-y-2">
-                  {client.email && (
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <Mail size={14} className="flex-shrink-0" />
-                      <span className="truncate">{client.email}</span>
-                    </div>
-                  )}
-                  {client.phone && (
-                    <div className="flex items-center gap-2 text-sm text-slate-400">
-                      <Phone size={14} className="flex-shrink-0" />
-                      <span>{client.phone}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Footer */}
-                <div className="mt-4 pt-4 border-t border-slate-800 flex items-center justify-between">
-                  <span className="text-xs text-slate-500">
-                    Criado em {new Date(client.created_at).toLocaleDateString("pt-BR")}
-                  </span>
-                  <button
-                    onClick={() => handleEdit(client)}
-                    className="text-sm text-cyan-400 hover:text-cyan-300 font-medium"
-                  >
-                    Ver métricas
-                  </button>
-                </div>
-              </motion.div>
+                client={client}
+                getInitials={getInitials}
+                onEdit={handleEdit}
+                onArchive={handleArchive}
+              />
             ))}
           </AnimatePresence>
         </div>

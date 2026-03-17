@@ -13,6 +13,19 @@ const createClientSchema = z.object({
   account_ids: z.array(z.string().uuid()).optional(),
 });
 
+type ClientListRow = {
+  id: string;
+  name: string;
+  email: string | null;
+  phone: string | null;
+  whatsapp: string | null;
+  logo_url: string | null;
+  notes: string | null;
+  created_at: string;
+  updated_at: string;
+  ad_accounts: { count: number | null }[] | null;
+};
+
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -57,19 +70,83 @@ export async function GET() {
       return NextResponse.json({ error: "Erro ao buscar clientes" }, { status: 500 });
     }
 
-    // Formatar resposta com contagem de contas
-    const formattedClients = (clients ?? []).map((client: any) => ({
-      id: client.id,
-      name: client.name,
-      email: client.email,
-      phone: client.phone,
-      whatsapp: client.whatsapp,
-      logo_url: client.logo_url,
-      notes: client.notes,
-      created_at: client.created_at,
-      updated_at: client.updated_at,
-      accounts_count: client.ad_accounts?.[0]?.count ?? 0,
-    }));
+    const { data: whatsappInstances, error: whatsappError } = await supabase
+      .from("whatsapp_instances")
+      .select("client_id, status, updated_at, last_connected_at")
+      .eq("org_id", profile.org_id)
+      .neq("status", "deleted")
+      .not("client_id", "is", null);
+
+    if (whatsappError) {
+      console.error("Erro ao buscar status do WhatsApp por cliente:", whatsappError);
+    }
+
+    const whatsappByClient = new Map<
+      string,
+      {
+        status: string;
+        updated_at: string;
+        last_connected_at: string | null;
+      }
+    >();
+
+    (whatsappInstances ?? []).forEach((instance) => {
+      if (!instance.client_id) return;
+
+      const previous = whatsappByClient.get(instance.client_id);
+      if (!previous) {
+        whatsappByClient.set(instance.client_id, {
+          status: instance.status,
+          updated_at: instance.updated_at,
+          last_connected_at: instance.last_connected_at,
+        });
+        return;
+      }
+
+      const previousIsConnected = previous.status === "connected";
+      const currentIsConnected = instance.status === "connected";
+      if (currentIsConnected && !previousIsConnected) {
+        whatsappByClient.set(instance.client_id, {
+          status: instance.status,
+          updated_at: instance.updated_at,
+          last_connected_at: instance.last_connected_at,
+        });
+        return;
+      }
+
+      if (currentIsConnected === previousIsConnected) {
+        const previousTime = new Date(previous.updated_at).getTime();
+        const currentTime = new Date(instance.updated_at).getTime();
+        if (currentTime > previousTime) {
+          whatsappByClient.set(instance.client_id, {
+            status: instance.status,
+            updated_at: instance.updated_at,
+            last_connected_at: instance.last_connected_at,
+          });
+        }
+      }
+    });
+
+    // Formatar resposta com contagem de contas e status do WhatsApp
+    const formattedClients = ((clients ?? []) as ClientListRow[]).map((client) => {
+      const whatsappConnection = whatsappByClient.get(client.id);
+
+      return {
+        id: client.id,
+        name: client.name,
+        email: client.email,
+        phone: client.phone,
+        whatsapp: client.whatsapp,
+        logo_url: client.logo_url,
+        notes: client.notes,
+        created_at: client.created_at,
+        updated_at: client.updated_at,
+        accounts_count: client.ad_accounts?.[0]?.count ?? 0,
+        whatsapp_status: whatsappConnection?.status ?? "disconnected",
+        whatsapp_connected: whatsappConnection?.status === "connected",
+        whatsapp_last_connected_at: whatsappConnection?.last_connected_at ?? null,
+      };
+    });
 
     return NextResponse.json({ data: formattedClients });
   } catch (error) {
