@@ -37,11 +37,13 @@ export default async function PerformancePage({
 }: {
   searchParams: SearchParams;
 }) {
+  const campaignStatusParam = getParam(searchParams, "campaignStatus");
+
   const filters = {
     from: getParam(searchParams, "from"),
     to: getParam(searchParams, "to"),
     adAccountId: getParam(searchParams, "adAccountId"),
-    campaignStatus: getParam(searchParams, "campaignStatus"),
+    campaignStatuses: campaignStatusParam ? [campaignStatusParam] : undefined,
   };
 
   let data: Awaited<ReturnType<typeof getDashboardData>>;
@@ -111,7 +113,7 @@ export default async function PerformancePage({
               <label className="text-xs text-slate-500">Status</label>
               <select
                 name="campaignStatus"
-                defaultValue={data.filters.campaignStatus === "all" ? "all" : data.filters.campaignStatus}
+                defaultValue={data.filters.campaignStatuses.length === 0 ? "all" : data.filters.campaignStatuses[0]}
                 className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
               >
                 <option value="all">Todos</option>
