@@ -133,7 +133,7 @@ export function Header() {
                   {userName ? "Bem-vindo" : "Acesso Usuário"}
                 </span>
                 <span className="text-xs font-bold text-slate-300 max-w-[120px] truncate leading-none">
-                  {userName || userEmail ?? "Carregando..."}
+                  {(userName || userEmail) ?? "Carregando..."}
                 </span>
               </div>
               <ChevronDown
