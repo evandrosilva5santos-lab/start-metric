@@ -13,7 +13,9 @@ type CampaignRow = {
   id: string;
   name: string;
   status: string | null;
+  objective: string | null;
   ad_account_id: string;
+  client_id: string | null;
 };
 
 type MetricRow = {
@@ -31,6 +33,7 @@ type AccountRow = {
   name: string | null;
   external_id: string;
   timezone: string | null;
+  last_synced_at: string | null;
 };
 
 function safeDivide(numerator: number, denominator: number): number {
@@ -100,7 +103,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   const { data: accountsData, error: accountsError } = await supabase
     .from("ad_accounts")
-    .select("id, name, external_id, timezone")
+    .select("id, name, external_id, timezone, last_synced_at")
     .eq("org_id", orgId)
     .order("name", { ascending: true });
 
@@ -144,7 +147,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   let campaignsQuery = supabase
     .from("campaigns")
-    .select("id, name, status, ad_account_id")
+    .select("id, name, status, objective, ad_account_id, client_id")
     .eq("org_id", orgId);
 
   if (adAccountId !== "all") {
@@ -180,6 +183,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
       filters: {
         adAccountId,
         campaignStatus,
+        clientId,
       },
       filterOptions: {
         accounts: accounts.map((account) => ({
@@ -187,8 +191,20 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
           name: account.name ?? account.external_id,
           externalId: account.external_id,
           timezone: account.timezone,
+          lastSyncedAt: account.last_synced_at,
         })),
         statuses,
+        objectives: Array.from(
+          new Set(
+            (campaignsData ?? [])
+              .map((c) => c.objective)
+              .filter((o): o is string => Boolean(o))
+          )
+        ).sort(),
+        clients: clients.map((client) => ({
+          id: client.id,
+          name: client.name,
+        })),
       },
       kpis: {
         adSpend: 0,
@@ -200,6 +216,10 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
         roas: 0,
         cpa: 0,
         roi: 0,
+        cpm: 0,
+        ctr: 0,
+        cpc: 0,
+        isDataReal: false,
       },
       chart: [],
       campaigns: [],
@@ -237,7 +257,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   };
 
   const chartMap = new Map<string, DashboardChartPoint>();
-  const campaignAcc = new Map<string, Omit<DashboardCampaignRow, "roas" | "cpa" | "grossProfit" | "roi">>();
+  const campaignAcc = new Map<string, Omit<DashboardCampaignRow, "roas" | "cpa" | "grossProfit" | "roi" | "cpm" | "ctr" | "cpc">>();
 
   for (const metric of metrics) {
     const campaign = campaignById.get(metric.campaign_id);
@@ -290,12 +310,28 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
   }
 
   const grossProfit = kpisAccumulator.revenueAttributed - kpisAccumulator.adSpend;
+  const isDataReal = kpisAccumulator.revenueAttributed > 0;
+
+  const cpm = kpisAccumulator.impressions > 0
+    ? (kpisAccumulator.adSpend / kpisAccumulator.impressions) * 1000
+    : 0;
+  const ctr = kpisAccumulator.impressions > 0
+    ? (kpisAccumulator.clicks / kpisAccumulator.impressions) * 100
+    : 0;
+  const cpc = kpisAccumulator.clicks > 0
+    ? kpisAccumulator.adSpend / kpisAccumulator.clicks
+    : 0;
+
   const kpis: DashboardKpis = {
     ...kpisAccumulator,
     grossProfit,
     roas: safeDivide(kpisAccumulator.revenueAttributed, kpisAccumulator.adSpend),
     cpa: safeDivide(kpisAccumulator.adSpend, kpisAccumulator.attributedConversions),
     roi: safeDivide(grossProfit, kpisAccumulator.adSpend),
+    cpm,
+    ctr,
+    cpc,
+    isDataReal,
   };
 
   const campaignsOutput: DashboardCampaignRow[] = campaigns
@@ -308,6 +344,9 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
           accountId: campaign.ad_account_id,
           accountName: account?.name ?? account?.external_id ?? "Conta sem nome",
           status: campaign.status ?? "UNKNOWN",
+          objective: campaign.objective ?? undefined,
+          clientId: campaign.client_id ?? undefined,
+          clientName: undefined,
           spend: 0,
           revenue: 0,
           conversions: 0,
@@ -315,17 +354,37 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
           clicks: 0,
         };
       const rowGrossProfit = row.revenue - row.spend;
+      const rowCpm = row.impressions > 0 ? (row.spend / row.impressions) * 1000 : 0;
+      const rowCtr = row.impressions > 0 ? (row.clicks / row.impressions) * 100 : 0;
+      const rowCpc = row.clicks > 0 ? row.spend / row.clicks : 0;
+
       return {
         ...row,
         roas: safeDivide(row.revenue, row.spend),
         cpa: safeDivide(row.spend, row.conversions),
         grossProfit: rowGrossProfit,
         roi: safeDivide(rowGrossProfit, row.spend),
+        cpm: rowCpm,
+        ctr: rowCtr,
+        cpc: rowCpc,
       };
     })
     .sort((a, b) => b.grossProfit - a.grossProfit);
 
   const chart = Array.from(chartMap.values()).sort((a, b) => a.date.localeCompare(b.date));
+
+  // Buscar last_synced_at da conta selecionada (ou mais recente se "all")
+  let lastSyncedAt: string | null = null;
+  if (adAccountId !== "all") {
+    const selectedAccount = accounts.find((a) => a.id === adAccountId);
+    lastSyncedAt = selectedAccount?.last_synced_at ?? null;
+  } else {
+    // Pegar o mais recente entre todas as contas
+    const dates = accounts
+      .map((a) => a.last_synced_at)
+      .filter((d): d is string => Boolean(d));
+    lastSyncedAt = dates.length > 0 ? dates.sort().reverse()[0] ?? null : null;
+  }
 
   return {
     timezone,
@@ -333,6 +392,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
     filters: {
       adAccountId,
       campaignStatus,
+      clientId,
     },
     filterOptions: {
       accounts: accounts.map((account) => ({
@@ -340,8 +400,20 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
         name: account.name ?? account.external_id,
         externalId: account.external_id,
         timezone: account.timezone,
+        lastSyncedAt: account.last_synced_at,
       })),
       statuses,
+      objectives: Array.from(
+        new Set(
+          (campaignsData ?? [])
+            .map((c) => c.objective)
+            .filter((o): o is string => Boolean(o))
+        )
+      ).sort(),
+      clients: clients.map((client) => ({
+        id: client.id,
+        name: client.name,
+      })),
     },
     kpis,
     chart,
@@ -351,6 +423,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
       totalCampaigns: campaigns.length,
     },
     userProfile,
+    lastSyncedAt,
     generatedAt: new Date().toISOString(),
   };
 }

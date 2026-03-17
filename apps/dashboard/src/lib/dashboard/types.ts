@@ -4,6 +4,8 @@ export type DashboardFilters = {
   adAccountId?: string;
   campaignStatus?: string;
   clientId?: string;
+  campaignStatuses?: string[];
+  campaignObjectives?: string[];
 };
 
 export type DashboardKpis = {
@@ -16,6 +18,17 @@ export type DashboardKpis = {
   roas: number;
   cpa: number;
   roi: number;
+  cpm: number;
+  ctr: number;
+  cpc: number;
+  isDataReal: boolean;
+};
+
+export type KPIComparison = {
+  value: number;
+  previousValue: number;
+  direction: "up" | "down" | "neutral";
+  percentChange: number;
 };
 
 export type DashboardChartPoint = {
@@ -30,7 +43,10 @@ export type DashboardCampaignRow = {
   campaignName: string;
   accountId: string;
   accountName: string;
+  clientId?: string;
+  clientName?: string;
   status: string;
+  objective?: string;
   spend: number;
   revenue: number;
   conversions: number;
@@ -40,6 +56,9 @@ export type DashboardCampaignRow = {
   cpa: number;
   grossProfit: number;
   roi: number;
+  cpm: number;
+  ctr: number;
+  cpc: number;
 };
 
 export type DashboardAccountOption = {
@@ -47,6 +66,7 @@ export type DashboardAccountOption = {
   name: string;
   externalId: string;
   timezone: string | null;
+  lastSyncedAt: string | null;
 };
 
 export type DashboardClientOption = {
@@ -68,9 +88,16 @@ export type DashboardData = {
   filterOptions: {
     accounts: DashboardAccountOption[];
     statuses: string[];
+    objectives?: string[];
     clients: DashboardClientOption[];
   };
   kpis: DashboardKpis;
+  kpisComparison?: {
+    roas: KPIComparison;
+    cpa?: KPIComparison;
+    cpm?: KPIComparison;
+    ctr?: KPIComparison;
+  };
   chart: DashboardChartPoint[];
   campaigns: DashboardCampaignRow[];
   metrics: {
@@ -80,5 +107,6 @@ export type DashboardData = {
   userProfile?: {
     name: string | null;
   };
+  lastSyncedAt: string | null;
   generatedAt: string;
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingUp, MousePointerClick, Eye, DollarSign, Sparkles } from "lucide-react";
+import { TrendingUp, MousePointerClick, Eye, DollarSign, Sparkles, BarChart3, MousePointer2, Users } from "lucide-react";
 import { StatCard } from "@/components/ui/StatCard";
 import { cn } from "@/lib/utils";
 import type { DashboardKpis } from "@/lib/dashboard/types";
@@ -12,6 +12,10 @@ function formatCurrency(value: number): string {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
+}
+
+function formatPercent(value: number): string {
+  return `${value.toFixed(1)}%`;
 }
 
 type KpiGridProps = {
@@ -66,6 +70,38 @@ export function KpiGrid({ kpis }: KpiGridProps) {
       trend: { value: "Atribuídas", isPositive: true, label: "" },
       icon: Sparkles,
       color: "#38bdf8",
+      className: "xl:col-span-3",
+    },
+    {
+      title: "CPM",
+      value: formatCurrency(kpis.cpm),
+      trend: { value: "Custo por mil impressões", isPositive: true, label: "" },
+      icon: BarChart3,
+      color: "#8b5cf6",
+      className: "xl:col-span-3",
+    },
+    {
+      title: "CTR",
+      value: formatPercent(kpis.ctr),
+      trend: { value: "Taxa de cliques", isPositive: kpis.ctr >= 2, label: "" },
+      icon: MousePointer2,
+      color: kpis.ctr >= 2 ? "#34d399" : kpis.ctr >= 1 ? "#f59e0b" : "#ef4444",
+      className: "xl:col-span-3",
+    },
+    {
+      title: "CPC",
+      value: formatCurrency(kpis.cpc),
+      trend: { value: "Custo por clique", isPositive: true, label: "" },
+      icon: Users,
+      color: "#6366f1",
+      className: "xl:col-span-3",
+    },
+    {
+      title: "ROI",
+      value: `${kpis.roi.toFixed(0)}%`,
+      trend: { value: "Retorno sobre investimento", isPositive: kpis.roi >= 0, label: "" },
+      icon: TrendingUp,
+      color: kpis.roi >= 0 ? "#34d399" : "#ef4444",
       className: "xl:col-span-3",
     },
   ];

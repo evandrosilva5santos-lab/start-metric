@@ -5,7 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { fetchCampaigns, fetchInsights, MetaApiError } from "@/lib/meta/client";
+import { fetchCampaigns, fetchCampaignInsights, MetaApiError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/token";
 import type { Database } from "@/lib/supabase/types";
 
@@ -35,14 +35,6 @@ function isCronAuthorized(request: Request): boolean {
   return false;
 }
 
-function getDateRange() {
-  const until = new Date();
-  const since = new Date();
-  since.setDate(since.getDate() - 1); // Apenas yesterday para o cron
-  const fmt = (d: Date) => d.toISOString().split("T")[0];
-  return { since: fmt(since), until: fmt(until) };
-}
-
 export async function POST(request: Request) {
   // Validação de segurança do cron
   if (!isCronAuthorized(request)) {
@@ -50,12 +42,11 @@ export async function POST(request: Request) {
   }
 
   const supabase = createServiceClient();
-  const dateRange = getDateRange();
 
   // Busca todas as contas ativas (sem RLS por usar service role)
   const { data: accounts, error } = await supabase
     .from("ad_accounts")
-    .select("id, org_id, external_id, token_encrypted")
+    .select("id, org_id, external_id, token_encrypted, name")
     .eq("status", "active")
     .eq("platform", "meta");
 
@@ -64,7 +55,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const results = { synced: 0, expired: 0, errors: 0 };
+  const results = { synced: 0, expired: 0, errors: 0, synced_campaigns: 0 };
 
   for (const account of accounts ?? []) {
     try {
@@ -72,7 +63,10 @@ export async function POST(request: Request) {
         console.warn(`[cron/meta-sync] Conta ${account.external_id} sem token criptografado. Skip.`);
         continue;
       }
+
       const rawToken = await decryptToken(account.token_encrypted, supabase);
+
+      // ── Buscar campanhas ────────────────────────────────────
       const campaigns = await fetchCampaigns(account.external_id, rawToken);
 
       if (campaigns.length > 0) {
@@ -91,7 +85,10 @@ export async function POST(request: Request) {
           .upsert(campaignRows, { onConflict: "ad_account_id,meta_id" });
       }
 
-      const insights = await fetchInsights(account.external_id, rawToken, dateRange);
+      // ── Buscar insights com revenue real (últimos 30 dias) ────────
+      const insights = await fetchCampaignInsights(account.external_id, rawToken, "last_30d");
+
+      // ── Buscar IDs internos das campanhas ──────────────────────────
       const { data: campaignRows } = await supabase
         .from("campaigns")
         .select("id, meta_id")
@@ -99,24 +96,35 @@ export async function POST(request: Request) {
 
       const idMap = new Map((campaignRows ?? []).map((r) => [r.meta_id, r.id]));
 
+      // ── Upsert das métricas com revenue real ────────────────────────
       const metricRows = insights
         .filter((ins) => idMap.has(ins.campaign_id))
         .map((ins) => ({
           campaign_id: idMap.get(ins.campaign_id)!,
           org_id: account.org_id,
-          date: ins.date_start,
-          spend: parseFloat(ins.spend || "0"),
-          impressions: parseInt(ins.impressions || "0", 10),
-          clicks: parseInt(ins.clicks || "0", 10),
-          conversions: ins.conversions ?? 0,
-          revenue_attributed: ins.revenue ?? 0,
+          date: ins.date,
+          spend: ins.spend,
+          impressions: ins.impressions,
+          clicks: ins.clicks,
+          conversions: ins.conversions,
+          revenue_attributed: ins.revenue_attributed,
+          roas: ins.roas,
+          cpa: ins.cpa,
         }));
 
       if (metricRows.length > 0) {
         await supabase
           .from("daily_metrics")
           .upsert(metricRows, { onConflict: "campaign_id,date" });
+
+        results.synced_campaigns += metricRows.length;
       }
+
+      // ── Atualizar last_synced_at ───────────────────────────────
+      await supabase
+        .from("ad_accounts")
+        .update({ last_synced_at: new Date().toISOString() })
+        .eq("id", account.id);
 
       results.synced++;
     } catch (err) {

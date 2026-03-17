@@ -22,8 +22,31 @@ export interface MetaInsight {
   spend: string;
   impressions: string;
   clicks: string;
-  conversions?: number;
-  revenue?: number;
+  actions?: MetaAction[];
+  action_values?: MetaActionValue[];
+}
+
+export interface MetaAction {
+  action_type: string;
+  value: string;
+}
+
+export interface MetaActionValue {
+  action_type: string;
+  value: string;
+}
+
+export interface ParsedMetric {
+  campaign_id: string;
+  campaign_name?: string;
+  date: string;
+  spend: number;
+  impressions: number;
+  clicks: number;
+  conversions: number;
+  revenue_attributed: number;
+  roas: number;
+  cpa: number;
 }
 
 export interface MetaDateRange {
@@ -150,6 +173,76 @@ export async function fetchInsights(
     }
   );
   return data.data ?? [];
+}
+
+/**
+ * Busca insights completos com actions e action_values para cálculo de ROAS real.
+ * Endpoint: GET /{ad_account_id}/insights
+ *
+ * Retorna métricas parseadas com conversions, revenue_attributed, roas e cpa calculados.
+ */
+export async function fetchCampaignInsights(
+  adAccountId: string,
+  token: string,
+  datePreset: string = "last_30d"
+): Promise<ParsedMetric[]> {
+  type InsightRow = {
+    campaign_id: string;
+    campaign_name: string;
+    spend: string;
+    impressions: string;
+    clicks: string;
+    date_start: string;
+    date_stop: string;
+    actions?: Array<{ action_type: string; value: string }>;
+    action_values?: Array<{ action_type: string; value: string }>;
+  };
+
+  const data = await graphFetch<{ data: InsightRow[] }>(
+    `/${adAccountId}/insights`,
+    token,
+    {
+      fields: "campaign_id,campaign_name,spend,impressions,clicks,actions,action_values,date_start,date_stop",
+      date_preset: datePreset,
+      time_increment: "1",
+      level: "campaign",
+      limit: "500",
+    }
+  );
+
+  const rows = data.data ?? [];
+
+  return rows.map((row) => {
+    // Extrair conversions de actions (purchase ou omni_purchase)
+    const purchaseAction = row.actions?.find(
+      (a) => a.action_type === "purchase" || a.action_type === "omni_purchase"
+    );
+    const conversions = purchaseAction ? parseFloat(purchaseAction.value) : 0;
+
+    // Extrair revenue de action_values (purchase ou omni_purchase)
+    const purchaseValue = row.action_values?.find(
+      (a) => a.action_type === "purchase" || a.action_type === "omni_purchase"
+    );
+    const revenueAttributed = purchaseValue ? parseFloat(purchaseValue.value) : 0;
+
+    // Calcular ROAS e CPA
+    const spend = parseFloat(row.spend) || 0;
+    const roas = spend > 0 ? revenueAttributed / spend : 0;
+    const cpa = conversions > 0 ? spend / conversions : 0;
+
+    return {
+      campaign_id: row.campaign_id,
+      campaign_name: row.campaign_name,
+      date: row.date_start,
+      spend,
+      impressions: parseInt(row.impressions) || 0,
+      clicks: parseInt(row.clicks) || 0,
+      conversions,
+      revenue_attributed: revenueAttributed,
+      roas,
+      cpa,
+    };
+  });
 }
 
 /**

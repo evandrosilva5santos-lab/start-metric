@@ -3,12 +3,13 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useQueryClient } from "@tanstack/react-query";
-import { Activity, LogOut, Sparkles } from "lucide-react";
+import { Activity, AlertTriangle, CheckCircle, Clock, LogOut, RefreshCw, Sparkles } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { AlertToast } from "@/components/alerts/AlertToast";
 import { AlertsDropdown } from "@/components/alerts/AlertsDropdown";
 import { AlertRulesConfig } from "@/components/alerts/AlertRulesConfig";
 import { useAlerts } from "@/hooks/useAlerts";
+import { useToast } from "@/hooks/useToast";
 import type { DashboardData } from "@/lib/dashboard/types";
 import { useAppStore } from "@/store/data-store";
 import { useAppQuery } from "@/hooks/useAppQuery";
@@ -83,14 +84,32 @@ function DashboardSkeleton() {
   );
 }
 
+function formatRelativeTime(date: string | null): string {
+  if (!date) return "nunca sincronizado";
+
+  const now = new Date();
+  const then = new Date(date);
+  const diffMs = now.getTime() - then.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return "agora";
+  if (diffMins < 60) return `há ${diffMins} minuto${diffMins !== 1 ? "s" : ""}`;
+  if (diffHours < 24) return `há ${diffHours} hora${diffHours !== 1 ? "s" : ""}`;
+  return `há ${diffDays} dia${diffDays !== 1 ? "s" : ""}`;
+}
+
 export function DashboardClient({ initialData }: DashboardClientProps) {
   const queryClient = useQueryClient();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const [toastDismissed, setToastDismissed] = useState<string | null>(null);
 
   const filters = useAppStore((state) => state.filters);
   const setFilters = useAppStore((state) => state.setFilters);
   const alerts = useAlerts();
+  const { showToast } = useToast();
   const { fadeInUp, fadeInContent } = useReducedMotion();
 
   const queryKey = useMemo(
@@ -160,6 +179,39 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     window.location.href = "/auth";
   }
 
+  async function handleSync() {
+    setIsSyncing(true);
+    try {
+      const response = await fetch("/api/meta/sync", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json.error || "Erro ao sincronizar");
+      }
+
+      const { data } = json;
+      showToast(
+        `Sincronizado: ${data.synced_accounts} conta(s), ${data.synced_campaigns} campanhas`,
+        "success"
+      );
+
+      // Invalidar query do dashboard para atualizar dados
+      await queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : "Erro ao sincronizar. Tente novamente.",
+        "error"
+      );
+    } finally {
+      setIsSyncing(false);
+    }
+  }
+
   if (error) {
     return (
       <main className="flex-1 p-6 lg:p-8 overflow-y-auto min-w-0">
@@ -215,11 +267,24 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
               <Sparkles size={12} />
               {data?.campaigns?.length ?? 0} campanhas listadas
             </span>
+            <p className="text-xs text-slate-500 flex items-center gap-1.5">
+              <Clock size={11} />
+              Atualizado {formatRelativeTime(data?.lastSyncedAt ?? null)}
+            </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-4">
           <DashboardFilters filterOptions={data?.filterOptions || initialData.filterOptions} />
+
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600 text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            <RefreshCw size={14} className={cn(isSyncing && "animate-spin")} />
+            {isSyncing ? "Sincronizando..." : "Sincronizar"}
+          </button>
 
           <div className="flex items-center gap-3 ml-auto lg:ml-0">
             <AlertsDropdown
@@ -262,6 +327,23 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
           <DashboardSkeleton />
         ) : (
           <>
+            {/* Badge de qualidade dos dados */}
+            {data?.kpis.revenueAttributed === 0 ? (
+              <motion.div
+                animate={{ opacity: [0.7, 1, 0.7] }}
+                transition={{ duration: 2, repeat: Infinity }}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4"
+              >
+                <AlertTriangle size={14} />
+                Dados de conversão pendentes — sincronize a conta Meta para ver o ROAS real
+              </motion.div>
+            ) : (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm mb-4">
+                <CheckCircle size={14} />
+                Dados em tempo real — última sincronização {formatRelativeTime(data?.lastSyncedAt ?? null)}
+              </div>
+            )}
+
             <KpiGrid kpis={data.kpis} />
 
             <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
