@@ -48,25 +48,21 @@ export function Header() {
   }, []);
 
   useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data.user?.email ?? null);
-    });
-
-    // Buscar nome do perfil
-    const fetchProfile = async () => {
+    const fetchUserData = async () => {
       const supabase = createClient();
-      const { data } = await supabase.auth.getUser();
-      if (data.user) {
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("name")
-          .eq("id", data.user.id)
-          .single();
-        setUserName(profile?.name ?? null);
-      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      setUserEmail(user.email ?? null);
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("name")
+        .eq("id", user.id)
+        .single();
+      setUserName(profile?.name ?? null);
     };
-    fetchProfile();
+    fetchUserData();
   }, []);
 
   async function handleSignOut() {
@@ -133,7 +129,7 @@ export function Header() {
                   {userName ? "Bem-vindo" : "Acesso Usuário"}
                 </span>
                 <span className="text-xs font-bold text-slate-300 max-w-[120px] truncate leading-none">
-                  {(userName || userEmail) ?? "Carregando..."}
+                  {userName ?? userEmail ?? "Carregando..."}
                 </span>
               </div>
               <ChevronDown

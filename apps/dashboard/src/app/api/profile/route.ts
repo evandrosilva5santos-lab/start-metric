@@ -8,10 +8,10 @@ import { z } from "zod";
 // Schema de validação para atualização de perfil (partial)
 const ProfileUpdateSchema = z.object({
   name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").optional(),
-  phone: z.string().min(10, "Telefone deve ter pelo menos 10 caracteres").optional(),
-  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "CPF inválido. Use o formato: 000.000.000-00").optional(),
+  phone: z.string().min(10, "Telefone deve ter pelo menos 10 caracteres").optional().or(z.literal("")),
+  cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, "CPF inválido. Use o formato: 000.000.000-00").optional().or(z.literal("")),
   country: z.string().length(2, "Código do país deve ter 2 caracteres").optional(),
-  language: z.enum(["pt-BR", "en-US", "es"], { errorMap: () => ({ message: "Idioma inválido" }) }).optional(),
+  language: z.enum(["pt-BR", "en-US", "es"], { message: "Idioma inválido" }).optional(),
   timezone: z.string().min(1, "Fuso horário é obrigatório").optional(),
   avatar_url: z.string().url("URL de avatar inválida").optional(),
 });
@@ -93,7 +93,7 @@ export async function PATCH(request: Request) {
     const validationResult = ProfileUpdateSchema.safeParse(body);
 
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map((e) => ({
+      const errors = validationResult.error.issues.map((e) => ({
         field: e.path.join("."),
         message: e.message,
       }));

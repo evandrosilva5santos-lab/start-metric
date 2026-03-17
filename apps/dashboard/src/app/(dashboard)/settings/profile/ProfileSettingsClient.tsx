@@ -80,8 +80,8 @@ interface Profile {
   timezone: string | null;
   avatar_url: string | null;
   role: string;
-  org_id: string;
-  created_at: string;
+  org_id: string | null;
+  created_at: string | null;
   updated_at: string | null;
 }
 

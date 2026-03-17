@@ -564,30 +564,45 @@ export type Database = {
       }
       profiles: {
         Row: {
+          avatar_url: string | null
+          country: string | null
+          cpf: string | null
           created_at: string | null
           id: string
+          language: string | null
           name: string | null
           org_id: string | null
           phone: string | null
           role: string
+          timezone: string | null
           updated_at: string | null
         }
         Insert: {
+          avatar_url?: string | null
+          country?: string | null
+          cpf?: string | null
           created_at?: string | null
           id: string
+          language?: string | null
           name?: string | null
           org_id?: string | null
           phone?: string | null
           role?: string
+          timezone?: string | null
           updated_at?: string | null
         }
         Update: {
+          avatar_url?: string | null
+          country?: string | null
+          cpf?: string | null
           created_at?: string | null
           id?: string
+          language?: string | null
           name?: string | null
           org_id?: string | null
           phone?: string | null
           role?: string
+          timezone?: string | null
           updated_at?: string | null
         }
         Relationships: [

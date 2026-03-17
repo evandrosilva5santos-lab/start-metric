@@ -1,4 +1,4 @@
--- Verificar políticas RLS para organizations e profiles
+-- Verificar políticas RLS principais (sprints 1-4)
 SELECT 
     schemaname,
     tablename,
@@ -9,5 +9,5 @@ SELECT
     qual,
     with_check
 FROM pg_policies
-WHERE tablename IN ('organizations', 'profiles')
+WHERE tablename IN ('organizations', 'profiles', 'clients', 'ad_accounts', 'whatsapp_instances')
 ORDER BY tablename, policyname;

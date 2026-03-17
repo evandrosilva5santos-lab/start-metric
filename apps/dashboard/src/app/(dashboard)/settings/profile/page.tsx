@@ -39,6 +39,24 @@ export default async function ProfileSettingsPage() {
     .eq("id", user.id)
     .single();
 
+  const profileForClient = profile
+    ? {
+        id: profile.id,
+        name: profile.name,
+        email: user.email ?? "",
+        phone: profile.phone,
+        cpf: profile.cpf,
+        country: profile.country,
+        language: profile.language,
+        timezone: profile.timezone,
+        avatar_url: profile.avatar_url,
+        role: profile.role,
+        org_id: profile.org_id,
+        created_at: profile.created_at,
+        updated_at: profile.updated_at,
+      }
+    : null;
+
   return (
     <main className="flex-1 p-8 overflow-y-auto min-w-0">
       <div className="max-w-3xl mx-auto">
@@ -64,12 +82,7 @@ export default async function ProfileSettingsPage() {
           </div>
         </div>
 
-        <ProfileSettingsClient
-          profile={profile ? {
-            ...profile,
-            email: user.email ?? "",
-          } : null}
-        />
+        <ProfileSettingsClient profile={profileForClient} />
       </div>
     </main>
   );

@@ -19,6 +19,9 @@ Configure em Vercel (Environment Variables):
 - `META_APP_SECRET` (server-only)
 - `META_GRAPH_API_VERSION` (ex: `v19.0`)
 - `CRON_SECRET` (server-only; usado para triggers manuais e protecao adicional)
+- `EVOLUTION_API_URL` (server-only; base da Evolution API)
+- `EVOLUTION_API_KEY` (server-only; chave da Evolution API)
+- `WHATSAPP_WEBHOOK_SECRET` (server-only; validar webhook de conexao WhatsApp)
 
 Observacao:
 - `META_REDIRECT_URI` agora e opcional. Se voce usa dominio custom, pode setar para fixar o callback.
@@ -43,14 +46,23 @@ Garanta que as migrations de `apps/dashboard/supabase/migrations` foram aplicada
   - `https://SEU-DEPLOY-VERCEL/auth/callback`
 - O cadastro do app depende do trigger que cria automaticamente `organizations + profiles` para novos usuarios.
 
-## 5) Smoke test (na producao/preview)
+## 5) WhatsApp (Sprint 4)
+1. Aplique as migrations mais recentes (incluindo `whatsapp_instances`).
+2. Em sua Evolution API, configure o webhook para:
+   - URL: `https://SEU-DEPLOY-VERCEL/api/webhooks/whatsapp?secret=${WHATSAPP_WEBHOOK_SECRET}`
+   - Eventos: `connection.update`, `qrcode.updated`
+3. No app, abra `/clients/[id]` e clique em **Conectar WhatsApp**.
+4. Escaneie o QR e valide mudanca para status **conectado**.
+5. Clique em **Enviar mensagem de teste**.
+
+## 6) Smoke test (na producao/preview)
 1. Abrir `/auth` e autenticar
 2. Ir em `/settings/meta`
 3. Clicar "Conectar conta Meta Ads" e concluir OAuth
 4. Voltar em `/settings/meta` e clicar "Sincronizar"
 5. Confirmar que campanhas e metricas aparecem (ou que nao ha erros de token/rate limit)
 
-## 6) Cron (opcional, para atualizar automaticamente)
+## 7) Cron (opcional, para atualizar automaticamente)
 O arquivo `apps/dashboard/vercel.json` agenda:
 - `/api/cron/meta-sync` (3:00 diario)
 - `/api/cron/alerts-monitor` (a cada 15 minutos)
