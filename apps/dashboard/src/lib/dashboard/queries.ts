@@ -32,7 +32,6 @@ type AccountRow = {
   name: string | null;
   external_id: string;
   timezone: string | null;
-  last_synced_at: string | null;
 };
 
 function safeDivide(numerator: number, denominator: number): number {
@@ -102,7 +101,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   const { data: accountsData, error: accountsError } = await supabase
     .from("ad_accounts")
-    .select("id, name, external_id, timezone, last_synced_at")
+    .select("id, name, external_id, timezone")
     .eq("org_id", orgId)
     .order("name", { ascending: true });
 
@@ -184,7 +183,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
           name: account.name ?? account.external_id,
           externalId: account.external_id,
           timezone: account.timezone,
-          lastSyncedAt: account.last_synced_at,
+          lastSyncedAt: null,
         })),
         statuses,
         objectives: Array.from(
@@ -361,18 +360,9 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
 
   const chart = Array.from(chartMap.values()).sort((a, b) => a.date.localeCompare(b.date));
 
-  // Buscar last_synced_at da conta selecionada (ou mais recente se "all")
-  let lastSyncedAt: string | null = null;
-  if (adAccountId !== "all") {
-    const selectedAccount = accounts.find((a) => a.id === adAccountId);
-    lastSyncedAt = selectedAccount?.last_synced_at ?? null;
-  } else {
-    // Pegar o mais recente entre todas as contas
-    const dates = accounts
-      .map((a) => a.last_synced_at)
-      .filter((d): d is string => Boolean(d));
-    lastSyncedAt = dates.length > 0 ? dates.sort().reverse()[0] ?? null : null;
-  }
+  // last_synced_at não está disponível no banco ainda - sempre null
+  // TODO: Adicionar coluna last_synced_at à tabela ad_accounts via migration
+  const lastSyncedAt: string | null = null;
 
   return {
     timezone,
@@ -388,7 +378,7 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
         name: account.name ?? account.external_id,
         externalId: account.external_id,
         timezone: account.timezone,
-        lastSyncedAt: account.last_synced_at,
+        lastSyncedAt: null,
       })),
       statuses,
       objectives: Array.from(

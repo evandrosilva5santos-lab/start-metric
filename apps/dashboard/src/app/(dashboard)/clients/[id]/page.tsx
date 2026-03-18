@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ArrowLeft, Building2, Mail, Phone, MessageCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { WhatsAppConnectionPanel } from "@/components/whatsapp/WhatsAppConnectionPanel";
+import { ShareLinkButton } from "@/components/clients/ShareLinkButton";
 
 type Params = Promise<{ id: string }>;
 
@@ -69,6 +70,7 @@ export default async function ClientDetailsPage({
             Configure a conexão WhatsApp para automações e relatórios.
           </p>
         </div>
+        <ShareLinkButton clientId={client.id} clientName={client.name} />
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
