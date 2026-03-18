@@ -105,6 +105,15 @@ export class EvolutionClient {
     return this.request<EvolutionConnectionResponse>("GET", `/instance/connectionState/${instanceName}`);
   }
 
+  async setWebhook(instanceName: string, url: string): Promise<unknown> {
+    return this.request("POST", `/webhook/set/${instanceName}`, {
+      enabled: true,
+      url,
+      webhookByEvents: false,
+      events: ["QRCODE_UPDATED", "CONNECTION_UPDATE"],
+    });
+  }
+
   async deleteInstance(instanceName: string): Promise<EvolutionDeleteInstanceResponse> {
     return this.request<EvolutionDeleteInstanceResponse>("DELETE", `/instance/delete/${instanceName}`);
   }
