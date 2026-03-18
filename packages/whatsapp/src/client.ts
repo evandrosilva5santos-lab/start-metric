@@ -37,6 +37,18 @@ export class EvolutionClient {
     });
   }
 
+  async setWebhook(instanceName: string, url: string): Promise<unknown> {
+    return this.request('POST', `/webhook/set/${instanceName}`, {
+      enabled: true,
+      url,
+      webhookByEvents: false,
+      events: [
+        "QRCODE_UPDATED",
+        "CONNECTION_UPDATE"
+      ]
+    });
+  }
+
   async fetchGroups(instanceName: string): Promise<any[]> {
     return this.request('GET', `/group/fetchAllGroups/${instanceName}?getParticipants=true`);
   }

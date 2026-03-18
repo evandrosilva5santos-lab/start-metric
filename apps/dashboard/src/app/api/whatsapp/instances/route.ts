@@ -38,6 +38,17 @@ export async function POST(request: Request) {
     // 1. Criar instância na Evolution API
     await evolutionClient.createInstance(instanceName);
 
+    // 1.5. Configurar Webhook Automaticamente
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET || process.env.EVOLUTION_WEBHOOK_SECRET;
+    const webhookUrl = `${appBaseUrl}/api/webhooks/whatsapp?secret=${webhookSecret}`;
+
+    try {
+      await evolutionClient.setWebhook(instanceName, webhookUrl);
+    } catch (webhookError) {
+      console.error('[WhatsApp] Failed to set webhook automatically:', webhookError);
+    }
+
     // 2. Buscar o QR Code gerado inicialmente
     let qrCode = null;
     try {
