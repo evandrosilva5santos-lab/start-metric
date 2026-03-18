@@ -47,7 +47,6 @@ export async function GET() {
 
     // Buscar clientes com contagem de ad_accounts (com fallback se embedded count falhar)
     let clients: ClientListRow[] | null = null;
-    let clientsError = null;
 
     // Tentar com embedded count primeiro
     const { data: clientsWithCount, error: countError } = await supabase
@@ -71,7 +70,7 @@ export async function GET() {
 
     if (countError) {
       // Se embedded count falhar, buscar sem count e calcular depois
-      console.warn("Embedded count falhou, buscando clientes sem contagem:", countError);
+      console.warn("Embedded count falhou, buscando clientes sem contagem:", countError.message);
       const { data: clientsWithoutCount, error: basicError } = await supabase
         .from("clients")
         .select(`
@@ -91,18 +90,20 @@ export async function GET() {
         .order("created_at", { ascending: false });
 
       if (basicError) {
-        console.error("Erro ao buscar clientes (fallback):", basicError);
-        return NextResponse.json({ error: "Erro ao buscar clientes" }, { status: 500 });
+        console.error("Erro ao buscar clientes (fallback):", basicError.message);
+        // Retornar erro mais específico para debugging
+        return NextResponse.json(
+          { error: "Erro ao buscar clientes", detail: basicError.message },
+          { status: 500 }
+        );
       }
 
       clients = (clientsWithoutCount ?? []).map((c) => ({
         ...c,
         ad_accounts: [],
       })) as ClientListRow[];
-      clientsError = null;
     } else {
       clients = clientsWithCount;
-      clientsError = null;
     }
 
     const { data: whatsappInstances, error: whatsappError } = await supabase
