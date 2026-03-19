@@ -20,7 +20,7 @@ import { KpiGrid } from "./KpiGrid";
 import { PerformanceChart } from "./PerformanceChart";
 import { PeriodSummary } from "./PeriodSummary";
 import { CampaignsTable } from "./CampaignsTable";
-import { SkeletonCard, SkeletonChart, SkeletonTable, SkeletonKpi } from "@/components/ui/Skeleton";
+import { SkeletonChart, SkeletonTable, SkeletonKpi } from "@/components/ui/Skeleton";
 
 type DashboardClientProps = {
   initialData: DashboardData;
@@ -168,7 +168,6 @@ export function DashboardClient({ initialData }: DashboardClientProps) {
     if (hasDiff) {
       setFilters(initialFilters);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, setFilters]);
 
   const toastAlert =

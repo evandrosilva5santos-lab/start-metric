@@ -43,11 +43,9 @@ interface SharedDashboardClientProps {
 }
 
 export default function SharedDashboardClient({
-  token,
   client,
   organization,
   campaigns,
-  accessType,
 }: SharedDashboardClientProps) {
   // Agregar métricas
   const aggregatedMetrics = campaigns.reduce(

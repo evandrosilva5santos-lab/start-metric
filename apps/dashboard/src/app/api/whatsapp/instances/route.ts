@@ -77,9 +77,10 @@ export async function POST(request: Request) {
     if (dbError) throw dbError;
 
     return NextResponse.json({ data: instance });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[WhatsApp POST Instances] Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -113,8 +114,9 @@ export async function GET() {
     if (error) throw error;
 
     return NextResponse.json({ data });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[WhatsApp GET Instances] Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

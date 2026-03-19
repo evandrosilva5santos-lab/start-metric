@@ -1,3 +1,5 @@
+import type { SendResult, SendTextResponse } from './types.js';
+
 export class EvolutionApiError extends Error {
   constructor(message: string, public status: number) {
     super(message);
@@ -65,11 +67,22 @@ export class EvolutionClient {
     return this.request('DELETE', `/instance/delete/${instanceName}`);
   }
 
-  async sendText(instanceName: string, phone: string, text: string): Promise<unknown> {
-    return this.request('POST', `/message/sendText/${instanceName}`, {
-      number: phone,
-      textMessage: { text }
-    });
+  async sendText(instanceName: string, phone: string, text: string): Promise<SendResult> {
+    try {
+      const response = await this.request<SendTextResponse>('POST', `/message/sendText/${instanceName}`, {
+        number: phone,
+        textMessage: { text }
+      });
+      return {
+        success: true,
+        messageId: response.key.id,
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof EvolutionApiError ? error.message : 'Unknown error',
+      };
+    }
   }
 }
 

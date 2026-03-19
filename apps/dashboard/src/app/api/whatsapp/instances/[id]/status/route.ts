@@ -40,7 +40,9 @@ export async function GET(
     const apiState = stateData.instance?.state;
     const newStatus = apiState === 'open' ? 'connected' : apiState === 'close' ? 'disconnected' : 'connecting';
 
-    let updateData: any = {};
+    // eslint-disable-next-line prefer-const
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let updateData: Record<string, any> = {};
     let needsUpdate = false;
 
     if (instance.status !== newStatus) {
@@ -60,7 +62,7 @@ export async function GET(
           updateData.status = 'connecting';
           needsUpdate = true;
         }
-      } catch (qrErr) {
+      } catch {
         // Ignora erros de QR code expirado temporariamente
       }
     }
@@ -73,8 +75,9 @@ export async function GET(
     return NextResponse.json({
       data: { status: instance.status, qr_code: instance.qr_code, phone_number: instance.phone_number }
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[WhatsApp Instance Status GET] Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

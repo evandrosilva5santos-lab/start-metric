@@ -1,7 +1,6 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { Image as ImageIcon, Zap } from "lucide-react";
+import { ImageIcon, Zap } from "lucide-react";
 
 export default function CriativosPage() {
   return (

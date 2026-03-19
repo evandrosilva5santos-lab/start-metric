@@ -7,11 +7,27 @@ import {
 } from 'lucide-react'
 
 interface WhatsAppConnectionPanelProps {
-    clientId: string
+  clientId: string
   clientName: string
-  }
+}
 
 type ConnectionStatus = 'idle' | 'creating' | 'qr_pending' | 'connected' | 'error'
+
+interface WhatsAppInstance {
+  id: string
+  client_id: string
+  status: string
+  phone_number?: string
+  name?: string
+  is_primary: boolean
+  target_group_id?: string
+  target_group_name?: string
+}
+
+interface WhatsAppGroup {
+  id: string
+  name: string
+}
 
 export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnectionPanelProps) {
   const [status, setStatus] = useState<ConnectionStatus>('idle')
@@ -25,7 +41,7 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
   const [showForm, setShowForm] = useState(false)
   const [targetGroup, setTargetGroup] = useState<{ id: string, name: string } | null>(null)
   const [groupSearch, setGroupSearch] = useState('')
-  const [groups, setGroups] = useState<any[]>([])
+  const [groups, setGroups] = useState<WhatsAppGroup[]>([])
   const [isSearchingGroups, setIsSearchingGroups] = useState(false)
   const [formData, setFormData] = useState({ name: '', phone: '', isPrimary: true })
 
@@ -36,7 +52,7 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
         const res = await fetch('/api/whatsapp/instances')
         if (res.ok) {
           const { data } = await res.json()
-          const clientInstance = data.find((i: any) => i.client_id === clientId)
+          const clientInstance = data.find((i: WhatsAppInstance) => i.client_id === clientId)
 
           if (clientInstance) {
             setInstanceId(clientInstance.id)
@@ -141,9 +157,9 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
       setIsPrimary(data.is_primary)
       setCountdown(120)
       setStatus('qr_pending')
-    } catch (error: any) {
+    } catch (error) {
       setStatus('error')
-      setErrorMessage(error.message)
+      setErrorMessage(error instanceof Error ? error.message : 'Erro desconhecido')
     }
   }
 
@@ -194,15 +210,15 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
     }
   }
 
-  const handleSelectGroup = async (group: any) => {
+  const handleSelectGroup = async (group: WhatsAppGroup) => {
     if (!instanceId) return
     try {
       const res = await fetch(`/api/whatsapp/instances/${instanceId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ target_group_id: group.id, target_group_name: group.subject })
+        body: JSON.stringify({ target_group_id: group.id, target_group_name: group.name })
       })
-      if (res.ok) setTargetGroup({ id: group.id, name: group.subject })
+      if (res.ok) setTargetGroup({ id: group.id, name: group.name })
     } catch (e) {
       console.error(e)
     }
@@ -347,7 +363,7 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
                     <div className="max-h-32 overflow-y-auto space-y-1 bg-slate-950 rounded-lg border border-slate-800 p-1">
                       {groups.map(g => (
                         <button key={g.id} onClick={() => handleSelectGroup(g)} className="w-full text-left p-2 hover:bg-slate-900 rounded border border-transparent hover:border-slate-800 transition-colors text-sm text-slate-300 truncate">
-                          {g.subject}
+                          {g.name}
                         </button>
                       ))}
                     </div>

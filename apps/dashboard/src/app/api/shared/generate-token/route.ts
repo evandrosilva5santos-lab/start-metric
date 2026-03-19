@@ -14,8 +14,6 @@ const GenerateTokenSchema = z.object({
   metadata: z.record(z.string(), z.unknown()).optional(),
 });
 
-type GenerateTokenRequest = z.infer<typeof GenerateTokenSchema>;
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -86,8 +84,9 @@ export async function POST(request: Request) {
         max_accesses: max_accesses || null,
         access_count: 0,
         created_by: user.id,
-        metadata: metadata ? (metadata as Record<string, unknown>) : null,
-      } as any)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        metadata: (metadata as Record<string, unknown> | null) ?? null,
+      })
       .select()
       .single();
 

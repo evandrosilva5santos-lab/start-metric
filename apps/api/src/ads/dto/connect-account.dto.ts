@@ -5,20 +5,19 @@ import { z } from 'zod';
  */
 export const connectAccountSchema = z.object({
   platform: z.enum(['meta', 'google', 'tiktok'], {
-    required_error: 'Platform is required',
-    invalid_type_error: 'Platform must be one of: meta, google, tiktok',
+    message: 'Platform must be one of: meta, google, tiktok',
   }),
   externalId: z.string({
-    required_error: 'External ID is required',
+    message: 'External ID is required',
   }),
   name: z
     .string({
-      required_error: 'Account name is required',
+      message: 'Account name is required',
     })
     .min(1, 'Account name cannot be empty'),
   accessToken: z
     .string({
-      required_error: 'Access token is required',
+      message: 'Access token is required',
     })
     .min(10, 'Access token is too short'),
   tokenExpiresAt: z.string().datetime().optional(),
@@ -34,7 +33,7 @@ export type ConnectAccountDto = z.infer<typeof connectAccountSchema>;
 export const updateTokenSchema = z.object({
   accessToken: z
     .string({
-      required_error: 'Access token is required',
+      message: 'Access token is required',
     })
     .min(10, 'Access token is too short'),
   tokenExpiresAt: z.string().datetime().optional(),

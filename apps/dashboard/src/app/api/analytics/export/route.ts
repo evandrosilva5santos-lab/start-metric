@@ -89,7 +89,17 @@ export async function GET(request: NextRequest) {
     }
 
     // Agrupar por campanha (uma campanha pode ter múltiplas métricas diárias)
-    const campaignMap = new Map<string, any>();
+    const campaignMap = new Map<string, {
+      campaignName: string;
+      accountName: string;
+      status: string;
+      objective: string;
+      spend: number;
+      revenue: number;
+      conversions: number;
+      impressions: number;
+      clicks: number;
+    }>();
 
     for (const row of rawData || []) {
       const campaignId = row.id;
@@ -108,6 +118,8 @@ export async function GET(request: NextRequest) {
       }
 
       const campaign = campaignMap.get(campaignId);
+      if (!campaign) continue;
+
       // metrics is an array from the join
       const metrics = Array.isArray(row.metrics) ? row.metrics[0] : row.metrics;
 

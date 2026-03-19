@@ -30,17 +30,26 @@ export type ReportExecutionRow = {
   scheduled_reports: { name: string } | null;
 };
 
-async function getReportsData(orgId: string) {
+// NOTA: Funcionalidade de relatórios agendados será implementada na Sprint 5
+// As tabelas scheduled_reports e report_executions ainda não existem no banco
+async function getReportsData(_orgId: string) {
+  // Temporariamente retornar arrays vazios até as tabelas serem criadas
+  return {
+    reports: [] as ScheduledReportRow[],
+    executions: [] as ReportExecutionRow[],
+  };
+
+  /* TODO: Sprint 5 - Descomentar quando as tabelas existirem
   const supabase = await createClient();
 
   const [reportsResult, executionsResult] = await Promise.all([
-    supabase
-      .from("scheduled_reports" as any)
+    (supabase as any)
+      .from("scheduled_reports")
       .select("id, name, frequency, recipients, whatsapp_enabled, next_run_at, last_run_at, status, created_at")
       .eq("org_id", orgId)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("report_executions" as any)
+    (supabase as any)
+      .from("report_executions")
       .select("id, scheduled_report_id, status, generated_at, error_message, created_at, scheduled_reports(name)")
       .eq("org_id", orgId)
       .order("created_at", { ascending: false })
@@ -51,6 +60,7 @@ async function getReportsData(orgId: string) {
     reports: (reportsResult.data ?? []) as unknown as ScheduledReportRow[],
     executions: (executionsResult.data ?? []) as unknown as ReportExecutionRow[],
   };
+  */
 }
 
 export default async function ReportsPage() {
@@ -72,16 +82,7 @@ export default async function ReportsPage() {
 
   const orgId = profile.org_id as string;
 
-  let reports: ScheduledReportRow[] = [];
-  let executions: ReportExecutionRow[] = [];
-
-  try {
-    const data = await getReportsData(orgId);
-    reports = data.reports;
-    executions = data.executions;
-  } catch {
-    // Tabelas podem não existir ainda — mostrar empty state
-  }
+  const { reports, executions } = await getReportsData(orgId);
 
   return <ReportsClient reports={reports} executions={executions} />;
 }

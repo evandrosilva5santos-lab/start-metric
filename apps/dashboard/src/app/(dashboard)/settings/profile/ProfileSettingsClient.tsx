@@ -184,12 +184,16 @@ export default function ProfileSettingsClient({ profile }: Props) {
       reader.onloadend = () => {
         setAvatarUrl(reader.result as string);
         setFeedback({ type: "success", message: "Avatar atualizado com sucesso" });
+        setIsUploadingAvatar(false);
       };
-      reader.readAsDataURL(file);
+      reader.onerror = () => {
+        setFeedback({ type: "error", message: "Erro ao ler o arquivo" });
+        setIsUploadingAvatar(false);
+      };
+      void reader.readAsDataURL(file);
     } catch (error) {
       console.error("[profile] Erro ao fazer upload:", error);
       setFeedback({ type: "error", message: "Erro ao fazer upload do avatar" });
-    } finally {
       setIsUploadingAvatar(false);
     }
   };

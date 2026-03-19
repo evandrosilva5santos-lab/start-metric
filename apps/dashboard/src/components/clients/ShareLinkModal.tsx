@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Loader2, AlertCircle } from "lucide-react";
-import { z } from "zod";
+import { z, type ZodSchema } from "zod";
 
 interface ShareLinkModalProps {
   clientId: string;
@@ -12,7 +12,7 @@ interface ShareLinkModalProps {
   onClose: () => void;
 }
 
-const ShareLinkSchema = z.object({
+const shareLinkFormSchema: ZodSchema = z.object({
   expires_in_days: z.number().min(1).max(365).default(30),
   protected: z.boolean().default(false),
   password: z.string().optional().or(z.literal("")),
@@ -20,7 +20,7 @@ const ShareLinkSchema = z.object({
   max_accesses: z.number().int().positive().optional().nullable(),
 });
 
-type ShareLinkForm = z.infer<typeof ShareLinkSchema>;
+type ShareLinkForm = z.infer<typeof shareLinkFormSchema>;
 
 export default function ShareLinkModal({
   clientId,

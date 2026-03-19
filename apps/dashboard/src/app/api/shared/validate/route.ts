@@ -9,8 +9,6 @@ const ValidateTokenSchema = z.object({
   password: z.string().optional(),
 });
 
-type ValidateTokenRequest = z.infer<typeof ValidateTokenSchema>;
-
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -122,9 +120,9 @@ export async function POST(request: Request) {
         data: {
           id: sharedLink.id,
           client_id: sharedLink.client_id,
-          client_name: (sharedLink.clients as any)?.name || "Cliente",
+          client_name: (sharedLink.clients as { name?: string } | null)?.name || "Cliente",
           org_id: sharedLink.org_id,
-          org_name: (sharedLink.organizations as any)?.name || "Organização",
+          org_name: (sharedLink.organizations as { name?: string } | null)?.name || "Organização",
           access_type: sharedLink.access_type,
           valid: true,
           access_count: sharedLink.access_count + 1,

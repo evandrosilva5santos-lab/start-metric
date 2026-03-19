@@ -46,8 +46,9 @@ export async function POST(
     await evolutionClient.sendText(instance.instance_name, cleanPhone, "✅ Teste de conexão — Start Metric. O WhatsApp do seu cliente foi conectado com sucesso!");
 
     return NextResponse.json({ data: { sent: true, phone: cleanPhone } });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[WhatsApp Instance TEST POST] Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

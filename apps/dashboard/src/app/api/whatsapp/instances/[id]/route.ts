@@ -18,7 +18,8 @@ export async function PATCH(
     const { data: profile } = await supabase.from('profiles').select('org_id').eq('id', user.id).single();
     if (!profile?.org_id) return NextResponse.json({ error: 'Organization not found' }, { status: 404 });
 
-    const updates: any = {};
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const updates: Record<string, any> = {};
     if (body.target_group_id !== undefined) updates.target_group_id = body.target_group_id;
     if (body.target_group_name !== undefined) updates.target_group_name = body.target_group_name;
 
@@ -27,8 +28,9 @@ export async function PATCH(
     if (error) throw error;
 
     return NextResponse.json({ data });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }
 
@@ -62,8 +64,9 @@ export async function DELETE(
 
     try {
       await evolutionClient.deleteInstance(instance.instance_name);
-    } catch (e: any) {
-      console.error('Error deleting instance in Evolution API:', e.message);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Unknown error';
+      console.error('Error deleting instance in Evolution API:', msg);
     }
 
     const { error: dbError } = await supabase
@@ -74,8 +77,9 @@ export async function DELETE(
     if (dbError) throw dbError;
 
     return NextResponse.json({ data: { deleted: true } });
-  } catch (error: any) {
+  } catch (error) {
     console.error('[WhatsApp Instance DELETE] Error:', error);
-    return NextResponse.json({ error: error.message || 'Internal Server Error' }, { status: 500 });
+    const message = error instanceof Error ? error.message : 'Internal Server Error';
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

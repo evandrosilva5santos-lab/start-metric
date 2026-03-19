@@ -9,11 +9,8 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  Calendar,
   Mail,
   MessageCircle,
-  Pause,
-  Play,
   ChevronRight,
   AlertCircle,
 } from "lucide-react";
@@ -427,7 +424,7 @@ export function ReportsClient({ reports: initialReports, executions }: Props) {
                     <div className="shrink-0">{STATUS_ICON[ex.status]}</div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-white truncate">
-                        {(ex.scheduled_reports as any)?.name ?? "Relatório"}
+                        {(ex.scheduled_reports as { name?: string } | null)?.name ?? "Relatório"}
                       </p>
                       {ex.error_message && (
                         <p className="text-xs text-red-400 truncate">{ex.error_message}</p>

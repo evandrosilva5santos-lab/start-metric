@@ -4,7 +4,7 @@
  */
 
 import { EvolutionClient } from './client.js';
-import type { EvolutionConfig, SendResult } from './types.js';
+import type { SendResult } from './types.js';
 
 export interface WhatsAppSenderPrismaClient {
   whatsapp_instances: {
@@ -62,10 +62,10 @@ export async function sendReportViaWhatsApp(
     },
   });
 
-  const client = new EvolutionClient({
-    apiUrl: instance.api_url,
-    apiKey: instance.api_key,
-  });
+  const client = new EvolutionClient(
+    instance.api_url,
+    instance.api_key,
+  );
 
   const result = await client.sendText(
     instance.instance_name,
