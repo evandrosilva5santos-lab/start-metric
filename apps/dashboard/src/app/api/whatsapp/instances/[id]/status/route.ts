@@ -40,9 +40,8 @@ export async function GET(
     const apiState = stateData.instance?.state;
     const newStatus = apiState === 'open' ? 'connected' : apiState === 'close' ? 'disconnected' : 'connecting';
 
-    // eslint-disable-next-line prefer-const
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    let updateData: Record<string, any> = {};
+    const updateData: Record<string, any> = {};
     let needsUpdate = false;
 
     if (instance.status !== newStatus) {

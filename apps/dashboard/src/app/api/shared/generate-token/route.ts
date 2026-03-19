@@ -72,7 +72,8 @@ export async function POST(request: Request) {
     expiresAt.setDate(expiresAt.getDate() + expires_in_days);
 
     // 7. Inserir em shared_links
-    const { data: sharedLink, error: insertError } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: sharedLink, error: insertError } = await (supabase as any)
       .from("shared_links")
       .insert({
         org_id: profile.org_id,
@@ -84,8 +85,7 @@ export async function POST(request: Request) {
         max_accesses: max_accesses || null,
         access_count: 0,
         created_by: user.id,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        metadata: (metadata as Record<string, unknown> | null) ?? null,
+        metadata: metadata,
       })
       .select()
       .single();
