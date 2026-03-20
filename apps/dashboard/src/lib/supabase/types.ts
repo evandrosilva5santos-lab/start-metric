@@ -772,7 +772,10 @@ export type Database = {
           includes_comparison: boolean
           includes_kpis: boolean
           is_active: boolean
+          is_default: boolean
           layout: Json
+          message_template: string | null
+          metrics: string[]
           name: string
           org_id: string
           updated_at: string
@@ -786,7 +789,10 @@ export type Database = {
           includes_comparison?: boolean
           includes_kpis?: boolean
           is_active?: boolean
+          is_default?: boolean
           layout: Json
+          message_template?: string | null
+          metrics?: string[]
           name: string
           org_id: string
           updated_at?: string
@@ -800,7 +806,10 @@ export type Database = {
           includes_comparison?: boolean
           includes_kpis?: boolean
           is_active?: boolean
+          is_default?: boolean
           layout?: Json
+          message_template?: string | null
+          metrics?: string[]
           name?: string
           org_id?: string
           updated_at?: string

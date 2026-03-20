@@ -1,0 +1,87 @@
+# ================================
+# PESADOS & DESNECESSÁRIOS
+# ================================
+node_modules/
+dist/
+build/
+.next/
+.nuxt/
+out/
+.cache/
+.vercel/
+
+# ================================
+# LOCK FILES (alto volume, baixo valor semântico)
+# ================================
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ================================
+# ASSETS (irrelevantes para IA)
+# ================================
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+*.ico
+*.mp4
+*.webm
+*.pdf
+*.zip
+*.tar.gz
+
+# ================================
+# LOGS & DIAGNÓSTICOS
+# ================================
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+coverage/
+.clinic/
+
+# ================================
+# DADOS BRUTOS / PESADOS
+# ================================
+data/
+backups/
+migrations/
+*.csv
+*.sql
+
+# ================================
+# SEGURANÇA (NUNCA EXPOR)
+# ================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+certs/
+
+# ================================
+# CONFIGURAÇÕES LOCAIS
+# ================================
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# ================================
+# ARQUIVOS QUE POLUEM CONTEXTO
+# ================================
+README.md
+CHANGELOG.md
+LICENSE
+
+# ================================
+# OPCIONAL: IGNORAR TESTES
+# (ative se não estiver trabalhando neles)
+# ================================
+__tests__/
+tests/
+*.spec.ts
+*.test.ts

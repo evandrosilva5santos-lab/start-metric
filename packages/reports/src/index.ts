@@ -19,3 +19,8 @@ export type { ReportData, ReportBuilderPrismaClient } from './builder.js';
 
 export { getPendingReports, rescheduleReport, calculateNextRun } from './scheduler.js';
 export type { SchedulerPrismaClient } from './scheduler.js';
+
+export { renderTemplate, formatVariables, formatPeriod } from './renderer.js';
+export type { RenderResult, TemplateVariables } from './renderer.js';
+
+export { buildVariables } from './variables.js';
