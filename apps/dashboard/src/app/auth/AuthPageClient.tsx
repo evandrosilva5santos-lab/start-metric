@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -77,7 +76,6 @@ type AuthPageClientProps = {
 };
 
 export default function AuthPageClient({ nextParam, errorParam, messageParam }: AuthPageClientProps) {
-  const router = useRouter();
   const nextPath = sanitizeNextPath(nextParam);
   const queryError = mapAuthPageError(errorParam);
   const querySuccess = messageParam === "password_updated"
@@ -165,7 +163,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
       }
 
       setRedirecting(true);
-      router.replace(nextPath);
+      window.location.href = nextPath;
       return;
     }
 
@@ -560,6 +558,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                     <button
                       type="button"
                       onClick={() => setShowPwd(!showPwd)}
+                      aria-label={showPwd ? "Ocultar senha" : "Ver senha"}
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                     >
                       {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -618,6 +617,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       <button
                         type="button"
                         onClick={() => setShowConfirmPwd(!showConfirmPwd)}
+                        aria-label={showConfirmPwd ? "Ocultar confirmação de senha" : "Ver confirmação de senha"}
                         className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
                       >
                         {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}

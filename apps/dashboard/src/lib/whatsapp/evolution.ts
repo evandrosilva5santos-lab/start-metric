@@ -148,6 +148,73 @@ export class EvolutionClient {
       throw error;
     }
   }
+  /**
+   * Puxa todas as instâncias registradas no servidor da Evolution API
+   */
+  async fetchInstances(): Promise<Array<{ instance: { instanceName: string; owner?: string; profileName?: string; profilePictureUrl?: string; status: string } }>> {
+    return this.request<Array<{ instance: { instanceName: string; owner?: string; profileName?: string; profilePictureUrl?: string; status: string } }>>("GET", "/instance/fetchInstances");
+  }
+
+  /**
+   * Configura proxy HTTP/HTTPS/SOCKS5 para a instância (mitigação anti-ban)
+   */
+  async setProxy(
+    instanceName: string,
+    proxy: { host: string; port: number; protocol?: "http" | "https" | "socks4" | "socks5"; username?: string; password?: string }
+  ): Promise<unknown> {
+    return this.request("POST", `/proxy/set/${instanceName}`, {
+      enabled: true,
+      host: proxy.host,
+      port: proxy.port,
+      protocol: proxy.protocol || "http",
+      username: proxy.username,
+      password: proxy.password,
+    });
+  }
+
+  /**
+   * Configura comportamento da instância (sempre online, rejeitar chamadas, leitura automática)
+   */
+  async setSettings(
+    instanceName: string,
+    settings: { alwaysOnline?: boolean; rejectCall?: boolean; msgRejectCall?: string; readMessages?: boolean }
+  ): Promise<unknown> {
+    return this.request("POST", `/settings/set/${instanceName}`, settings);
+  }
+
+  /**
+   * Simula presença no WhatsApp (ex: 'composing' = digitando..., 'recording' = gravando áudio...)
+   */
+  async sendPresence(
+    instanceName: string,
+    number: string,
+    presence: "composing" | "recording" | "paused" | "available" | "unavailable" = "composing",
+    delayMs = 2000
+  ): Promise<unknown> {
+    return this.request("POST", `/chat/sendPresence/${instanceName}`, {
+      number,
+      presence,
+      delay: delayMs,
+    });
+  }
+
+  /**
+   * Puxa todos os grupos do WhatsApp onde a instância está presente
+   */
+  async fetchAllGroups(instanceName: string, getParticipants = false): Promise<Array<{ id: string; subject: string; size?: number; participants?: Array<{ id: string; admin?: string }> }>> {
+    return this.request("GET", `/group/fetchAllGroups/${instanceName}?getParticipants=${getParticipants}`);
+  }
+
+  /**
+   * Puxa os participantes de um grupo específico
+   */
+  async fetchGroupParticipants(instanceName: string, groupJid: string): Promise<Array<{ id: string; admin?: string }>> {
+    const res = await this.request<{ participants?: Array<{ id: string; admin?: string }> }>(
+      "GET",
+      `/group/findGroupInfos/${instanceName}?groupJid=${encodeURIComponent(groupJid)}`
+    );
+    return res.participants || [];
+  }
 }
 
 export function createEvolutionClient(): EvolutionClient {

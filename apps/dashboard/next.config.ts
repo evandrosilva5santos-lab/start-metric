@@ -13,26 +13,22 @@ const ContentSecurityPolicy = [
     ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
     : "script-src 'self' 'unsafe-inline'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.supabase.co",
+  "img-src 'self' data: blob: https://*.supabase.co https://*.fbcdn.net https://*.facebook.com",
   "font-src 'self' https://use.typekit.net https://p.typekit.net",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://graph.facebook.com https://api.facebook.com",
   "frame-src 'none'",
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "upgrade-insecure-requests",
 ].join("; ");
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: ContentSecurityPolicy },
+  { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-  {
-    key: "Strict-Transport-Security",
-    value: "max-age=63072000; includeSubDomains; preload",
-  },
 ];
 
 const nextConfig: NextConfig = {
@@ -40,7 +36,15 @@ const nextConfig: NextConfig = {
   // In the Codex sandbox this can hit restricted folders (e.g. Desktop root),
   // so we pin the root to this app directory.
   turbopack: {
-    root: path.resolve(__dirname, "../../"),
+    root: path.resolve(__dirname, "../.."),
+  },
+
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.supabase.co" },
+      { protocol: "https", hostname: "**.fbcdn.net" },
+      { protocol: "https", hostname: "**.facebook.com" },
+    ],
   },
 
   async headers() {
@@ -49,6 +53,15 @@ const nextConfig: NextConfig = {
         source: "/(.*)",
         headers: securityHeaders,
       },
+    ];
+  },
+
+  async rewrites() {
+    return [
+      { source: "/api/contas", destination: "/api/meta/contas" },
+      { source: "/api/dados", destination: "/api/meta/dados" },
+      { source: "/api/campanha", destination: "/api/meta/campanha" },
+      { source: "/adz", destination: "/adz.html" },
     ];
   },
 };

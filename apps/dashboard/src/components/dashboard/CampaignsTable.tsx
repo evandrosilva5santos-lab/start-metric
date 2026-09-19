@@ -6,6 +6,9 @@ import { motion } from "framer-motion";
 import { ArrowUpDown, ArrowUp, ArrowDown, Download, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
 import { useAppStore } from "@/store/data-store";
+import { useMounted } from "@/hooks/useMounted";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 function formatCurrency(value: number): string {
   return value.toLocaleString("pt-BR", {
@@ -63,6 +66,7 @@ function SortableHeader({
 }
 
 export function CampaignsTable({ campaigns }: CampaignsTableProps) {
+  const isMounted = useMounted();
   const [sortField, setSortField] = useState<SortField | null>('grossProfit');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [currentPage, setCurrentPage] = useState(1);
@@ -125,7 +129,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
       params.set('campaignObjectives', filters.campaignObjectives.join(','));
     }
 
-    window.location.href = `/api/analytics/export?${params.toString()}`;
+    window.open(`/api/analytics/export?${params.toString()}`, '_self');
   };
 
   const getRoasColor = (roas: number) => {
@@ -180,13 +184,16 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           </div>
 
           {campaigns.length > 0 && (
-            <button
+            <Button
               onClick={handleExportCSV}
-              className="glass px-4 py-3 rounded-2xl border-white/10 shadow-2xl backdrop-blur-xl shrink-0 hover:border-cyan-500/30 transition-all hover:bg-cyan-500/10 group"
+              variant="ghost"
+              size="icon"
               title="Exportar CSV"
+              aria-label="Exportar campanhas em CSV"
+              className="w-10 h-10 rounded-2xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400"
             >
-              <Download size={18} className="text-slate-400 group-hover:text-cyan-400 transition-colors" />
-            </button>
+              <Download size={18} />
+            </Button>
           )}
         </div>
       </div>
@@ -400,19 +407,13 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
 
                   <td className="px-6 py-5 text-right rounded-r-3xl border-white/[0.04] border-y border-r bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all w-36">
                     <div className="flex justify-end">
-                      <div
-                        className={cn(
-                          "px-4 py-2 rounded-2xl text-[9px] font-black uppercase tracking-[0.2em] relative overflow-hidden transition-all duration-500 group-hover/row:shadow-2xl",
-                          campaign.status === "ACTIVE"
-                            ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-[0_0_20px_rgba(16,185,129,0.1)] group-hover/row:bg-emerald-500/20"
-                            : "bg-slate-800/40 text-slate-500 border border-slate-700/50",
-                        )}
+                      <Badge
+                        variant={campaign.status === "ACTIVE" ? "active" : "secondary"}
+                        pulse={campaign.status === "ACTIVE"}
+                        className="text-[9px] uppercase tracking-[0.2em] font-black"
                       >
-                        {campaign.status === "ACTIVE" && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent -translate-x-full animate-[scan_3s_ease-in-out_infinite]" />
-                        )}
-                        <span className="relative z-10">{statusLabel(campaign.status)}</span>
-                      </div>
+                        {statusLabel(campaign.status)}
+                      </Badge>
                     </div>
                   </td>
                 </motion.tr>
@@ -432,17 +433,16 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           </div>
 
           <div className="flex items-center gap-2">
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
-              className={cn(
-                "glass px-4 py-2 rounded-xl border-white/10 transition-all",
-                "disabled:opacity-40 disabled:cursor-not-allowed",
-                "hover:border-cyan-500/30 hover:bg-cyan-500/10"
-              )}
+              aria-label="Página anterior"
+              className="w-9 h-9 rounded-xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400"
             >
-              <ChevronLeft size={16} />
-            </button>
+              <ChevronLeft size={16} aria-hidden="true" />
+            </Button>
 
             {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
               let pageNum;
@@ -457,32 +457,35 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               }
 
               return (
-                <button
+                <Button
                   key={pageNum}
+                  variant={currentPage === pageNum ? "default" : "ghost"}
+                  size="sm"
                   onClick={() => setCurrentPage(pageNum)}
+                  aria-label={`Ir para a página ${pageNum}`}
+                  aria-current={currentPage === pageNum ? "page" : undefined}
                   className={cn(
-                    "glass px-4 py-2 rounded-xl border transition-all text-xs font-black uppercase tracking-wider",
+                    "w-9 h-9 rounded-xl text-xs font-black uppercase tracking-wider border",
                     currentPage === pageNum
-                      ? "border-cyan-500/50 bg-cyan-500/20 text-cyan-300"
+                      ? "border-cyan-500/50 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30"
                       : "border-white/10 text-slate-500 hover:border-cyan-500/30 hover:bg-cyan-500/10"
                   )}
                 >
                   {pageNum}
-                </button>
+                </Button>
               );
             })}
 
-            <button
+            <Button
+              variant="ghost"
+              size="icon"
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
-              className={cn(
-                "glass px-4 py-2 rounded-xl border-white/10 transition-all",
-                "disabled:opacity-40 disabled:cursor-not-allowed",
-                "hover:border-cyan-500/30 hover:bg-cyan-500/10"
-              )}
+              aria-label="Próxima página"
+              className="w-9 h-9 rounded-xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400"
             >
-              <ChevronRight size={16} />
-            </button>
+              <ChevronRight size={16} aria-hidden="true" />
+            </Button>
           </div>
         </div>
       )}
@@ -490,14 +493,14 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
       {/* Table Footer / Visual Finish */}
       {campaigns.length > 0 && totalPages <= 1 && (
         <div className="mt-8 flex items-center justify-between px-2 relative z-10 opacity-60 hover:opacity-100 transition-opacity">
-            <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">
-                Atualizado em {new Date().toLocaleTimeString("pt-BR")}
-            </div>
-            <div className="flex gap-1">
-                {[...Array(3)].map((_, i) => (
-                    <div key={i} className="w-1 h-1 bg-slate-800 rounded-full" />
-                ))}
-            </div>
+          <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]" suppressHydrationWarning>
+            {isMounted ? `Atualizado em ${new Date().toLocaleTimeString("pt-BR")}` : "Sincronizado em tempo real"}
+          </div>
+          <div className="flex gap-1" aria-hidden="true">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="w-1 h-1 bg-slate-800 rounded-full" />
+            ))}
+          </div>
         </div>
       )}
     </section>

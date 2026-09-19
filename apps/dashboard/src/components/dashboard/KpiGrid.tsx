@@ -98,7 +98,7 @@ export function KpiGrid({ kpis }: KpiGridProps) {
     },
     {
       title: "ROI",
-      value: `${kpis.roi.toFixed(0)}%`,
+      value: `${(kpis.roi * 100).toFixed(0)}%`,
       trend: { value: "Retorno sobre investimento", isPositive: kpis.roi >= 0, label: "" },
       icon: TrendingUp,
       color: kpis.roi >= 0 ? "#34d399" : "#ef4444",

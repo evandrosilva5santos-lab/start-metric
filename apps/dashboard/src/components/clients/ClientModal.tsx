@@ -83,8 +83,9 @@ export function ClientModal({ isOpen, onClose, client, onSaved }: Props) {
       const response = await fetch("/api/meta/accounts");
       const result = await response.json();
 
-      if (response.ok && result.data) {
-        setAccounts(result.data);
+      if (response.ok) {
+        const accountsList = Array.isArray(result) ? result : (result.data || []);
+        setAccounts(accountsList);
       }
     } catch (err) {
       console.error("Erro ao buscar contas:", err);

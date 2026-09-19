@@ -221,14 +221,20 @@ export async function getDashboardData(inputFilters: DashboardFilters = {}): Pro
     };
   }
 
-  const { data: metricsData, error: metricsError } = await supabase
+  let metricsQuery = supabase
     .from("daily_metrics")
     .select("date, campaign_id, spend, revenue_attributed, conversions, impressions, clicks")
     .eq("org_id", orgId)
-    .in("campaign_id", campaignIds)
     .gte("date", from)
     .lte("date", to)
     .order("date", { ascending: true });
+
+  const hasSpecificFilter = adAccountId !== "all" || campaignStatuses.length > 0 || campaignObjectives.length > 0;
+  if (hasSpecificFilter && campaignIds.length > 0 && campaignIds.length <= 100) {
+    metricsQuery = metricsQuery.in("campaign_id", campaignIds);
+  }
+
+  const { data: metricsData, error: metricsError } = await metricsQuery;
 
   if (metricsError) {
     throw new Error(`METRICS_ERROR:${metricsError.message}`);

@@ -1,11 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Lock } from "lucide-react";
 
-export default function SharedAuthPage({ params }: { params: { token: string } }) {
+export default function SharedAuthPage({
+  params,
+}: {
+  params: Promise<{ token: string }> | { token: string };
+}) {
+  const resolvedParams = "then" in params ? use(params) : params;
+  const token = resolvedParams.token;
   const router = useRouter();
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,7 +28,7 @@ export default function SharedAuthPage({ params }: { params: { token: string } }
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token: params.token,
+          token,
           password: password,
         }),
       });
@@ -33,7 +39,7 @@ export default function SharedAuthPage({ params }: { params: { token: string } }
       }
 
       // Sucesso - redirecionar para dashboard
-      router.push(`/shared/dashboard/${params.token}`);
+      router.push(`/shared/dashboard/${token}`);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Erro desconhecido");
     } finally {

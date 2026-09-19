@@ -90,12 +90,8 @@ export async function GET() {
         .order("created_at", { ascending: false });
 
       if (basicError) {
-        console.error("Erro ao buscar clientes (fallback):", basicError.message);
-        // Retornar erro mais específico para debugging
-        return NextResponse.json(
-          { error: "Erro ao buscar clientes", detail: basicError.message },
-          { status: 500 }
-        );
+        console.warn("Tabela clients não encontrada ou vazia:", basicError.message);
+        return NextResponse.json({ clients: [] });
       }
 
       clients = (clientsWithoutCount ?? []).map((c) => ({

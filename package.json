@@ -8,7 +8,10 @@
     "apps/*",
     "packages/*"
   ],
+  "type": "module",
   "scripts": {
+    "painel": "node --env-file=.env server.js",
+    "start": "node --env-file=.env server.js",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
@@ -17,7 +20,8 @@
     "test": "turbo run test"
   },
   "devDependencies": {
-    "turbo": "latest",
-    "prettier": "latest"
+    "playwright": "^1.63.0",
+    "prettier": "latest",
+    "turbo": "latest"
   }
 }

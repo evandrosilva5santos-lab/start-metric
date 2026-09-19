@@ -23,11 +23,12 @@ function sanitizeNextPath(next: string) {
   return next;
 }
 
-export async function proxy(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   const isAdminPath = pathname === "/admin" || pathname.startsWith("/admin/");
   const isAdminAuthPath = pathname === "/admin/auth" || pathname.startsWith("/admin/auth/");
   const isAdminProtectedPath = isAdminPath && !isAdminAuthPath;
+  const isRootPath = pathname === "/";
 
   const response = NextResponse.next({
     request: {
@@ -42,9 +43,16 @@ export async function proxy(request: NextRequest) {
     return response;
   }
 
-  // Avoid hard-failing deploys when env vars are missing.
-  // (Better to set them correctly in Vercel and remove this guard later.)
-  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) return response;
+  // Fail-closed: sem env vars de autenticação não podemos validar o JWT,
+  // então redirecionamos para /auth em vez de deixar a rota passar.
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    if (isRootPath || isAdminProtectedPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = isAdminProtectedPath ? "/admin/auth" : "/auth";
+      return NextResponse.redirect(url);
+    }
+    return new NextResponse("Autenticação indisponível", { status: 503 });
+  }
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     cookies: {
@@ -64,7 +72,6 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isRootPath = pathname === "/";
   const isAuthPath = pathname === "/auth";
   const authedLandingPath = "/performance";
 

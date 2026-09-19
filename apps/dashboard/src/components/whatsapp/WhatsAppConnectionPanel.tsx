@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import {
   MessageCircle, QrCode, CheckCircle, WifiOff, Send, AlertCircle, Loader2, Smartphone, Shield, Zap, Users, Search
 } from 'lucide-react'
+import { ComingSoonBadge } from '@/components/ui/ComingSoonBadge'
 
 interface WhatsAppConnectionPanelProps {
   clientId: string
@@ -309,7 +310,10 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
             </div>
             <div className="relative flex justify-center items-center w-48 h-48 bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-inner">
               {qrCode ? (
-                <img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code WhatsApp" className="w-full h-full object-cover" />
+                <>
+                  {/* eslint-disable-next-line @next/next/no-img-element -- QR code é data URI base64, incompatível com next/image */}
+                  <img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code WhatsApp" className="w-full h-full object-cover" />
+                </>
               ) : (
                 <div className="flex flex-col items-center space-y-2"><Loader2 className="w-8 h-8 text-slate-400 animate-spin" /><span className="text-xs text-slate-400">Gerando...</span></div>
               )}
@@ -370,6 +374,27 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
                   )}
                 </div>
               )}
+            </div>
+
+            {/* Seção de Configurações Avançadas / Pro */}
+            <div className="w-full mt-4 bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-left space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-cyan-400" />
+                  <h4 className="text-sm font-semibold text-slate-200">Blindagem & Presença Avançada</h4>
+                </div>
+                <ComingSoonBadge variant="pro" label="Pro" />
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400 pt-1">
+                <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
+                  <span>Simulação &quot;Digitando...&quot;</span>
+                  <span className="text-emerald-400 font-medium">Ativo</span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
+                  <span>Proxy Dedicado Anti-Ban</span>
+                  <ComingSoonBadge variant="roadmap" label="Em breve" />
+                </div>
+              </div>
             </div>
 
             <div className="flex w-full max-w-sm gap-3 pt-6 border-t border-slate-800">

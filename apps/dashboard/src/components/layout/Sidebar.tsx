@@ -11,12 +11,14 @@ import {
   Image as ImageIcon,
   Users,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  Megaphone
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/", description: "Visão geral do ROI" },
+  { icon: Megaphone, label: "Campanhas", href: "/campaigns", description: "Split-view & Gestão" },
   { icon: Users, label: "Clientes", href: "/clients", description: "Gestão de contas" },
   { icon: ImageIcon, label: "Criativos", href: "/criativos", description: "Alta performance" },
   { icon: BarChart3, label: "Relatórios", href: "/reports", description: "Análise profunda" },
@@ -79,6 +81,7 @@ export function Sidebar() {
             <Link
               key={label}
               href={href}
+              prefetch={true}
               className={`group flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-300 relative ${
                 active
                   ? "bg-white/[0.05] border border-cyan-400/20 text-white shadow-[0_10px_30px_rgba(6,182,212,0.12)]"
@@ -141,6 +144,7 @@ export function Sidebar() {
 
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
+          aria-label={isCollapsed ? "Expandir barra lateral" : "Recolher barra lateral"}
           className="w-full h-10 flex items-center justify-center rounded-xl bg-white/[0.03] border border-white/5 text-slate-500 hover:text-cyan-400 hover:bg-cyan-400/5 transition-all duration-300"
         >
           <ChevronRight 

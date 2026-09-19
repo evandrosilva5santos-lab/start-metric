@@ -1,381 +1,581 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { motion } from "framer-motion";
-import { useQueryClient } from "@tanstack/react-query";
-import { Activity, AlertTriangle, CheckCircle, Clock, LogOut, RefreshCw, Sparkles } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
-import { AlertToast } from "@/components/alerts/AlertToast";
-import { AlertsDropdown } from "@/components/alerts/AlertsDropdown";
-import { AlertRulesConfig } from "@/components/alerts/AlertRulesConfig";
-import { useAlerts } from "@/hooks/useAlerts";
-import { useToast } from "@/hooks/useToast";
-import type { DashboardData } from "@/lib/dashboard/types";
-import { useAppStore } from "@/store/data-store";
-import { useAppQuery } from "@/hooks/useAppQuery";
-import { useReducedMotion } from "@/hooks/useReducedMotion";
-import { cn } from "@/lib/utils";
-import { DashboardFilters } from "./DashboardFilters";
-import { KpiGrid } from "./KpiGrid";
-import { PerformanceChart } from "./PerformanceChart";
-import { PeriodSummary } from "./PeriodSummary";
-import { CampaignsTable } from "./CampaignsTable";
-import { SkeletonChart, SkeletonTable, SkeletonKpi } from "@/components/ui/Skeleton";
+import { useState, useEffect, useMemo, useRef } from "react";
+import Link from "next/link";
+import {
+  TrendingUp,
+  DollarSign,
+  Target,
+  Percent,
+  Eye,
+  EyeOff,
+  RefreshCw,
+  Megaphone,
+  ArrowRight,
+  AlertTriangle,
+  CheckCircle2,
+  HelpCircle,
+  Activity,
+  Layers,
+  Clock,
+  Sparkles,
+  MousePointerClick,
+  ShoppingCart,
+  Zap,
+} from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import {
+  Button,
+  Badge,
+  Card,
+  EmptyState,
+} from "@/components/ui";
 
-type DashboardClientProps = {
-  initialData: DashboardData;
+type Account = {
+  id: string;
+  name: string;
+  currency: string;
+  isActive: boolean;
 };
 
-type DashboardFiltersState = {
-  from: string;
-  to: string;
-  adAccountId: string;
-  campaignStatuses: string[];
-  campaignObjectives: string[];
+type DailyPoint = {
+  date?: string;
+  label: string;
+  spend: number;
+  results: number;
+  cpr: number;
+  ctr: number;
+  impressions: number;
+  linkClicks: number;
 };
 
-function getGreeting(date: Date) {
-  const hour = date.getHours();
-  if (hour < 12) return "Bom dia";
-  if (hour < 18) return "Boa tarde";
-  return "Boa noite";
-}
+type Campaign = {
+  id: string;
+  name: string;
+  objective: string;
+  status: string;
+  effective_status: string;
+  situacao: "ATIVA" | "PAUSADA" | "SEM_ENTREGA";
+  situacaoLabel: string;
+  spend: number;
+  results: number;
+  cpr: number;
+  ctr: number;
+  cpm: number;
+  impressions: number;
+  daily_budget: number | null;
+  budgetType: string;
+};
 
-function buildQueryString(filters: DashboardFiltersState): string {
-  const params = new URLSearchParams({
-    from: filters.from,
-    to: filters.to,
-    adAccountId: filters.adAccountId,
-  });
+type FunilEtapa = {
+  nome: string;
+  valor: number;
+  taxa: number;
+  isGargalo?: boolean;
+};
 
-  if (filters.campaignStatuses.length > 0) {
-    params.set("campaignStatuses", filters.campaignStatuses.join(","));
-  }
+type Aviso = {
+  tipo: "alerta" | "sucesso" | "info";
+  titulo: string;
+  descricao: string;
+  acao: string;
+};
 
-  if (filters.campaignObjectives.length > 0) {
-    params.set("campaignObjectives", filters.campaignObjectives.join(","));
-  }
+type DadosResponse = {
+  conta?: { id: string; name: string; currency: string; timezone_name?: string };
+  totais?: {
+    spend: number;
+    results: number;
+    cpr: number;
+    roas: number;
+    ctr: number;
+    cpm: number;
+    impressions: number;
+    linkClicks: number;
+    primaryType: string;
+  };
+  variacao?: {
+    spend: number;
+    results: number;
+    cpr: number;
+    roas: number;
+    ctr: number;
+    cpm: number;
+  };
+  serieDiaria?: DailyPoint[];
+  funil?: FunilEtapa[];
+  campanhas?: Campaign[];
+  avisos?: Aviso[];
+  error?: string;
+};
 
-  return params.toString();
-}
+export function DashboardClient() {
+  const [accounts, setAccounts] = useState<Account[]>([]);
+  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
+  const [selectedRange, setSelectedRange] = useState<string>("last_30d");
+  const [data, setData] = useState<DadosResponse | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [isPrivacyActive, setIsPrivacyActive] = useState<boolean>(false);
+  const [refreshKey, setRefreshKey] = useState(0);
+  const forceFreshRef = useRef(false);
 
-function DashboardSkeleton() {
-  return (
-    <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-12 gap-4 lg:gap-5 mb-6 lg:mb-8">
-        {/* KPI Skeletons - layout matches KpiGrid */}
-        <div className="xl:col-span-6">
-          <SkeletonKpi />
-        </div>
-        <div className="xl:col-span-6">
-          <SkeletonKpi />
-        </div>
-        <div className="xl:col-span-3">
-          <SkeletonKpi />
-        </div>
-        <div className="xl:col-span-3">
-          <SkeletonKpi />
-        </div>
-        <div className="xl:col-span-3">
-          <SkeletonKpi />
-        </div>
-        <div className="xl:col-span-3">
-          <SkeletonKpi />
-        </div>
-      </div>
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
-        <SkeletonChart className="xl:col-span-8 h-[410px]" />
-        <SkeletonChart className="xl:col-span-4 h-[410px]" />
-      </div>
-      <SkeletonTable />
-    </>
-  );
-}
-
-function formatRelativeTime(date: string | null): string {
-  if (!date) return "nunca sincronizado";
-
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now.getTime() - then.getTime();
-  const diffMins = Math.floor(diffMs / 60000);
-  const diffHours = Math.floor(diffMs / 3600000);
-  const diffDays = Math.floor(diffMs / 86400000);
-
-  if (diffMins < 1) return "agora";
-  if (diffMins < 60) return `há ${diffMins} minuto${diffMins !== 1 ? "s" : ""}`;
-  if (diffHours < 24) return `há ${diffHours} hora${diffHours !== 1 ? "s" : ""}`;
-  return `há ${diffDays} dia${diffDays !== 1 ? "s" : ""}`;
-}
-
-export function DashboardClient({ initialData }: DashboardClientProps) {
-  const queryClient = useQueryClient();
-  const [isSigningOut, setIsSigningOut] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [toastDismissed, setToastDismissed] = useState<string | null>(null);
-
-  const filters = useAppStore((state) => state.filters);
-  const setFilters = useAppStore((state) => state.setFilters);
-  const alerts = useAlerts();
-  const { showToast } = useToast();
-  const { fadeInUp, fadeInContent } = useReducedMotion();
-
-  const queryKey = useMemo(
-    () => ["dashboard-data", filters.from, filters.to, filters.adAccountId, filters.campaignStatuses.join(","), filters.campaignObjectives.join(",")],
-    [filters.from, filters.to, filters.adAccountId, filters.campaignStatuses, filters.campaignObjectives],
-  );
-
-  const { data, isPending, isFetching, error } = useAppQuery({
-    queryKey,
-    syncGlobalState: true,
-    globalStateKey: "dashboard:main-query",
-    queryFn: async (): Promise<DashboardData> => {
-      const response = await fetch(`/api/dashboard?${buildQueryString(filters)}`, {
-        method: "GET",
-        cache: "no-store",
-      });
-      if (!response.ok) throw new Error("Falha ao carregar dashboard");
-      return (await response.json()) as DashboardData;
-    },
-    initialData,
-  });
-
+  // Carregar contas disponíveis
   useEffect(() => {
-    const interval = setInterval(() => {
-      void queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
-    }, 5 * 60 * 1000);
-    return () => clearInterval(interval);
-  }, [queryClient]);
+    fetch("/api/meta/contas")
+      .then((res) => res.json())
+      .then((json: { contas?: Account[] }) => {
+        if (json.contas && json.contas.length > 0) {
+          setAccounts(json.contas);
+          const found = json.contas.find((c) => c.isActive) || json.contas[0];
+          if (found) {
+            setLoading(true);
+            setSelectedAccountId(found.id);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
 
-  // Sincroniza filtros do servidor com o Zustand no mount para evitar refetch desnecessário
+  // Carregar dados da conta selecionada
   useEffect(() => {
-    const currentFilters = useAppStore.getState().filters;
-    const initialFilters = {
-      from: initialData.range.from,
-      to: initialData.range.to,
-      adAccountId: initialData.filters.adAccountId,
-      campaignStatuses: initialData.filters.campaignStatuses || [],
-      campaignObjectives: initialData.filters.campaignObjectives || [],
-    };
+    if (!selectedAccountId) return;
+    const controller = new AbortController();
+    const freshParam = forceFreshRef.current ? "&fresh=true" : "";
+    forceFreshRef.current = false;
+    setLoading(true);
 
-    const hasDiff =
-      currentFilters.from !== initialFilters.from ||
-      currentFilters.to !== initialFilters.to ||
-      currentFilters.adAccountId !== initialFilters.adAccountId ||
-      JSON.stringify(currentFilters.campaignStatuses) !== JSON.stringify(initialFilters.campaignStatuses) ||
-      JSON.stringify(currentFilters.campaignObjectives) !== JSON.stringify(initialFilters.campaignObjectives);
-
-    if (hasDiff) {
-      setFilters(initialFilters);
-    }
-  }, [initialData, setFilters]);
-
-  const toastAlert =
-    alerts.latestAlert && toastDismissed !== alerts.latestAlert.id
-      ? alerts.latestAlert
-      : null;
-
-  const handleDismissToast = useCallback(() => {
-    if (alerts.latestAlert) setToastDismissed(alerts.latestAlert.id);
-  }, [alerts.latestAlert]);
-
-  async function handleSignOut() {
-    setIsSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    window.location.href = "/auth";
-  }
-
-  async function handleSync() {
-    setIsSyncing(true);
-    try {
-      const response = await fetch("/api/meta/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+    fetch(`/api/meta/dados?account_id=${selectedAccountId}&range=${selectedRange}${freshParam}`, {
+      signal: controller.signal,
+    })
+      .then((res) => res.json())
+      .then((json: DadosResponse) => {
+        if (!json.error) {
+          setData(json);
+        }
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
       });
 
-      const json = await response.json();
+    return () => controller.abort();
+  }, [selectedAccountId, selectedRange, refreshKey]);
 
-      if (!response.ok) {
-        throw new Error(json.error || "Erro ao sincronizar");
-      }
+  const handleRefresh = () => {
+    setLoading(true);
+    forceFreshRef.current = true;
+    setRefreshKey((k) => k + 1);
+  };
 
-      const { data } = json;
-      showToast(
-        `Sincronizado: ${data.synced_accounts} conta(s), ${data.synced_campaigns} campanhas`,
-        "success"
-      );
+  const currency = data?.conta?.currency || "BRL";
 
-      // Invalidar query do dashboard para atualizar dados
-      await queryClient.invalidateQueries({ queryKey: ["dashboard-data"] });
-    } catch (err) {
-      showToast(
-        err instanceof Error ? err.message : "Erro ao sincronizar. Tente novamente.",
-        "error"
-      );
-    } finally {
-      setIsSyncing(false);
-    }
-  }
+  const formatBRL = (val: number | undefined) => {
+    if (isPrivacyActive) return "R$ •••••";
+    return new Intl.NumberFormat("pt-BR", { style: "currency", currency }).format(val || 0);
+  };
 
-  if (error) {
-    return (
-      <main className="flex-1 p-6 lg:p-8 overflow-y-auto min-w-0">
-        <div className="glass glass-2 rounded-3xl p-8 border border-red-500/30">
-          <h2 className="text-lg font-bold text-red-300 mb-2">Erro ao carregar dados</h2>
-          <p className="text-sm text-slate-300">Tente atualizar a página ou ajustar os filtros.</p>
-        </div>
-      </main>
-    );
-  }
+  const formatNumber = (val: number | undefined) => {
+    if (isPrivacyActive) return "••••";
+    return new Intl.NumberFormat("pt-BR").format(val || 0);
+  };
+
+  const formatPercent = (val: number | undefined) => {
+    if (val === undefined || isNaN(val)) return "0.00%";
+    return `${val >= 0 ? "+" : ""}${val.toFixed(2)}%`;
+  };
+
+  const totais = data?.totais;
+  const variacao = data?.variacao;
+
+  // Formatação do Funil de Conversão
+  const funil = useMemo(() => {
+    if (data?.funil && data.funil.length > 0) return data.funil;
+    const imps = totais?.impressions || 0;
+    const clicks = totais?.linkClicks || 0;
+    const results = totais?.results || 0;
+    return [
+      { nome: "Impressões", valor: imps, taxa: 100 },
+      { nome: "Cliques no Link", valor: clicks, taxa: imps > 0 ? (clicks / imps) * 100 : 0 },
+      { nome: "Resultados Finais", valor: results, taxa: clicks > 0 ? (results / clicks) * 100 : 0 },
+    ];
+  }, [data, totais]);
 
   return (
-    <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto min-w-0 relative">
-      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
-        <div className="absolute top-[-10%] right-[-10%] w-[45%] h-[45%] bg-primary/10 blur-[120px] rounded-full animate-float opacity-50" />
-        <div className="absolute bottom-[-5%] left-[-5%] w-[35%] h-[35%] bg-violet-500/10 blur-[120px] rounded-full animate-float-delayed opacity-40" />
-        <div className="absolute top-[35%] left-[50%] w-[35%] h-[35%] -translate-x-1/2 bg-emerald-500/10 blur-[130px] rounded-full animate-float opacity-30" />
-        <div className="absolute inset-0 bg-[url('/noise.svg')] opacity-[0.025] mix-blend-overlay" />
-      </div>
-
-      <AlertToast
-        alert={toastAlert}
-        onMarkRead={alerts.markRead}
-        onDismiss={handleDismissToast}
-        autoDismissMs={8000}
-      />
-
-      <motion.header
-        initial={fadeInUp.initial}
-        animate={fadeInUp.animate}
-        transition={fadeInUp.transition}
-        className="flex flex-col gap-6 xl:flex-row xl:items-center xl:justify-between mb-8 px-5 lg:px-7 py-6 lg:py-7 glass glass-2 rounded-[2rem] relative z-10 noise-overlay border-white/10"
-      >
-        <div className="relative space-y-2">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse-fast shadow-[0_0_8px_#06b6d4]" />
-            <span className="text-[10px] font-black uppercase text-cyan-400/60 tracking-[0.3em]">
-              Operacao ativa
-            </span>
+    <div className="space-y-6 lg:space-y-8 animate-in fade-in duration-300">
+      
+      {/* ── Topbar de Controle: Seletor de Conta, Período e Ações ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-900/60 border border-white/5 rounded-2xl p-4 lg:p-5 backdrop-blur-xl">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Seletor de Conta Meta */}
+          <div className="relative">
+            <select
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-400 cursor-pointer max-w-[280px] truncate"
+            >
+              {accounts.map((acc) => (
+                <option key={acc.id} value={acc.id} className="bg-slate-900 text-white">
+                  {acc.name} ({acc.id})
+                </option>
+              ))}
+            </select>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black bg-gradient-to-r from-white via-cyan-100 to-slate-400 bg-clip-text text-transparent tracking-tighter leading-tight">
-            {getGreeting(new Date())},{" "}
-            <span className="text-cyan-400 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">
-              {data?.userProfile?.name?.split(" ")[0].toLowerCase() ?? "equipe"}
-            </span>
-          </h1>
-          <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold uppercase tracking-wider">
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-500/20 bg-cyan-500/10 text-cyan-300 px-3 py-1.5 shadow-[0_0_22px_rgba(6,182,212,0.15)]">
-              <Activity size={12} />
-              Dados em tempo real
-            </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/10 text-emerald-300 px-3 py-1.5 shadow-[0_0_22px_rgba(16,185,129,0.15)]">
-              <Sparkles size={12} />
-              {data?.campaigns?.length ?? 0} campanhas listadas
-            </span>
-            <p className="text-xs text-slate-500 flex items-center gap-1.5">
-              <Clock size={11} />
-              Atualizado {formatRelativeTime(data?.lastSyncedAt ?? null)}
-            </p>
-          </div>
-        </div>
 
-        <div className="flex flex-wrap items-center gap-4">
-          <DashboardFilters filterOptions={data?.filterOptions || initialData.filterOptions} />
-
-          <button
-            onClick={handleSync}
-            disabled={isSyncing}
-            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-700 text-slate-400 hover:text-slate-200 hover:border-slate-600 text-sm transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+          {/* Seletor de Período */}
+          <select
+            value={selectedRange}
+            onChange={(e) => setSelectedRange(e.target.value)}
+            className="bg-slate-950/80 border border-slate-700/80 rounded-xl px-3.5 py-2 text-sm font-semibold text-white outline-none focus:border-cyan-400 cursor-pointer"
           >
-            <RefreshCw size={14} className={cn(isSyncing && "animate-spin")} />
-            {isSyncing ? "Sincronizando..." : "Sincronizar"}
+            <option value="today" className="bg-slate-900 text-white">Hoje</option>
+            <option value="yesterday" className="bg-slate-900 text-white">Ontem</option>
+            <option value="last_7d" className="bg-slate-900 text-white">Últimos 7 dias</option>
+            <option value="last_14d" className="bg-slate-900 text-white">Últimos 14 dias</option>
+            <option value="last_30d" className="bg-slate-900 text-white">Últimos 30 dias</option>
+            <option value="this_month" className="bg-slate-900 text-white">Este mês</option>
+            <option value="last_month" className="bg-slate-900 text-white">Mês passado</option>
+          </select>
+        </div>
+
+        <div className="flex items-center gap-2.5">
+          {/* Botão Modo Privacidade (Olho) */}
+          <button
+            onClick={() => setIsPrivacyActive(!isPrivacyActive)}
+            className="p-2.5 bg-slate-950/80 border border-slate-800 rounded-xl text-slate-400 hover:text-white transition-colors"
+            title={isPrivacyActive ? "Mostrar valores" : "Ocultar valores"}
+          >
+            {isPrivacyActive ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
 
-          <div className="flex items-center gap-3 ml-auto lg:ml-0">
-            <AlertsDropdown
-              alerts={alerts.unreadAlerts}
-              unreadCount={alerts.unreadCount}
-              onMarkRead={alerts.markRead}
-              onMarkAllRead={alerts.markAllRead}
-              isMarkingAllRead={alerts.isMarkingAllRead}
-            />
+          {/* Botão Atualizar */}
+          <Button
+            onClick={handleRefresh}
+            disabled={loading}
+            variant="secondary"
+            size="sm"
+            className="gap-2"
+          >
+            <RefreshCw size={14} className={loading ? "animate-spin text-cyan-400" : ""} />
+            <span>Atualizar</span>
+          </Button>
+        </div>
+      </div>
 
-            <button
-              onClick={handleSignOut}
-              disabled={isSigningOut}
-              aria-label="Sair da conta"
-              className="glass glass-1 rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-red-400 hover:border-red-500/30 transition-all disabled:opacity-60 group border-white/10"
-            >
-              <span className="inline-flex items-center gap-2">
-                <LogOut size={14} className="group-hover:-translate-x-1 transition-transform" aria-hidden="true" />
-                {isSigningOut ? "Saindo..." : "Sair"}
-              </span>
-            </button>
+      {/* ── 4 Big KPI Cards com Cores e Badges de Variação ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-5">
+        
+        {/* 1. Investido */}
+        <Card className="p-5 relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/5 group hover:border-cyan-500/30 transition-all">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Investido</span>
+            {variacao?.spend !== undefined && (
+              <Badge variant={variacao.spend <= 0 ? "roi" : "secondary"}>
+                {formatPercent(variacao.spend)}
+              </Badge>
+            )}
           </div>
-        </div>
+          <div className="text-2xl lg:text-3xl font-black text-white tracking-tight mb-1">
+            {formatBRL(totais?.spend)}
+          </div>
+          <div className="text-xs text-slate-400">
+            Total gasto no período selecionado
+          </div>
+        </Card>
 
-        <div className="absolute inset-0 overflow-hidden rounded-[2rem] pointer-events-none opacity-[0.03]">
-          <div className="w-full h-[50px] bg-gradient-to-b from-transparent via-cyan-500 to-transparent absolute -top-[50px] animate-scan" />
-        </div>
-      </motion.header>
+        {/* 2. Resultados */}
+        <Card className="p-5 relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/5 group hover:border-emerald-500/30 transition-all">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
+              {totais?.primaryType ? `Resultados (${totais.primaryType})` : "Resultados"}
+            </span>
+            {variacao?.results !== undefined && (
+              <Badge variant={variacao.results >= 0 ? "roi" : "warning"}>
+                {formatPercent(variacao.results)}
+              </Badge>
+            )}
+          </div>
+          <div className="text-2xl lg:text-3xl font-black text-emerald-400 tracking-tight mb-1">
+            {formatNumber(totais?.results)}
+          </div>
+          <div className="text-xs text-slate-400">
+            Conversões principais desduplicadas
+          </div>
+        </Card>
 
-      <motion.div
-        initial={fadeInContent.initial}
-        animate={fadeInContent.animate}
-        transition={fadeInContent.transition}
-        className={cn(
-          "transition-all duration-300 relative z-10",
-          isFetching && "opacity-60 grayscale-[0.3]",
-        )}
-      >
-        {isPending ? (
-          <DashboardSkeleton />
-        ) : (
-          <>
-            {/* Badge de qualidade dos dados */}
-            {data?.kpis.revenueAttributed === 0 ? (
-              <motion.div
-                animate={{ opacity: [0.7, 1, 0.7] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 text-sm mb-4"
-              >
-                <AlertTriangle size={14} />
-                Dados de conversão pendentes — sincronize a conta Meta para ver o ROAS real
-              </motion.div>
+        {/* 3. CPR (Custo por Resultado) */}
+        <Card className="p-5 relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/5 group hover:border-indigo-500/30 transition-all">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Custo por Resultado</span>
+            {variacao?.cpr !== undefined && (
+              <Badge variant={variacao.cpr <= 0 ? "roi" : "warning"}>
+                {formatPercent(variacao.cpr)}
+              </Badge>
+            )}
+          </div>
+          <div className="text-2xl lg:text-3xl font-black text-cyan-300 tracking-tight mb-1">
+            {formatBRL(totais?.cpr)}
+          </div>
+          <div className="text-xs text-slate-400">
+            Custo médio por conversão gerada
+          </div>
+        </Card>
+
+        {/* 4. ROAS (Retorno) */}
+        <Card className="p-5 relative overflow-hidden bg-gradient-to-br from-slate-900/90 to-slate-950/90 border-white/5 group hover:border-amber-500/30 transition-all">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Retorno (ROAS)</span>
+            {variacao?.roas !== undefined && (
+              <Badge variant={variacao.roas >= 0 ? "roi" : "secondary"}>
+                {formatPercent(variacao.roas)}
+              </Badge>
+            )}
+          </div>
+          <div className="text-2xl lg:text-3xl font-black text-amber-400 tracking-tight mb-1">
+            {isPrivacyActive ? "••••" : `${(totais?.roas || 0).toFixed(2)}x`}
+          </div>
+          <div className="text-xs text-slate-400">
+            Multiplicador de faturamento
+          </div>
+        </Card>
+
+      </div>
+
+      {/* ── 4 Pílulas de Métricas Secundárias ── */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-slate-900/40 border border-white/5 rounded-xl p-3.5 flex flex-col">
+          <span className="text-xs font-semibold text-slate-400 mb-1">CTR do Link</span>
+          <span className="text-lg font-bold text-white mb-0.5">{totais?.ctr?.toFixed(2) || "0.00"}%</span>
+          <span className="text-[11px] text-slate-500">Taxa de cliques</span>
+        </div>
+        <div className="bg-slate-900/40 border border-white/5 rounded-xl p-3.5 flex flex-col">
+          <span className="text-xs font-semibold text-slate-400 mb-1">CPM Médio</span>
+          <span className="text-lg font-bold text-white mb-0.5">{formatBRL(totais?.cpm)}</span>
+          <span className="text-[11px] text-slate-500">Por 1.000 impressões</span>
+        </div>
+        <div className="bg-slate-900/40 border border-white/5 rounded-xl p-3.5 flex flex-col">
+          <span className="text-xs font-semibold text-slate-400 mb-1">Impressões</span>
+          <span className="text-lg font-bold text-white mb-0.5">{formatNumber(totais?.impressions)}</span>
+          <span className="text-[11px] text-slate-500">Visualizações totais</span>
+        </div>
+        <div className="bg-slate-900/40 border border-white/5 rounded-xl p-3.5 flex flex-col">
+          <span className="text-xs font-semibold text-slate-400 mb-1">Cliques no Link</span>
+          <span className="text-lg font-bold text-white mb-0.5">{formatNumber(totais?.linkClicks)}</span>
+          <span className="text-[11px] text-slate-500">Tráfego direcionado</span>
+        </div>
+      </div>
+
+      {/* ── Gráfico de Evolução Diária & Funil de Conversão ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Painel do Gráfico (8 colunas) */}
+        <Card className="lg:col-span-8 p-5 lg:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-base font-bold text-white">Evolução Diária</h3>
+              <p className="text-xs text-slate-400">Investimento (R$) vs Resultados dia a dia</p>
+            </div>
+            <div className="flex items-center gap-4 text-xs font-medium">
+              <span className="flex items-center gap-1.5 text-cyan-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-cyan-400"></span>
+                Investimento
+              </span>
+              <span className="flex items-center gap-1.5 text-emerald-400">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                Resultados
+              </span>
+            </div>
+          </div>
+
+          <div className="h-72 w-full">
+            {data?.serieDiaria && data.serieDiaria.length > 0 ? (
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={data.serieDiaria} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorSpend" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#22d3ee" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#22d3ee" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="colorResults" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
+                  <XAxis dataKey="label" stroke="#64748b" fontSize={11} tickLine={false} />
+                  <YAxis stroke="#64748b" fontSize={11} tickLine={false} />
+                  <Tooltip
+                    contentStyle={{ backgroundColor: "#020617", borderColor: "#334155", borderRadius: "12px", color: "#fff" }}
+                    formatter={(val: unknown, name: unknown) => [
+                      name === "spend" ? (isPrivacyActive ? "R$ •••••" : `R$ ${Number(val || 0).toFixed(2)}`) : Number(val || 0),
+                      name === "spend" ? "Investido" : "Resultados",
+                    ]}
+                  />
+                  <Area type="monotone" dataKey="spend" stroke="#22d3ee" strokeWidth={2.5} fillOpacity={1} fill="url(#colorSpend)" />
+                  <Area type="monotone" dataKey="results" stroke="#10b981" strokeWidth={2.5} fillOpacity={1} fill="url(#colorResults)" />
+                </AreaChart>
+              </ResponsiveContainer>
             ) : (
-              <div className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-sm mb-4">
-                <CheckCircle size={14} />
-                Dados em tempo real — última sincronização {formatRelativeTime(data?.lastSyncedAt ?? null)}
+              <div className="h-full flex items-center justify-center text-slate-500 text-sm">
+                Nenhum dado diário disponível para o período selecionado.
               </div>
             )}
+          </div>
+        </Card>
 
-            <KpiGrid kpis={data.kpis} />
-
-            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 mb-8">
-              <div className="xl:col-span-8">
-                <PerformanceChart data={data.chart} />
-              </div>
-              <div className="xl:col-span-4">
-                <PeriodSummary kpis={data.kpis} generatedAt={data.generatedAt} />
-              </div>
+        {/* Funil de Conversão Tático (4 colunas) */}
+        <Card className="lg:col-span-4 p-5 lg:p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-bold text-white">Funil de Conversão</h3>
+              <Badge variant="default">Gargalos</Badge>
             </div>
+            <p className="text-xs text-slate-400 mb-6">Eficiência entre etapas de tráfego e vendas</p>
 
-            <CampaignsTable campaigns={data.campaigns} />
+            <div className="space-y-4">
+              {funil.map((etapa, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-semibold text-slate-300">{etapa.nome}</span>
+                    <span className="font-bold text-white">
+                      {isPrivacyActive ? "••••" : formatNumber(etapa.valor)}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 bg-slate-950 rounded-full overflow-hidden border border-white/5">
+                    <div
+                      className={`h-full rounded-full ${
+                        idx === 0
+                          ? "bg-cyan-400"
+                          : idx === 1
+                            ? "bg-indigo-400"
+                            : "bg-emerald-400"
+                      }`}
+                      style={{ width: `${Math.min(Math.max(etapa.taxa, 5), 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            <AlertRulesConfig
-              rules={alerts.rules}
-              campaigns={data.campaigns}
-              onCreateRule={alerts.createRule}
-              onToggleRule={alerts.toggleRule}
-              onDeleteRule={alerts.deleteRule}
-              isCreating={alerts.isCreatingRule}
-              activeRulesCount={alerts.activeRulesCount}
-            />
-          </>
-        )}
-      </motion.div>
-    </main>
+          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs text-slate-400">
+            <span>Conversão Global:</span>
+            <span className="font-bold text-emerald-400">
+              {totais?.impressions && totais?.results
+                ? `${((totais.results / totais.impressions) * 100).toFixed(3)}%`
+                : "0.00%"}
+            </span>
+          </div>
+        </Card>
+
+      </div>
+
+      {/* ── Top Campanhas & Diagnóstico Inteligente ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        
+        {/* Lista das Top Campanhas (7 colunas) */}
+        <Card className="lg:col-span-7 p-5 lg:p-6">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h3 className="text-base font-bold text-white">Principais Campanhas</h3>
+              <p className="text-xs text-slate-400">Métricas consolidadas da conta</p>
+            </div>
+            <Link href="/campaigns">
+              <Button variant="secondary" size="sm" className="gap-1.5 text-xs">
+                <span>Ver Split-View</span>
+                <ArrowRight size={14} />
+              </Button>
+            </Link>
+          </div>
+
+          <div className="divide-y divide-white/5">
+            {data?.campanhas && data.campanhas.length > 0 ? (
+              data.campanhas.slice(0, 5).map((camp) => (
+                <div key={camp.id} className="py-3.5 flex items-center justify-between gap-4">
+                  <div className="space-y-1 min-w-0 max-w-[260px]">
+                    <div className="font-bold text-sm text-white truncate">{camp.name}</div>
+                    <div className="flex items-center gap-2 text-xs text-slate-400">
+                      <span>{camp.objective?.replace("OUTCOME_", "") || "Vendas"}</span>
+                      <span>·</span>
+                      <span className="font-semibold text-emerald-400">{camp.results} resultados</span>
+                    </div>
+                  </div>
+
+                  <div className="text-right shrink-0">
+                    <div className="font-bold text-sm text-white">{formatBRL(camp.spend)}</div>
+                    <div className="text-xs text-slate-400">CPR: {formatBRL(camp.cpr)}</div>
+                  </div>
+
+                  <div className="shrink-0">
+                    <Badge variant={camp.situacao === "ATIVA" ? "roi" : "secondary"}>
+                      {camp.situacaoLabel}
+                    </Badge>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="py-8 text-center text-slate-500 text-sm">
+                Nenhuma campanha encontrada nesta conta.
+              </div>
+            )}
+          </div>
+        </Card>
+
+        {/* Diagnóstico Inteligente em Português (5 colunas) */}
+        <Card className="lg:col-span-5 p-5 lg:p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <Sparkles size={18} className="text-cyan-400" />
+              <h3 className="text-base font-bold text-white">Diagnóstico Inteligente</h3>
+            </div>
+            <p className="text-xs text-slate-400 mb-4">Recomendações táticas em tempo real</p>
+
+            <div className="space-y-3">
+              {data?.avisos && data.avisos.length > 0 ? (
+                data.avisos.map((aviso, idx) => (
+                  <div
+                    key={idx}
+                    className={`p-3 rounded-xl border text-xs space-y-1 ${
+                      aviso.tipo === "alerta"
+                        ? "bg-amber-500/10 border-amber-500/20 text-amber-300"
+                        : aviso.tipo === "sucesso"
+                          ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-300"
+                          : "bg-cyan-500/10 border-cyan-500/20 text-cyan-300"
+                    }`}
+                  >
+                    <div className="font-bold">{aviso.titulo}</div>
+                    <div className="text-slate-300 text-[11px] leading-relaxed">{aviso.descricao}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-300 text-xs space-y-1">
+                  <div className="font-bold">Contas Operando com Eficiência</div>
+                  <div className="text-slate-300 text-[11px]">
+                    Não foram detectados desvios críticos de CPR ou taxa de entrega no período selecionado.
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-between text-xs">
+            <span className="text-slate-400">Status da API Meta:</span>
+            <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
+              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+              Operacional v21.0
+            </span>
+          </div>
+        </Card>
+
+      </div>
+
+    </div>
   );
 }

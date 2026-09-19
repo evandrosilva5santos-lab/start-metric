@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 import { Download, Share2, Lock } from "lucide-react";
 import { formatCurrency, formatNumber } from "@/lib/utils";
 
@@ -95,10 +96,12 @@ export default function SharedDashboardClient({
             {/* Logo e nome */}
             <div className="flex items-center gap-3">
               {organization.logo_url && (
-                <img
+                <Image
                   src={organization.logo_url}
                   alt={organization.name}
-                  className="w-8 h-8 rounded"
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded object-cover"
                 />
               )}
               <div>

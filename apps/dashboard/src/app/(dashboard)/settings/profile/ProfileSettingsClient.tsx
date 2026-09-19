@@ -5,6 +5,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Globe,
@@ -288,9 +289,11 @@ export default function ProfileSettingsClient({ profile }: Props) {
           {/* Avatar preview */}
           <div className="relative">
             {avatarUrl ? (
-              <img
+              <Image
                 src={avatarUrl}
                 alt="Avatar"
+                width={96}
+                height={96}
                 className="w-24 h-24 rounded-full object-cover border-2 border-slate-700"
               />
             ) : (

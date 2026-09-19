@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import {
   LayoutDashboard,
@@ -16,11 +16,13 @@ import {
   Users,
   User,
   ChevronDown,
+  Megaphone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
+  { icon: Megaphone, label: "Campanhas", href: "/campaigns" },
   { icon: Users, label: "Clientes", href: "/clients" },
   { icon: ImageIcon, label: "Criativos", href: "/criativos" },
   { icon: FileText, label: "Relatórios", href: "/reports" },
@@ -29,6 +31,7 @@ const NAV_ITEMS = [
 
 export function Header() {
   const pathname = usePathname();
+  const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [userName, setUserName] = useState<string | null>(null);
@@ -69,7 +72,7 @@ export function Header() {
     setIsSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
-    window.location.href = "/auth";
+    router.push("/auth");
   }
 
   function getInitials(name: string, email: string) {
@@ -117,6 +120,8 @@ export function Header() {
           <div className="hidden sm:block relative" ref={userMenuRef}>
             <button
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+              aria-haspopup="true"
+              aria-expanded={isUserMenuOpen}
               className="flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-white/[0.03] border border-white/5 hover:bg-white/[0.05] transition-colors group cursor-pointer"
             >
               <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-cyan-500/20 to-indigo-500/20 flex items-center justify-center border border-white/10 group-hover:border-cyan-500/30 transition-colors shadow-[0_0_20px_rgba(6,182,212,0.1)]">
@@ -192,6 +197,7 @@ export function Header() {
           <button
             onClick={handleSignOut}
             disabled={isSigningOut}
+            aria-label="Sair da conta"
             className="hidden lg:flex group relative items-center justify-center w-10 h-10 rounded-2xl bg-slate-400/5 text-slate-500 hover:text-red-400 hover:bg-red-400/10 transition-all duration-300 border border-white/5 hover:border-red-400/20"
             title="Sair"
           >
@@ -201,7 +207,10 @@ export function Header() {
           {/* Mobile menu button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400 hover:bg-cyan-400/20 transition-all duration-300 border border-cyan-400/20"
+            aria-label={isMobileMenuOpen ? "Fechar menu de navegação" : "Abrir menu de navegação"}
+            aria-expanded={isMobileMenuOpen}
+            aria-controls="mobile-nav"
+            className="lg:hidden w-10 h-10 flex items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400 hover:bg-cyan-400/20 transition-all duration-300 border border-cyan-400/20 cursor-pointer"
           >
             {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -212,6 +221,7 @@ export function Header() {
       <AnimatePresence>
         {isMobileMenuOpen && (
           <motion.div
+            id="mobile-nav"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
@@ -224,6 +234,7 @@ export function Header() {
                   <Link
                     key={label}
                     href={href}
+                    prefetch={true}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-xs font-black uppercase tracking-[0.15em] transition-all duration-300 border ${
                       active

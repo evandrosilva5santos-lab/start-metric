@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
-import { createHmac } from "node:crypto";
+import { createHmac, timingSafeEqual } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -31,44 +31,79 @@ type StripeWebhookPayload = {
   items?: StripeWebhookItem[];
 };
 
-// Assinatura webhook do Stripe (para produção)
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+const SIGNATURE_TOLERANCE_SECONDS = 300;
 
-function verifyStripeSignature(payload: string, signature: string): boolean {
-  if (!STRIPE_WEBHOOK_SECRET) return true; // Skip verification in development
-
-  try {
-    const hmac = createHmac("sha256", STRIPE_WEBHOOK_SECRET);
-    const digest = hmac.update(payload).digest("hex");
-
-    // Stripe signature format: t=timestamp,v1=signature
-    const expectedSignature = `t=${signature.split(",")[0].split("=")[1]},v1=${digest}`;
-    return signature === expectedSignature;
-  } catch {
-    return false;
+// Fail-closed: sem secret configurado, nenhum webhook é aceito.
+function requireWebhookSecret(): string {
+  if (!STRIPE_WEBHOOK_SECRET) {
+    throw new Error("STRIPE_WEBHOOK_SECRET não configurado");
   }
+  return STRIPE_WEBHOOK_SECRET;
+}
+
+// Formato Stripe: t=<timestamp>,v1=<hex digest> (pode haver múltiplas entradas v1).
+function parseSignatureHeader(signature: string): { timestamp: number; digests: string[] } | null {
+  const parts = signature.split(",").map((p) => p.trim());
+  let timestamp: number | null = null;
+  const digests: string[] = [];
+
+  for (const part of parts) {
+    const [key, value] = part.split("=");
+    if (!key || value === undefined) continue;
+    if (key === "t") {
+      const parsed = Number(value);
+      if (!Number.isFinite(parsed)) return null;
+      timestamp = parsed;
+    } else if (key === "v1") {
+      digests.push(value.toLowerCase());
+    }
+  }
+
+  if (timestamp === null || digests.length === 0) return null;
+  return { timestamp, digests };
+}
+
+function verifyStripeSignature(payload: string, signature: string, secret: string): boolean {
+  const parsed = parseSignatureHeader(signature);
+  if (!parsed) return false;
+
+  // Proteção contra replay: rejeitar timestamps fora da janela de tolerância.
+  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - parsed.timestamp);
+  if (ageSeconds > SIGNATURE_TOLERANCE_SECONDS) return false;
+
+  const signedPayload = `${parsed.timestamp}.${payload}`;
+  const hmac = createHmac("sha256", secret);
+  const digest = hmac.update(signedPayload).digest("hex");
+
+  return parsed.digests.some((candidate) => {
+    const a = Buffer.from(candidate, "utf8");
+    const b = Buffer.from(digest, "utf8");
+    return a.length === b.length && timingSafeEqual(a, b);
+  });
 }
 
 export async function POST(req: Request) {
-  // Supabase Service Role client (bypasses RLS)
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  );
+  let secret: string;
+  try {
+    secret = requireWebhookSecret();
+  } catch {
+    console.error("[webhooks/stripe] STRIPE_WEBHOOK_SECRET ausente — webhook rejeitado (fail-closed).");
+    return NextResponse.json({ error: "Webhook não configurado" }, { status: 503 });
+  }
 
   try {
     const headersList = await headers();
     const signature = headersList.get("stripe-signature");
-
     const rawPayload = await req.text();
-    const payload = JSON.parse(rawPayload) as StripeWebhookPayload;
 
-    // Verificar assinatura em produção
-    if (signature && !verifyStripeSignature(rawPayload, signature)) {
+    // Header de assinatura é obrigatório — ausência = rejeição imediata.
+    if (!signature || !verifyStripeSignature(rawPayload, signature, secret)) {
       return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
     }
 
-    // Fallback: usar o JSON enviado simulando um checkout do Stripe ou e-commerce
+    const payload = JSON.parse(rawPayload) as StripeWebhookPayload;
+
     const {
       org_id,
       external_order_id,
@@ -79,14 +114,20 @@ export async function POST(req: Request) {
       customer_name,
       tracking_session_id,
       click_id,
-      attribution_fbc, // Facebook Click ID (fbc)
-      attribution_fbp, // Facebook Browser ID (fbp)
+      attribution_fbc,
+      attribution_fbp,
       items = []
     } = payload;
 
     if (!org_id || !external_order_id) {
       return NextResponse.json({ error: "org_id e external_order_id são obrigatórios" }, { status: 400 });
     }
+
+    // Supabase Service Role client (bypasses RLS)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // 1. Criar registro na tabela conversions para o motor de atribuição
     const userIdentifier = attribution_fbc ?? tracking_session_id ?? click_id ?? attribution_fbp ?? customer_email;
@@ -137,7 +178,7 @@ export async function POST(req: Request) {
         attribution_fbc,
         attribution_fbp,
         click_id,
-        attributed_conversion_id: conversion?.id, // Link com a tabela conversions
+        attributed_conversion_id: conversion?.id,
       }, { onConflict: "org_id, external_order_id, source" })
       .select()
       .single();
@@ -164,7 +205,6 @@ export async function POST(req: Request) {
 
       if (itemsError) {
         console.error("Erro inserindo sales_order_items:", itemsError);
-        // Não falhamos a rota se os itens falharem parcialmente (em MVP), mas registramos erro.
       }
     }
 
@@ -177,7 +217,6 @@ export async function POST(req: Request) {
 
   } catch (error: unknown) {
     console.error("Webhook Error:", error);
-    const message = error instanceof Error ? error.message : "Unknown error";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json({ error: "Erro interno no webhook" }, { status: 500 });
   }
 }

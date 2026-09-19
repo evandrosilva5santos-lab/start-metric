@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, Building2, Mail, Phone, MessageCircle } from "lucide-react";
@@ -78,9 +79,11 @@ export default async function ClientDetailsPage({
           <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6">
             <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-cyan-400/20 to-indigo-600/20 border border-cyan-400/20 flex items-center justify-center mb-4">
               {client.logo_url ? (
-                <img
+                <Image
                   src={client.logo_url}
                   alt={client.name}
+                  width={56}
+                  height={56}
                   className="w-full h-full rounded-xl object-cover"
                 />
               ) : (

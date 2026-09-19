@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   mapEvolutionStateToStatus,
@@ -55,29 +56,54 @@ function extractPhone(data: unknown): string | null {
   return null;
 }
 
-function hasValidWebhookSecret(request: Request): boolean {
-  const expectedSecret = process.env.WHATSAPP_WEBHOOK_SECRET?.trim();
-  if (!expectedSecret) return true;
+function timingSafeCompare(a: string, b: string): boolean {
+  const bufA = Buffer.from(a, "utf8");
+  const bufB = Buffer.from(b, "utf8");
+  return bufA.length === bufB.length && timingSafeEqual(bufA, bufB);
+}
 
-  const url = new URL(request.url);
-  const querySecret = url.searchParams.get("secret");
-  const headerSignature = request.headers.get("x-evolution-signature");
-  const headerSecret = request.headers.get("x-webhook-secret");
+// Fail-closed: sem secret configurado, nenhum webhook é aceito.
+function requireWebhookSecret(): string {
+  const secret = process.env.WHATSAPP_WEBHOOK_SECRET?.trim();
+  if (!secret) {
+    throw new Error("WHATSAPP_WEBHOOK_SECRET não configurado");
+  }
+  return secret;
+}
 
-  return (
-    querySecret === expectedSecret ||
-    headerSignature === expectedSecret ||
-    headerSecret === expectedSecret
-  );
+// Evolution API envia x-evolution-signature no formato "sha256=<hmac-hex>",
+// onde o HMAC-SHA256 do body bruto é calculado com o webhook secret.
+function verifyEvolutionSignature(rawBody: string, signatureHeader: string, secret: string): boolean {
+  const expected = createHmac("sha256", secret).update(rawBody, "utf8").digest("hex");
+  const provided = signatureHeader.startsWith("sha256=")
+    ? signatureHeader.slice("sha256=".length).toLowerCase()
+    : signatureHeader.trim().toLowerCase();
+  return timingSafeCompare(provided, expected);
 }
 
 export async function POST(request: Request) {
-  if (!hasValidWebhookSecret(request)) {
+  let secret: string;
+  try {
+    secret = requireWebhookSecret();
+  } catch {
+    console.error("[webhooks/whatsapp] WHATSAPP_WEBHOOK_SECRET ausente — webhook rejeitado (fail-closed).");
+    return NextResponse.json({ error: "Webhook não configurado" }, { status: 503 });
+  }
+
+  // Body bruto é necessário para calcular o HMAC antes do parse JSON.
+  const rawBody = await request.text();
+  const signatureHeader = request.headers.get("x-evolution-signature");
+  const sharedSecretHeader = request.headers.get("x-webhook-secret");
+
+  const signatureValid = signatureHeader && verifyEvolutionSignature(rawBody, signatureHeader, secret);
+  const secretValid = sharedSecretHeader && timingSafeCompare(sharedSecretHeader, secret);
+
+  if (!signatureValid && !secretValid) {
     return NextResponse.json({ error: "Webhook secret inválido" }, { status: 401 });
   }
 
   try {
-    const payload = webhookEventSchema.parse(await request.json());
+    const payload = webhookEventSchema.parse(JSON.parse(rawBody));
     const admin = createAdminClient();
 
     if (payload.event === "connection.update") {

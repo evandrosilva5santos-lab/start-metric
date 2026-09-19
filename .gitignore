@@ -2,12 +2,17 @@
 node_modules/
 .npm
 .DS_Store
+*.DS_Store
+._*
+**/._*
 
 # build
 .next/
 dist/
 out/
 build/
+screenshots/
+graphify-out/
 
 # env (CRITICAL)
 .env

@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Copy, Check, Loader2, AlertCircle } from "lucide-react";
-import { z } from "zod";
 
 interface ShareLinkModalProps {
   clientId: string;
@@ -12,15 +11,14 @@ interface ShareLinkModalProps {
   onClose: () => void;
 }
 
-const shareLinkFormSchema = z.object({
-  expires_in_days: z.number().min(1).max(365).default(30),
-  protected: z.boolean().default(false),
-  password: z.string().optional().or(z.literal("")),
-  max_accesses_enabled: z.boolean().default(false),
-  max_accesses: z.number().int().positive().optional().nullable(),
-});
-
-type ShareLinkForm = z.infer<typeof shareLinkFormSchema>;
+// Limites espelham a validação server-side em /api/shared/generate-token
+type ShareLinkForm = {
+  expires_in_days: number; // 1–365
+  protected: boolean;
+  password: string;
+  max_accesses_enabled: boolean;
+  max_accesses: number | null;
+};
 
 export default function ShareLinkModal({
   clientId,

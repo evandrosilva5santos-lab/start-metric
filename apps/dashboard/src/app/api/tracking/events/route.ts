@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import type { Json } from "@/lib/supabase/types";
 
@@ -83,7 +84,12 @@ export async function POST(request: Request): Promise<NextResponse> {
   const orgId = profile.org_id;
   const forwardedFor = request.headers.get("x-forwarded-for");
   const rawIp = toOptionalString(forwardedFor?.split(",")[0] ?? null);
-  const ipHash = rawIp ? Buffer.from(rawIp).toString("base64") : null;
+  // Hash unidirecional (LGPD): IP nunca é armazenado de forma reversível.
+  const ipHash = rawIp
+    ? createHash("sha256")
+        .update(`${rawIp}:${process.env.TRACKING_IP_SALT ?? "start-metric-default-salt"}`)
+        .digest("hex")
+    : null;
 
   const row = {
     org_id: orgId,

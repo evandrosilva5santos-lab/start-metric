@@ -35,14 +35,15 @@ function getParam(searchParams: SearchParams, key: string): string | undefined {
 export default async function PerformancePage({
   searchParams,
 }: {
-  searchParams: SearchParams;
+  searchParams: Promise<SearchParams> | SearchParams;
 }) {
-  const campaignStatusParam = getParam(searchParams, "campaignStatus");
+  const resolvedParams = await searchParams;
+  const campaignStatusParam = getParam(resolvedParams, "campaignStatus");
 
   const filters = {
-    from: getParam(searchParams, "from"),
-    to: getParam(searchParams, "to"),
-    adAccountId: getParam(searchParams, "adAccountId"),
+    from: getParam(resolvedParams, "from"),
+    to: getParam(resolvedParams, "to"),
+    adAccountId: getParam(resolvedParams, "adAccountId"),
     campaignStatuses: campaignStatusParam ? [campaignStatusParam] : undefined,
   };
 
@@ -94,9 +95,11 @@ export default async function PerformancePage({
             className="glass rounded-2xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4"
           >
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Conta</label>
+              <label htmlFor="perfAccountSelect" className="text-xs text-slate-500">Conta</label>
               <select
+                id="perfAccountSelect"
                 name="adAccountId"
+                aria-label="Selecionar conta de anúncios"
                 defaultValue={data.filters.adAccountId}
                 className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
               >
@@ -110,9 +113,11 @@ export default async function PerformancePage({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Status</label>
+              <label htmlFor="perfStatusSelect" className="text-xs text-slate-500">Status</label>
               <select
+                id="perfStatusSelect"
                 name="campaignStatus"
+                aria-label="Selecionar status da campanha"
                 defaultValue={data.filters.campaignStatuses.length === 0 ? "all" : data.filters.campaignStatuses[0]}
                 className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
               >
@@ -126,20 +131,24 @@ export default async function PerformancePage({
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">De</label>
+              <label htmlFor="perfFromDate" className="text-xs text-slate-500">De</label>
               <input
+                id="perfFromDate"
                 name="from"
                 type="date"
+                aria-label="Data de início"
                 defaultValue={data.range.from}
                 className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="text-xs text-slate-500">Até</label>
+              <label htmlFor="perfToDate" className="text-xs text-slate-500">Até</label>
               <input
+                id="perfToDate"
                 name="to"
                 type="date"
+                aria-label="Data de término"
                 defaultValue={data.range.to}
                 className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
               />

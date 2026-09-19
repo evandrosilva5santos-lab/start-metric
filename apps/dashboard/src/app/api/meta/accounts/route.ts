@@ -54,5 +54,5 @@ export async function GET(): Promise<NextResponse> {
     };
   });
 
-  return NextResponse.json({ data: accounts });
+  return NextResponse.json(accounts);
 }

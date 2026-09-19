@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import SharedDashboardClient from "./SharedDashboardClient";
 
 interface SharedDashboardPageProps {
-  params: { token: string };
-  searchParams: { password?: string };
+  params: Promise<{ token: string }>;
+  searchParams: Promise<{ password?: string }>;
 }
 
 interface Campaign {
@@ -25,6 +25,8 @@ export default async function SharedDashboardPage({
   params,
   searchParams,
 }: SharedDashboardPageProps) {
+  const { token } = await params;
+  const { password } = (await searchParams) || {};
   const supabase = await createClient();
 
   // 1. Validar token
@@ -36,8 +38,8 @@ export default async function SharedDashboardPage({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          token: params.token,
-          password: searchParams.password,
+          token,
+          password,
         }),
         next: { revalidate: 0 }, // Sem cache para segurança
       }
@@ -48,7 +50,7 @@ export default async function SharedDashboardPage({
 
       // Se requer senha, redirecionar para página de auth
       if (response.status === 403 && data.error.includes("Senha requerida")) {
-        redirect(`/shared/auth/${params.token}`);
+        redirect(`/shared/auth/${token}`);
       }
 
       // Outros erros - redirecionar para erro
@@ -116,7 +118,7 @@ export default async function SharedDashboardPage({
 
   return (
     <SharedDashboardClient
-      token={params.token}
+      token={token}
       client={client}
       organization={typedOrganization}
       campaigns={campaignsList}

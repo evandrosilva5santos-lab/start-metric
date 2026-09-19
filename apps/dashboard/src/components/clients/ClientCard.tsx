@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Mail, Phone, Edit, Archive, Eye, MessageCircle } from "lucide-react";
 
@@ -79,9 +80,11 @@ export function ClientCard({
       <div className="flex items-start gap-4 mb-4">
         <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-cyan-400/20 to-indigo-600/20 flex items-center justify-center border border-cyan-400/20 flex-shrink-0">
           {client.logo_url ? (
-            <img
+            <Image
               src={client.logo_url}
               alt={client.name}
+              width={48}
+              height={48}
               className="w-full h-full rounded-xl object-cover"
             />
           ) : (

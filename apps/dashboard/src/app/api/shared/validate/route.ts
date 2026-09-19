@@ -1,7 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
+import { rateLimit, clientIpFromRequest } from "@/lib/rate-limit";
 
 // Schema para validação
 const ValidateTokenSchema = z.object({
@@ -11,6 +12,16 @@ const ValidateTokenSchema = z.object({
 
 export async function POST(request: Request) {
   try {
+    // Rate limit por IP: endpoint público que executa bcrypt (caro em CPU).
+    const ip = clientIpFromRequest(request);
+    const rl = rateLimit(`shared-validate:${ip}`, { limit: 10, windowMs: 60_000 });
+    if (!rl.allowed) {
+      return NextResponse.json(
+        { error: "Muitas tentativas. Tente novamente em instantes." },
+        { status: 429, headers: { "Retry-After": String(rl.retryAfterSeconds) } },
+      );
+    }
+
     const body = await request.json();
 
     // Validar request

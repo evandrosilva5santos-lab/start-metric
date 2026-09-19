@@ -54,16 +54,42 @@ Report Builder que gera documentos dinâmicos exportáveis com templates reutili
 
 ---
 
-### 🥉 Feature 3: WhatsApp Automation (terceira entrega)
+### 🥉 Feature 3: WhatsApp Automation & Evolution Pro (terceira entrega)
 
-Distribuição dos relatórios via WhatsApp usando templates da Feature 2.
+Distribuição dos relatórios via WhatsApp usando templates da Feature 2 e gestão avançada de instâncias.
 
 **Componentes:**
-- Account Manager (conectar/remover números WA Business API)
+- Account Manager (conectar/remover números via QR Code ao vivo com polling)
 - Scheduler Worker (dispara conforme agendamento armazenado)
+- **[NOVO] Proxy Dedicado Anti-Ban:** Suporte a HTTP/HTTPS/SOCKS5 por instância para mitigar bloqueios
+- **[NOVO] Simulação de Presença Humana:** Presença "digitando..." / "gravando áudio..." antes dos envios
+- **[NOVO] Extração e Disparo em Grupos:** Leitura de participantes e disparo segmentado
+- **[NOVO] Rejeição de Chamadas:** Auto-resposta em chamadas não autorizadas
 - Retry com backoff + histórico de envios + alertas em falha persistente
 
 **Critério de done:** relatório chega no WhatsApp do cliente no horário agendado sem falha crítica.
+
+---
+
+### 🔮 Feature 4: Meta Conversions API (CAPI) Server-Side (Atribuição & Tracking)
+
+Envio direto de conversões server-side (Purchase, Lead, CompleteRegistration) para o Pixel da Meta Graph API v21+.
+
+**Componentes:**
+- Hash SHA-256 de dados do usuário (`em`, `ph`, `fn`, `ln`)
+- Matching de cookies de primeiro nível (`_fbc`, `_fbp`, `client_ip`, `user_agent`)
+- Deduplicação automática via `event_id` compartilhado entre browser e server
+- Test Event Code para homologação no Gerenciador de Eventos da Meta
+
+---
+
+## 🎨 Padrão Visual de Roadmap no Frontend ("Em Breve" & "Futura Atualização")
+
+Para manter o usuário informado sobre a evolução do produto sem frustração, todos os módulos em desenvolvimento ou futuras atualizações devem seguir o padrão canônico:
+
+1. **Badge Visual:** Utilizar `<ComingSoonBadge variant="roadmap" />` ou `<ComingSoonBadge variant="new" />` com micro-ícone `Sparkles` ou `Clock`.
+2. **Estilo Glass Desabilitado:** Cards em desenvolvimento devem usar opacidade reduzida (`opacity-65`), borda com gradiente sutil e `cursor-default` com tooltip explicativo.
+3. **Copy Transparente:** Exibir breve resumo do benefício da funcionalidade e trimestre/fase prevista.
 
 ---
 
@@ -71,21 +97,20 @@ Distribuição dos relatórios via WhatsApp usando templates da Feature 2.
 
 - Substituir plataformas de compra de mídia (Meta/Google/TikTok)
 - Editor avançado de criativos
-- App mobile (fase 4)
+- App mobile nativo iOS/Android (fase 4)
 - Google Ads e TikTok Ads (focar Meta primeiro)
-- IA para sugestões de orçamento (fase avançada)
-- Sistema de tracking próprio com UTMs/click IDs (fase 2)
+- IA generativa de criativos em vídeo (fase futura)
 
 ---
 
 ## Sequência de Entrega
 
 ```
-[AGORA]  Dashboard funcional com Meta Ads
+[AGORA]  Dashboard funcional com Meta Ads + CAPI Server-side
             └─► Integrar Stripe/Shopify → calcular lucro real
                 └─► Motor de atribuição last-click
-                    └─► [Feature 2] Report Builder
-                        └─► [Feature 3] WhatsApp Automation
+                    └─► [Feature 2] Report Builder & Resumo Executivo Diário
+                        └─► [Feature 3] WhatsApp Evolution Pro (Multi-instâncias + Proxy)
 ```
 
 ---
@@ -94,12 +119,14 @@ Distribuição dos relatórios via WhatsApp usando templates da Feature 2.
 
 | Camada | Tecnologia | Status |
 |---|---|---|
-| Frontend | Next.js 16 + React 19 + TypeScript | ✅ Rodando |
+| Frontend | Next.js 16.3+ + React 19 + TypeScript | ✅ Rodando |
 | Estilização | Tailwind CSS v4 + Framer Motion | ✅ Rodando |
 | Estado global | Zustand + React Query | ✅ Implementado |
 | Auth | Supabase Auth (multi-tenant por org_id) | ✅ Rodando |
 | DB | Supabase PostgreSQL + RLS | ✅ Rodando |
-| API | NestJS (apps/api) | 🔧 Em desenvolvimento |
+| API | Next.js App Router + NestJS (apps/api) | ✅ Rodando |
+| WhatsApp | Evolution API v2 (Multi-instância / Proxy / Presence) | ✅ Integrado |
+| CAPI Meta | Graph API v21+ Server-Side Hashing | ✅ Integrado |
 | Filas | BullMQ + Redis | 🔧 Em desenvolvimento |
 | Meta Ads | Graph API v21+ com OAuth | ✅ Integrado |
 | Alertas | Avaliador in-app (ROAS/CPA/spend) | ✅ Implementado |
@@ -112,6 +139,8 @@ Distribuição dos relatórios via WhatsApp usando templates da Feature 2.
 | ADR-002 | PostgreSQL como banco primário | Volume exigir OLAP dedicado |
 | ADR-003 | Motor de atribuição desacoplado da ingestão | — |
 | ADR-004 | Multi-tenant lógico com RLS por org_id | — |
+| ADR-005 | CAPI Server-Side com SHA-256 e Deduplicação | — |
+| ADR-006 | Criptografia de tokens via pgcrypto AES-256 | — |
 
 ---
 
@@ -119,7 +148,9 @@ Distribuição dos relatórios via WhatsApp usando templates da Feature 2.
 
 ```
 organizations → clients → ad_accounts → campaigns → daily_metrics
-                       └─► orders → attributions ←─┘
+                       ├─► orders → attributions ←─┘
+                       ├─► whatsapp_instances (proxies, presence, settings)
+                       └─► marketing_credentials (CAPI tokens, pixels)
 tracking_sessions → events → attributions
 ```
 
@@ -139,27 +170,30 @@ Todas as métricas consideram timezone configurável por cliente.
 
 ## Checklist de Done do MVP
 
-- [ ] Usuário conecta conta Meta Ads via OAuth sem suporte técnico
+- [x] Usuário conecta conta Meta Ads via OAuth sem suporte técnico
+- [x] Criptografia de tokens AES-256 com isolamento multitenant
 - [ ] Usuário conecta fonte de vendas (Stripe ou Shopify)
 - [ ] Dashboard mostra lucro por campanha com atribuição rastreável
 - [ ] Relatório gerado automaticamente e entregue por WhatsApp
-- [ ] Multi-tenant: dados isolados por organização (RLS ativo e validado)
-- [ ] Segurança: secrets fora do código, TLS ativo, endpoint de exclusão de dados
+- [x] Multi-tenant: dados isolados por organização (RLS ativo e validado)
+- [x] Segurança: secrets fora do código, TLS ativo, endpoints blindados contra replay/IDOR
 - [ ] Observabilidade: logs estruturados + alerta de job falho
 
 ---
 
 ## Backlog — Fase Posterior (não bloqueia MVP)
 
-- Sistema de tracking próprio (UTMs, click IDs, endpoint de eventos, deduplicação)
-- Modelos de atribuição first-click e linear com reprocessamento histórico
-- Integração Google Ads e TikTok Ads
-- Integração Shopify e WooCommerce
-- RBAC completo (owner / manager / analyst / viewer)
-- App mobile com KPIs e alertas push
-- IA para previsão de ROAS e sugestão de alocação de orçamento
-- Exportação PDF de relatórios
-- Integrações Hotmart, Eduzz, outros marketplaces
+- [EM BREVE] Relatório Diário com IA no WhatsApp (ROAS matinal automático)
+- [EM BREVE] Meta CAPI UI: painel de teste de eventos em tempo real
+- [FUTURA ATUALIZAÇÃO] Proxy Manager por instância de WhatsApp
+- [FUTURA ATUALIZAÇÃO] Sistema de tracking com UTMs e first-party cookies
+- [FUTURA ATUALIZAÇÃO] Modelos de atribuição first-click e linear com reprocessamento
+- [FUTURA ATUALIZAÇÃO] Integração Google Ads e TikTok Ads
+- [FUTURA ATUALIZAÇÃO] Integração Shopify e WooCommerce
+- [FUTURA ATUALIZAÇÃO] App mobile com KPIs e alertas push
+- [FUTURA ATUALIZAÇÃO] IA para previsão de ROAS e sugestão de alocação de orçamento
+- [FUTURA ATUALIZAÇÃO] Exportação PDF de relatórios
+- [FUTURA ATUALIZAÇÃO] Integrações Hotmart, Eduzz, Cakto, Doppus, Asaas
 
 ---
 
@@ -178,6 +212,6 @@ Todas as métricas consideram timezone configurável por cliente.
 | Risco | Mitigação |
 |---|---|
 | Mudanças de API do Meta | Camadas de integração isoladas + monitoramento de versões |
-| Restrições de privacidade/cookies | Abordagem server-side + first-party tracking |
+| Restrições de privacidade/cookies | Abordagem server-side CAPI + first-party tracking |
 | Divergência entre fontes e dashboard | Reconciliador diário + trilhas de auditoria + transparência de fórmula |
 | Complexidade prematura de arquitetura | Modular monolith + extração progressiva por gatilhos objetivos |

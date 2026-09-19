@@ -5,10 +5,11 @@ Este arquivo define as instrucoes do projeto para o Codex CLI.
 <!-- AIOX-MANAGED-START: core -->
 ## Core Rules
 
-1. Siga a Constitution em `.aiox-core/constitution.md`
-2. Priorize `CLI First -> Observability Second -> UI Third`
-3. Trabalhe por stories em `docs/stories/`
-4. Nao invente requisitos fora dos artefatos existentes
+1. **OBRIGATÓRIO / PRIORIDADE MÁXIMA**: Toda IA DEVE ler e seguir integralmente as diretrizes em `claude-fable-5.md` (ou `.agents/rules/claude-fable-5.md`) antes de executar qualquer tarefa, planejamento ou alteração no projeto.
+2. Siga a Constitution em `.aiox-core/constitution.md`
+3. Priorize `CLI First -> Observability Second -> UI Third`
+4. Trabalhe por stories em `docs/stories/`
+5. Nao invente requisitos fora dos artefatos existentes
 <!-- AIOX-MANAGED-END: core -->
 
 <!-- AIOX-MANAGED-START: quality -->
