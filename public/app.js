@@ -55,8 +55,11 @@ function setupEventListeners() {
 
   // Botão de Refresh
   document.getElementById('refreshBtn').addEventListener('click', () => {
-    loadAccountData(true);
+    loadAccountData(true, false);
   });
+
+  // Modo Tempo Real (Live Engine)
+  setupLiveMode();
 
   // Toggle de Privacidade (Modo Olho)
   document.getElementById('privacyToggleBtn').addEventListener('click', () => {
@@ -296,14 +299,66 @@ async function loadAccounts() {
 }
 
 // ==========================================================================
-// CARREGAR DADOS DA CONTA (/api/dados)
+// MODO TEMPO REAL (LIVE ENGINE)
 // ==========================================================================
-async function loadAccountData(forceFresh = false) {
+let liveTimer = null;
+let currentLiveIntervalSeconds = 30;
+
+function setupLiveMode() {
+  const select = document.getElementById('liveIntervalSelect');
+  const dot = document.getElementById('liveDot');
+  if (!select) return;
+
+  function resetLiveTimer() {
+    if (liveTimer) {
+      clearInterval(liveTimer);
+      liveTimer = null;
+    }
+    const secs = parseInt(select.value, 10);
+    currentLiveIntervalSeconds = secs;
+
+    if (secs > 0) {
+      dot?.classList.remove('disabled');
+      dot?.classList.add('active');
+      liveTimer = setInterval(() => {
+        if (!document.hidden && state.selectedAccountId) {
+          loadAccountData(true, true); // forceFresh=true, isBackground=true
+        }
+      }, secs * 1000);
+    } else {
+      dot?.classList.add('disabled');
+      dot?.classList.remove('active');
+    }
+  }
+
+  select.addEventListener('change', resetLiveTimer);
+  resetLiveTimer();
+
+  // Pausar/retomar ao trocar de aba do navegador para economizar cota da Meta
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden && currentLiveIntervalSeconds > 0 && state.selectedAccountId) {
+      loadAccountData(true, true);
+    }
+  });
+}
+
+// ==========================================================================
+// CARREGAR DADOS DA CONTA (/api/dados) COM SUPORTE A TEMPO REAL
+// ==========================================================================
+async function loadAccountData(forceFresh = false, isBackground = false) {
   if (!state.selectedAccountId) return;
 
   const overlay = document.getElementById('loadingOverlay');
-  overlay.style.display = 'flex';
-  document.getElementById('globalNotice').style.display = 'none';
+  const refreshBtn = document.getElementById('refreshBtn');
+  const syncText = document.getElementById('syncText');
+
+  if (!isBackground) {
+    overlay.style.display = 'flex';
+    document.getElementById('globalNotice').style.display = 'none';
+  } else {
+    refreshBtn?.classList.add('spinning');
+    if (syncText) syncText.textContent = 'ao vivo sincronizando...';
+  }
 
   try {
     const freshParam = forceFresh ? '&fresh=true' : '';
@@ -311,22 +366,24 @@ async function loadAccountData(forceFresh = false) {
     const data = await res.json();
 
     if (data.error) {
-      showNotice(data.error, 'danger');
-      overlay.style.display = 'none';
+      if (!isBackground) showNotice(data.error, 'danger');
       return;
     }
 
     state.dados = data;
 
     // Atualizar Tag da Conta
-    document.getElementById('currentAccountTag').textContent = `${data.conta.name} • ${data.conta.currency}`;
+    const accountTag = document.getElementById('currentAccountTag');
+    if (accountTag && data.conta) {
+      accountTag.textContent = `${data.conta.name} • ${data.conta.currency}`;
+    }
 
     // Aviso de Rate Limit se aplicável
-    if (data.warning) {
+    if (data.warning && !isBackground) {
       showNotice(data.warning, 'warning');
     }
 
-    // Renderizar todas as telas
+    // Renderizar todas as telas com os novos dados
     renderOverview();
     renderCampaigns();
     renderCreatives();
@@ -334,18 +391,25 @@ async function loadAccountData(forceFresh = false) {
     renderDiagnostics();
 
     // Atualizar timestamp de sync
-    const syncText = document.getElementById('syncText');
-    if (data.cached) {
-      syncText.textContent = `cache (${data.cacheAgeSeconds || 0}s atrás)`;
-    } else {
-      syncText.textContent = 'atualizado agora';
+    if (syncText) {
+      if (data.cached) {
+        syncText.textContent = `cache (${data.cacheAgeSeconds || 0}s atrás)`;
+      } else {
+        syncText.textContent = isBackground ? 'ao vivo agora' : 'atualizado agora';
+      }
     }
 
-    showToast('Dados atualizados com sucesso!');
+    if (!isBackground) {
+      showToast('Dados atualizados com sucesso!');
+    }
   } catch (err) {
     console.error('Erro ao carregar dados:', err);
   } finally {
-    overlay.style.display = 'none';
+    if (!isBackground) {
+      overlay.style.display = 'none';
+    } else {
+      refreshBtn?.classList.remove('spinning');
+    }
   }
 }
 

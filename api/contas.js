@@ -4,6 +4,8 @@
  * Inclui cache em memória de 90s e proteção contra rate limit.
  */
 
+import { syncAccountsAndTokenInBackground } from './supabase-sync.js';
+
 const CACHE_TTL_MS = 90 * 1000;
 let cache = {
   timestamp: 0,
@@ -145,6 +147,9 @@ export default async function handler(req, res) {
       timestamp: now,
       data: responsePayload,
     };
+
+    // Sincronizar contas e credenciais no Supabase em background
+    syncAccountsAndTokenInBackground(accounts, token);
 
     return res.status(200).json(responsePayload);
   } catch (err) {

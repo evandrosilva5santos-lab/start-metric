@@ -110,6 +110,16 @@
           </select>
         </div>
 
+        <!-- Modo Tempo Real -->
+        <div class="live-mode-wrapper" id="liveModeWrapper" title="Intervalo de atualização em tempo real">
+          <span class="live-indicator-dot" id="liveDot"></span>
+          <select id="liveIntervalSelect" class="live-interval-select" aria-label="Modo Tempo Real">
+            <option value="30" selected>Ao Vivo (30s)</option>
+            <option value="60">Ao Vivo (60s)</option>
+            <option value="0">Manual</option>
+          </select>
+        </div>
+
         <!-- Indicador de Status & Refresh -->
         <div class="sync-status" id="syncStatus">
           <span class="pulse-dot"></span>

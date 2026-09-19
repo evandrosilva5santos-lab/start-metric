@@ -4,6 +4,8 @@
  * de campanhas e conjuntos de anúncios diretamente na Graph API da Meta.
  */
 
+import { logCampaignActionInBackground } from './supabase-sync.js';
+
 export default async function handler(req, res) {
   // CORS: same-origin apenas — o painel é servido pelo mesmo servidor.
 
@@ -69,6 +71,11 @@ export default async function handler(req, res) {
         error: `Erro ao atualizar na Meta (${updateData.error.code}): ${updateData.error.message}`,
         details: updateData.error,
       });
+    }
+
+    // Registrar ação no Supabase em background para auditoria
+    if (status) {
+      logCampaignActionInBackground(id, status, { daily_budget, type });
     }
 
     return res.status(200).json({
