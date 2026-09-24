@@ -55,7 +55,11 @@ function Overview({ data }: { data: DadosResponse }) {
           variation={variacoes.cpr}
           sense="bad"
         />
-        <KpiTile label="ROAS" value={formatRatio(totais.roas, hide)} hint="Receita ÷ gasto" variation={variacoes.roas} sense="good" />
+        {totais.revenue > 0 ? (
+          <KpiTile label="ROAS" value={formatRatio(totais.roas, hide)} hint="Receita ÷ gasto" variation={variacoes.roas} sense="good" />
+        ) : (
+          <KpiTile label="ROAS" value="—" hint="Sem receita rastreada no pixel" />
+        )}
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -222,14 +226,14 @@ function DailyChart({
 
 function Funnel({ data, hide, className }: { data: DadosResponse; hide: boolean; className?: string }) {
   const steps = data.funil.etapas;
-  const top = steps[0]?.valor || 0;
   const gargalo = data.funil.gargalo;
 
   return (
     <SectionCard title="Funil" subtitle="Da impressão ao resultado" className={className}>
       <ol className="space-y-3">
         {steps.map((step, idx) => {
-          const width = top > 0 ? Math.max((step.valor / top) * 100, 2) : 2;
+          // Cada barra mostra quanto da etapa anterior passou para esta.
+          const width = idx === 0 ? 100 : Math.min(Math.max(step.pctAnterior, 2), 100);
           return (
             <li key={step.nome}>
               <div className="flex items-baseline justify-between gap-2 text-xs">

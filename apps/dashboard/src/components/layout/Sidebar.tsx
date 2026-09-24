@@ -16,8 +16,8 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       <span className="flex flex-col leading-none">
         <span className="font-display text-base font-bold tracking-tight text-foreground">Start Metric</span>
         {!compact && (
-          <span className="mt-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">
-            Seus anúncios em português
+          <span className="mt-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">
+            Anúncios em português
           </span>
         )}
       </span>
