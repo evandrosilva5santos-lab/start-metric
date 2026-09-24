@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/meta/token";
-import { isAuthorizedDashboard } from "@/lib/auth/standalone";
 
 export const dynamic = "force-dynamic";
 
@@ -292,8 +291,6 @@ function extractDeduplicatedResults(actions: MetaAction[] = [], actionValues: Me
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const isDashboardAuth = isAuthorizedDashboard(req);
-
   const searchParams = req.nextUrl.searchParams;
   const accountId = searchParams.get("account_id");
   if (!accountId || !/^act_[0-9]+$/.test(accountId)) {
@@ -303,51 +300,46 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const forceFresh = searchParams.get("fresh") === "true";
 
   let token: string | null = null;
-  let orgId = "standalone";
 
-  if (isDashboardAuth) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("org_id")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile?.org_id) {
+    return NextResponse.json({ error: "Organização não encontrada" }, { status: 403 });
+  }
+
+  const orgId: string = profile.org_id;
+
+  const { data: adAccount } = await supabase
+    .from("ad_accounts")
+    .select("token_encrypted")
+    .eq("platform", "meta")
+    .eq("external_id", accountId)
+    .maybeSingle();
+
+  if (adAccount?.token_encrypted) {
+    try {
+      token = await decryptToken(adAccount.token_encrypted, supabase);
+    } catch (err) {
+      console.warn("[meta/dados] Falha ao descriptografar token do Supabase, tentando fallback env:", err);
+    }
+  }
+
+  if (!token) {
     token = process.env.META_TOKEN || process.env.META_SYSTEM_TOKEN || process.env.META_USER_TOKEN || null;
-  } else {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 403 });
-    }
-
-    orgId = profile.org_id;
-
-    const { data: adAccount } = await supabase
-      .from("ad_accounts")
-      .select("token_encrypted")
-      .eq("platform", "meta")
-      .eq("external_id", accountId)
-      .maybeSingle();
-
-    if (adAccount?.token_encrypted) {
-      try {
-        token = await decryptToken(adAccount.token_encrypted, supabase);
-      } catch (err) {
-        console.warn("[meta/dados] Falha ao descriptografar token do Supabase, tentando fallback env:", err);
-      }
-    }
-
-    if (!token) {
-      token = process.env.META_TOKEN || process.env.META_SYSTEM_TOKEN || process.env.META_USER_TOKEN || null;
-    }
   }
 
   if (!token) {

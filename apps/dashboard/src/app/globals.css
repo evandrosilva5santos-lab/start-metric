@@ -4,8 +4,8 @@
 
 @theme {
   /* --- START METRIC · TEMA ADZ --- */
-  --font-body: "Space Grotesk", "Inter", "Segoe UI", sans-serif;
-  --font-display: "Sora", "Space Grotesk", "Inter", sans-serif;
+  --font-body: var(--font-space-grotesk), "Space Grotesk", "Inter", "Segoe UI", sans-serif;
+  --font-display: var(--font-sora), "Sora", "Space Grotesk", "Inter", sans-serif;
   --font-quote: Georgia, "Times New Roman", serif;
 
   /* Fundo e texto */

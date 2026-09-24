@@ -28,36 +28,27 @@ function Badge({
     "inline-flex items-center gap-1.5 rounded-full px-2.5 py-0.5 text-xs font-semibold tracking-wide transition-colors select-none";
 
   const variants: Record<NonNullable<BadgeProps["variant"]>, string> = {
-    default:
-      "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(34,211,238,0.1)]",
-    cyan:
-      "bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 shadow-[0_0_10px_rgba(34,211,238,0.1)]",
-    secondary:
-      "bg-slate-800 text-slate-300 border border-slate-700/60",
-    success:
-      "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]",
-    active:
-      "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]",
-    roi:
-      "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shadow-[0_0_10px_rgba(52,211,153,0.1)]",
-    warning:
-      "bg-amber-500/10 text-amber-400 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]",
-    destructive:
-      "bg-red-500/10 text-red-400 border border-red-500/20 shadow-[0_0_10px_rgba(239,68,68,0.1)]",
-    outline:
-      "text-slate-300 border border-slate-700 bg-transparent",
+    default: "bg-primary-dim text-primary border border-primary/25",
+    cyan: "bg-surface-2 text-series-2 border border-series-2/25",
+    secondary: "bg-surface-2 text-text-secondary border border-border",
+    success: "bg-primary-dim text-primary border border-primary/25",
+    active: "bg-primary-dim text-primary border border-primary/25",
+    roi: "bg-primary-dim text-primary border border-primary/25",
+    warning: "bg-warning-dim text-warning border border-warning/25",
+    destructive: "bg-danger-dim text-danger border border-danger/25",
+    outline: "text-text-secondary border border-border bg-transparent",
   };
 
   const dotColors: Record<NonNullable<BadgeProps["variant"]>, string> = {
-    default: "bg-cyan-400",
-    cyan: "bg-cyan-400",
-    secondary: "bg-slate-400",
-    success: "bg-emerald-400",
-    active: "bg-emerald-400",
-    roi: "bg-emerald-400",
-    warning: "bg-amber-400",
-    destructive: "bg-red-400",
-    outline: "bg-slate-400",
+    default: "bg-primary",
+    cyan: "bg-series-2",
+    secondary: "bg-text-muted",
+    success: "bg-primary",
+    active: "bg-primary",
+    roi: "bg-primary",
+    warning: "bg-warning",
+    destructive: "bg-danger",
+    outline: "bg-text-muted",
   };
 
   const shouldPulse = pulseDot || pulse;

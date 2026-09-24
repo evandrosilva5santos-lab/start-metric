@@ -2,14 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { isPlatformAdminEmail } from "@/lib/admin/access";
 
-const PUBLIC_PATHS = [
-  "/auth",
-  "/admin/auth",
-  "/adz.html",
-  "/adz",
-  "/app.js",
-  "/style.css",
-];
+const PUBLIC_PATHS = ["/auth", "/admin/auth"];
 
 // Use server-side vars (without NEXT_PUBLIC_ prefix) in Edge Runtime.
 // In Vercel, also define SUPABASE_URL and SUPABASE_ANON_KEY (duplicates of
@@ -123,7 +116,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && (isAuthPath || isRootPath)) {
+  if (isAuthPath) {
     const url = request.nextUrl.clone();
     url.pathname = authedLandingPath;
     return NextResponse.redirect(url);

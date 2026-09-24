@@ -57,7 +57,7 @@ const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivEl
       ref={ref}
       role="tablist"
       className={cn(
-        "inline-flex h-11 items-center justify-center rounded-xl bg-slate-950/60 p-1 border border-white/5 text-slate-400 backdrop-blur-md",
+        "inline-flex h-10 items-center justify-center rounded-lg bg-input p-1 border border-border text-text-secondary",
         className,
       )}
       {...props}
@@ -85,10 +85,10 @@ const TabsTrigger = React.forwardRef<HTMLButtonElement, TabsTriggerProps>(
         id={`tab-${value}`}
         onClick={() => onValueChange(value)}
         className={cn(
-          "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3.5 py-1.5 text-xs font-bold transition-all duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 disabled:pointer-events-none disabled:opacity-50",
+          "inline-flex items-center justify-center whitespace-nowrap rounded-md px-3.5 py-1.5 text-xs font-semibold transition-colors duration-200 cursor-pointer select-none focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50",
           isSelected
-            ? "bg-cyan-500/15 text-cyan-400 border border-cyan-500/30 shadow-[0_0_12px_rgba(34,211,238,0.15)]"
-            : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.02]",
+            ? "bg-primary-dim text-primary"
+            : "text-text-secondary hover:text-text-primary",
           className,
         )}
         {...props}
@@ -119,7 +119,7 @@ const TabsContent = React.forwardRef<HTMLDivElement, TabsContentProps>(
         aria-labelledby={`tab-${value}`}
         tabIndex={0}
         className={cn(
-          "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-400 rounded-xl animate-in fade-in duration-200",
+          "mt-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-lg animate-in fade-in duration-200",
           className,
         )}
         {...props}

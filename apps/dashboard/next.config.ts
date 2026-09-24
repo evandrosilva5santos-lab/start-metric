@@ -64,12 +64,10 @@ const nextConfig: NextConfig = {
     ];
   },
 
-  async rewrites() {
+  async redirects() {
     return [
-      { source: "/api/contas", destination: "/api/meta/contas" },
-      { source: "/api/dados", destination: "/api/meta/dados" },
-      { source: "/api/campanha", destination: "/api/meta/campanha" },
-      { source: "/adz", destination: "/adz.html" },
+      { source: "/adz", destination: "/", permanent: true },
+      { source: "/adz.html", destination: "/", permanent: true },
     ];
   },
 };

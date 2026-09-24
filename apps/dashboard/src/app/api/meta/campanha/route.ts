@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/meta/token";
-import { isAuthorizedDashboard } from "@/lib/auth/standalone";
 import { logCampaignActionInBackground } from "@/lib/meta/supabase-sync";
 
 export const dynamic = "force-dynamic";
@@ -65,24 +64,14 @@ async function resolveOrgScopedToken(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const isDashboardAuth = isAuthorizedDashboard(req);
-  let resolvedToken: string | null = null;
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
-  if (isDashboardAuth) {
-    resolvedToken = process.env.META_TOKEN || process.env.META_SYSTEM_TOKEN || process.env.META_USER_TOKEN || null;
-    if (!resolvedToken) {
-      return NextResponse.json({ error: "META_TOKEN não configurado no servidor." }, { status: 500 });
-    }
-  } else {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError,
-    } = await supabase.auth.getUser();
-
-    if (authError || !user) {
-      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-    }
+  if (authError || !user) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
   let parsed: z.infer<typeof updateSchema>;
@@ -101,13 +90,9 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Informe status ou daily_budget." }, { status: 400 });
   }
 
-  let token = resolvedToken;
-  if (!token) {
-    const supabase = await createClient();
-    const scoped = await resolveOrgScopedToken(supabase, id);
-    if ("error" in scoped) return scoped.error;
-    token = scoped.token;
-  }
+  const scoped = await resolveOrgScopedToken(supabase, id);
+  if ("error" in scoped) return scoped.error;
+  const token = scoped.token;
 
   const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || "v21.0";
   const BASE_URL = `https://graph.facebook.com/${GRAPH_VERSION}`;

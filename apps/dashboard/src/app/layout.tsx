@@ -8,13 +8,13 @@ import { GlobalStatusOverlay } from "@/components/layout/GlobalStatusOverlay";
 
 const fontBody = Space_Grotesk({
   subsets: ["latin"],
-  variable: "--font-body",
+  variable: "--font-space-grotesk",
   display: "swap",
 });
 
 const fontDisplay = Sora({
   subsets: ["latin"],
-  variable: "--font-display",
+  variable: "--font-sora",
   weight: ["400", "600", "700", "800"],
   display: "swap",
 });
@@ -33,7 +33,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className={`dark ${fontBody.variable} ${fontDisplay.variable}`}>
-      <body className="font-sans antialiased bg-grid selection:bg-cyan-400/25 selection:text-white">
+      <body className="font-body antialiased bg-grid selection:bg-primary/25 selection:text-white">
         <QueryProvider>
           <GlobalStatusOverlay />
           <Suspense fallback={null}>

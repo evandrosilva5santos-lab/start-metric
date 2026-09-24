@@ -10,8 +10,8 @@
   ],
   "type": "module",
   "scripts": {
-    "painel": "node --env-file=.env server.js",
-    "start": "node --env-file=.env server.js",
+    "painel": "npm run dev --workspace=start-metric",
+    "start": "npm run start --workspace=start-metric",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",
