@@ -43,6 +43,7 @@ function setupEventListeners() {
   const accSelect = document.getElementById('accountSelect');
   accSelect.addEventListener('change', (e) => {
     state.selectedAccountId = e.target.value;
+    syncAccountTitle();
     loadAccountData();
   });
 
@@ -286,6 +287,7 @@ async function loadAccounts() {
 
     state.selectedAccountId = targetAcc.id;
     select.value = targetAcc.id;
+    syncAccountTitle();
 
     // Atualizar rodapé da sidebar
     const activeCount = state.contas.filter((c) => c.isActive).length;
@@ -427,9 +429,72 @@ function formatNumber(val) {
   return new Intl.NumberFormat('pt-BR').format(val || 0);
 }
 
+const percentFormatter = new Intl.NumberFormat('pt-BR', {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+  signDisplay: 'exceptZero',
+});
+
+// Variação: "+55,2%", "-5,7%", "0,0%".
 function formatPercent(val) {
-  const prefix = val > 0 ? '+' : '';
-  return `${prefix}${val.toFixed(1)}%`;
+  return `${percentFormatter.format(val || 0)}%`;
+}
+
+// Taxa com casas fixas, sem sinal: "0,94%".
+function formatRate(val, digits = 2) {
+  return `${new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(val || 0)}%`;
+}
+
+function formatDecimal(val, digits = 2) {
+  return new Intl.NumberFormat('pt-BR', {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits,
+  }).format(val || 0);
+}
+
+/**
+ * Dimensiona o canvas pelo CONTÊINER, não pelo próprio canvas. Medir o
+ * canvas criava um laço: cada redesenho lia o tamanho do desenho anterior
+ * e o canvas crescia até milhares de pixels.
+ */
+function sizeCanvasToContainer(canvas) {
+  const box = canvas.parentElement.getBoundingClientRect();
+  const width = Math.max(Math.floor(box.width), 1);
+  const height = Math.max(Math.floor(box.height), 1);
+  const dpr = window.devicePixelRatio || 1;
+
+  canvas.style.width = `${width}px`;
+  canvas.style.height = `${height}px`;
+  canvas.width = Math.round(width * dpr);
+  canvas.height = Math.round(height * dpr);
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { ctx, width, height };
+}
+
+// Redesenha os gráficos visíveis quando a janela muda de tamanho.
+let chartResizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(chartResizeTimer);
+  chartResizeTimer = setTimeout(() => {
+    if (document.getElementById('tab-resumo')?.classList.contains('active')) {
+      renderDailyChart();
+    }
+    if (state.selectedCampaignId && document.getElementById('tab-campanhas')?.classList.contains('active')) {
+      renderDetailChart();
+    }
+  }, 150);
+});
+
+// Nome completo da conta no tooltip, já que o seletor corta com reticências.
+function syncAccountTitle() {
+  const select = document.getElementById('accountSelect');
+  const option = select?.selectedOptions?.[0];
+  if (select) select.title = option ? option.textContent.replace(/^[●○]\s*/, '') : '';
 }
 
 function showToast(msg) {
@@ -462,7 +527,8 @@ function renderOverview() {
   document.getElementById('kpiSpend').textContent = formatCurrency(totais.spend, curr);
   const varSpendEl = document.getElementById('varSpendBadge');
   varSpendEl.textContent = formatPercent(variacoes.spend);
-  varSpendEl.className = `kpi-tag ${variacoes.spend > 0 ? '' : 'positive'}`;
+  // Gasto é neutro: subir ou cair não é bom nem ruim por si só.
+  varSpendEl.className = 'kpi-tag';
 
   // 2. Resultados
   const resTitle = totais.primaryType === 'compras' ? 'Compras' : (totais.primaryType === 'mensagens' ? 'Mensagens' : 'Leads');
@@ -479,14 +545,14 @@ function renderOverview() {
   varCprEl.className = `kpi-tag ${variacoes.cpr <= 0 ? 'positive' : 'negative'}`;
 
   // 4. ROAS / Retorno
-  const roasVal = totais.roas > 0 ? `${totais.roas.toFixed(2)}x` : '—';
+  const roasVal = totais.roas > 0 ? `${formatDecimal(totais.roas)}x` : '—';
   document.getElementById('kpiRoas').textContent = roasVal;
   const varRoasEl = document.getElementById('varRoasBadge');
   varRoasEl.textContent = formatPercent(variacoes.roas);
   varRoasEl.className = `kpi-tag ${variacoes.roas >= 0 ? 'positive' : 'negative'}`;
 
   // Métricas Secundárias
-  document.getElementById('kpiCtr').textContent = `${totais.ctr.toFixed(2)}%`;
+  document.getElementById('kpiCtr').textContent = formatRate(totais.ctr);
   document.getElementById('varCtr').textContent = `${formatPercent(variacoes.ctr)} vs anterior`;
   document.getElementById('kpiCpm').textContent = formatCurrency(totais.cpm, curr);
   document.getElementById('varCpm').textContent = `${formatPercent(variacoes.cpm)} vs anterior`;
@@ -508,15 +574,7 @@ function renderDailyChart() {
   const canvas = document.getElementById('dailyChart');
   if (!canvas) return;
 
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
-
-  const width = rect.width;
-  const height = rect.height;
+  const { ctx, width, height } = sizeCanvasToContainer(canvas);
   ctx.clearRect(0, 0, width, height);
 
   const series = d.serieDiaria;
@@ -540,7 +598,15 @@ function renderDailyChart() {
     ctx.fillStyle = '#6b7280';
     ctx.font = '10px "Plus Jakarta Sans"';
     ctx.textAlign = 'right';
-    ctx.fillText(`R$ ${Math.round(val)}`, padding.left - 8, y + 3);
+    ctx.fillText(
+      new Intl.NumberFormat('pt-BR', {
+        style: 'currency',
+        currency: d.conta?.currency || 'BRL',
+        maximumFractionDigits: 0,
+      }).format(val),
+      padding.left - 8,
+      y + 3,
+    );
   }
 
   // Desenhar Área e Linha de Gasto (Verde Neon)
@@ -610,7 +676,7 @@ function renderFunnel() {
       <div class="stage-val sensitive">${formatNumber(etapa.valor)}</div>
       <div class="stage-rates">
         <span>Passagem:</span>
-        <span class="rate-badge">${etapa.pctAnterior.toFixed(1)}%</span>
+        <span class="rate-badge">${formatRate(etapa.pctAnterior, 1)}</span>
       </div>
     `;
     container.appendChild(card);
@@ -680,7 +746,7 @@ function renderCampaignsList() {
     item.className = `camp-row-item ${camp.id === state.selectedCampaignId ? 'selected' : ''}`;
     item.onclick = () => selectCampaign(camp.id);
 
-    const budgetStr = camp.daily_budget ? `R$ ${camp.daily_budget.toFixed(2)}/dia` : 'Sem limite';
+    const budgetStr = camp.daily_budget ? `${formatCurrency(camp.daily_budget)}/dia` : 'Sem limite';
     const statusClass = camp.situacao.toLowerCase();
 
     item.innerHTML = `
@@ -742,7 +808,7 @@ function selectCampaign(campaignId) {
   document.getElementById('detResultsTitle').textContent = camp.objective?.includes('LEAD') ? 'Leads' : 'Resultados';
   document.getElementById('detResults').textContent = formatNumber(camp.results);
   document.getElementById('detCpr').textContent = camp.results > 0 ? formatCurrency(camp.cpr, curr) : '—';
-  document.getElementById('detCtr').textContent = `${camp.ctr.toFixed(2)}%`;
+  document.getElementById('detCtr').textContent = formatRate(camp.ctr);
 
   // Gráfico do Detalhe
   renderDetailChart();
@@ -754,7 +820,7 @@ function selectCampaign(campaignId) {
     camp.adsets.forEach((a) => {
       const row = document.createElement('div');
       row.className = 'entity-row';
-      const bStr = a.daily_budget ? `R$ ${a.daily_budget.toFixed(2)}/dia` : 'CBO';
+      const bStr = a.daily_budget ? `${formatCurrency(a.daily_budget)}/dia` : 'CBO';
       row.innerHTML = `
         <div>
           <div class="entity-name">${a.name}</div>
@@ -870,7 +936,7 @@ async function saveCampaignBudget() {
     const data = await res.json();
     if (res.ok && data.success) {
       camp.daily_budget = newBudget;
-      showToast(`Orçamento diário alterado para R$ ${newBudget.toFixed(2)} na Meta!`);
+      showToast(`Orçamento diário alterado para ${formatCurrency(newBudget)} na Meta!`);
     } else {
       showToast(`Erro ao salvar orçamento: ${data.error || 'Falha na Meta'}`);
     }
@@ -887,15 +953,7 @@ function renderDetailChart() {
   const canvas = document.getElementById('detailDailyChart');
   if (!canvas || !state.dados?.serieDiaria) return;
 
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  const rect = canvas.getBoundingClientRect();
-  canvas.width = rect.width * dpr;
-  canvas.height = rect.height * dpr;
-  ctx.scale(dpr, dpr);
-
-  const width = rect.width;
-  const height = rect.height;
+  const { ctx, width, height } = sizeCanvasToContainer(canvas);
   ctx.clearRect(0, 0, width, height);
 
   // Proporção de gasto da campanha contra série geral
@@ -983,7 +1041,7 @@ function renderCreatives() {
           <div>
             <div class="retention-row">
               <span>Gancho 3 seg (Hook Rate)</span>
-              <span class="rate-badge">${c.hookRate.toFixed(1)}%</span>
+              <span class="rate-badge">${formatRate(c.hookRate, 1)}</span>
             </div>
             <div class="retention-bar-bg">
               <div class="retention-bar-fill" style="width: ${Math.min(c.hookRate, 100)}%;"></div>
@@ -992,7 +1050,7 @@ function renderCreatives() {
           <div>
             <div class="retention-row">
               <span>Retenção até o Fim (100%)</span>
-              <span class="rate-badge">${c.retentionRate.toFixed(1)}%</span>
+              <span class="rate-badge">${formatRate(c.retentionRate, 1)}</span>
             </div>
             <div class="retention-bar-bg">
               <div class="retention-bar-fill" style="width: ${Math.min(c.retentionRate, 100)}%;"></div>
@@ -1022,7 +1080,7 @@ function renderCreatives() {
           </div>
           <div>
             <div class="cstat-label">CTR Link</div>
-            <div class="cstat-val">${c.ctr.toFixed(2)}%</div>
+            <div class="cstat-val">${formatRate(c.ctr)}</div>
           </div>
         </div>
 
@@ -1104,7 +1162,7 @@ function renderHeatmap() {
       else if (val > 0) displayVal = val;
 
       cell.textContent = displayVal;
-      cell.title = `${dia}, ${h}:00h — Gasto: R$ ${cellData.spend.toFixed(2)} | Cliques: ${cellData.clicks} | Leads: ${cellData.leads}`;
+      cell.title = `${dia}, ${h}:00h — Gasto: ${formatCurrency(cellData.spend)} | Cliques: ${cellData.clicks} | Leads: ${cellData.leads}`;
 
       container.appendChild(cell);
     }
