@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/meta/token";
+import { isAuthorizedDashboard } from "@/lib/auth/standalone";
+import { logCampaignActionInBackground } from "@/lib/meta/supabase-sync";
 
 export const dynamic = "force-dynamic";
 
@@ -12,14 +14,11 @@ const updateSchema = z.object({
   daily_budget: z.number().positive().max(1_000_000).optional(),
 });
 
-// Resolve o access token da org do usuário para o objeto informado.
-// Só permite operar em contas cadastradas em ad_accounts da própria org (RLS).
+// Resolve o access token da org do usuário para o objeto informado
 async function resolveOrgScopedToken(
   supabase: Awaited<ReturnType<typeof createClient>>,
   objectId: string,
 ): Promise<{ token: string } | { error: NextResponse }> {
-  // id pode ser a própria conta (act_ já normalizado para dígitos pela validação)
-  // ou uma campanha/conjunto sincronizado em campaigns.meta_id.
   const { data: accountByExternalId } = await supabase
     .from("ad_accounts")
     .select("id, token_encrypted")
@@ -66,14 +65,24 @@ async function resolveOrgScopedToken(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const isDashboardAuth = isAuthorizedDashboard(req);
+  let resolvedToken: string | null = null;
 
-  if (authError || !user) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+  if (isDashboardAuth) {
+    resolvedToken = process.env.META_TOKEN || process.env.META_SYSTEM_TOKEN || process.env.META_USER_TOKEN || null;
+    if (!resolvedToken) {
+      return NextResponse.json({ error: "META_TOKEN não configurado no servidor." }, { status: 500 });
+    }
+  } else {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
+    }
   }
 
   let parsed: z.infer<typeof updateSchema>;
@@ -92,18 +101,22 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Informe status ou daily_budget." }, { status: 400 });
   }
 
-  const scoped = await resolveOrgScopedToken(supabase, id);
-  if ("error" in scoped) return scoped.error;
+  let token = resolvedToken;
+  if (!token) {
+    const supabase = await createClient();
+    const scoped = await resolveOrgScopedToken(supabase, id);
+    if ("error" in scoped) return scoped.error;
+    token = scoped.token;
+  }
 
   const GRAPH_VERSION = process.env.META_GRAPH_API_VERSION || "v21.0";
   const BASE_URL = `https://graph.facebook.com/${GRAPH_VERSION}`;
 
   const params = new URLSearchParams();
-  params.append("access_token", scoped.token);
+  params.append("access_token", token);
 
   if (status) params.append("status", status);
   if (daily_budget !== undefined) {
-    // Meta espera o orçamento em centavos (ex: R$ 50,00 -> 5000)
     params.append("daily_budget", String(Math.round(daily_budget * 100)));
   }
 
@@ -126,6 +139,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         },
         { status: 400 },
       );
+    }
+
+    if (status) {
+      logCampaignActionInBackground(id, status);
     }
 
     return NextResponse.json({

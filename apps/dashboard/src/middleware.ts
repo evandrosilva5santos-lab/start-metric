@@ -2,7 +2,14 @@ import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { isPlatformAdminEmail } from "@/lib/admin/access";
 
-const PUBLIC_PATHS = ["/auth", "/admin/auth"];
+const PUBLIC_PATHS = [
+  "/auth",
+  "/admin/auth",
+  "/adz.html",
+  "/adz",
+  "/app.js",
+  "/style.css",
+];
 
 // Use server-side vars (without NEXT_PUBLIC_ prefix) in Edge Runtime.
 // In Vercel, also define SUPABASE_URL and SUPABASE_ANON_KEY (duplicates of
@@ -126,6 +133,6 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // Match all request paths except for static assets.
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|css|js)$).*)",
   ],
 };
