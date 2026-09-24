@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -76,6 +77,7 @@ type AuthPageClientProps = {
 };
 
 export default function AuthPageClient({ nextParam, errorParam, messageParam }: AuthPageClientProps) {
+  const router = useRouter();
   const nextPath = sanitizeNextPath(nextParam);
   const queryError = mapAuthPageError(errorParam);
   const querySuccess = messageParam === "password_updated"
@@ -163,7 +165,9 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
       }
 
       setRedirecting(true);
-      window.location.href = nextPath;
+      // Navegação no cliente: reaproveita o JS, as fontes e o CSS já baixados
+      // em vez de recarregar a página inteira.
+      router.replace(nextPath);
       return;
     }
 

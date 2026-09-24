@@ -1,11 +1,16 @@
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Header } from "@/components/layout/Header";
+import { getSessionIdentity } from "@/lib/auth/session";
 
 export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // Não espera: a promessa segue para o navegador junto com o HTML e o
+  // conteúdo da página aparece sem aguardar o nome do usuário.
+  const identity = getSessionIdentity();
+
   return (
     <div className="flex min-h-screen text-slate-200 bg-[#020617] selection:bg-cyan-500/30 overflow-hidden">
       {/* Acessibilidade: Link de salto para o conteúdo principal (WCAG 2.1 AA) */}
@@ -16,10 +21,10 @@ export default function DashboardLayout({
         Pular para o conteúdo principal
       </a>
 
-      <Sidebar />
+      <Sidebar identity={identity} />
 
       <div className="flex-1 flex flex-col min-w-0 lg:ml-[280px] transition-all duration-500 ease-in-out">
-        <Header />
+        <Header identity={identity} />
 
         <main
           id="main-content"

@@ -75,9 +75,11 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // getClaims valida o JWT localmente (sem ida ao servidor de Auth quando o
+  // projeto usa chave assimétrica) e renova a sessão se o token expirou.
+  const { data: claimsData } = await supabase.auth.getClaims();
+  const claims = claimsData?.claims;
+  const user = claims?.sub ? { id: claims.sub, email: claims.email } : null;
 
   const isAuthPath = pathname === "/auth";
   const authedLandingPath = "/performance";

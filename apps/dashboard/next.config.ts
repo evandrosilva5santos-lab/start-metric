@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname, "../.."),
   },
 
+  experimental: {
+    // Voltar a uma tela visitada há menos de 30s abre na hora, sem nova
+    // ida ao servidor. As telas do menu (prefetch={true}) seguem o padrão de 5 min.
+    staleTimes: {
+      dynamic: 30,
+    },
+  },
+
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "**.supabase.co" },

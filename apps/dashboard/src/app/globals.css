@@ -383,3 +383,12 @@
     opacity: 1 !important;
   }
 }
+
+/* Performance: cópia local dos últimos números enquanto os novos chegam.
+   Com cópia, o esqueleto some; quando os números novos entram, a cópia some. */
+[data-perf-snapshot] ~ [data-perf-fallback] {
+  display: none;
+}
+[data-perf-snapshot]:has(~ [data-perf-live]) {
+  display: none;
+}

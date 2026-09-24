@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import {
   LayoutDashboard,
   Settings,
@@ -14,7 +14,7 @@ import {
   BarChart3,
   Megaphone
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useSessionIdentity, type SessionIdentity } from "@/hooks/useSessionIdentity";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/", description: "Visão geral do ROI" },
@@ -25,17 +25,10 @@ const NAV_ITEMS = [
   { icon: Settings, label: "Configurações", href: "/settings", description: "Preferências" },
 ];
 
-export function Sidebar() {
+export function Sidebar({ identity }: { identity?: Promise<SessionIdentity> }) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => {
-      setUserEmail(data.user?.email ?? null);
-    });
-  }, []);
+  const userEmail = useSessionIdentity(identity)?.email ?? null;
 
   function isActive(href: string) {
     if (href === "/") return pathname === "/";

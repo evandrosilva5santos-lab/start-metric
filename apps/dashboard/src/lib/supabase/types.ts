@@ -829,6 +829,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      dashboard_metrics_rollup: {
+        Args: {
+          p_campaign_ids: string[]
+          p_from: string
+          p_org_id: string
+          p_to: string
+        }
+        Returns: {
+          clicks: number
+          conversions: number
+          impressions: number
+          key: string
+          kind: string
+          revenue: number
+          spend: number
+        }[]
+      }
       decrypt_token: {
         Args: {
           encrypted_token: string

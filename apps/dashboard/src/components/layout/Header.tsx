@@ -19,6 +19,8 @@ import {
   Megaphone,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { useSessionIdentity, type SessionIdentity } from "@/hooks/useSessionIdentity";
+import { clearSnapshots } from "@/lib/dashboard/snapshot";
 
 const NAV_ITEMS = [
   { icon: LayoutDashboard, label: "Dashboard", href: "/" },
@@ -29,12 +31,13 @@ const NAV_ITEMS = [
   { icon: Settings, label: "Configurações", href: "/settings" },
 ];
 
-export function Header() {
+export function Header({ identity }: { identity?: Promise<SessionIdentity> }) {
   const pathname = usePathname();
   const router = useRouter();
   const [isSigningOut, setIsSigningOut] = useState(false);
-  const [userEmail, setUserEmail] = useState<string | null>(null);
-  const [userName, setUserName] = useState<string | null>(null);
+  const sessionIdentity = useSessionIdentity(identity);
+  const userEmail = sessionIdentity?.email ?? null;
+  const userName = sessionIdentity?.name ?? null;
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -50,28 +53,12 @@ export function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      setUserEmail(user.email ?? null);
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("name")
-        .eq("id", user.id)
-        .single();
-      setUserName(profile?.name ?? null);
-    };
-    fetchUserData();
-  }, []);
-
   async function handleSignOut() {
     setIsSigningOut(true);
     const supabase = createClient();
     await supabase.auth.signOut();
+    // Os números guardados para abrir rápido não ficam no navegador após sair.
+    clearSnapshots();
     router.push("/auth");
   }
 
