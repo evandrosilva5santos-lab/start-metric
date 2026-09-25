@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getDashboardSession } from "@/lib/auth/session";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -15,11 +15,26 @@ const profileUpdateSchema = z.object({
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
+    const supabase = session.supabase;
+    const user = session.user;
+
+    if (!user || session.isPainel) {
+      return NextResponse.json({
+        data: {
+          id: user?.id ?? "painel-admin",
+          name: "Evandro",
+          email: user?.email ?? "admin@startmetric.com",
+          role: "admin",
+          timezone: "America/Sao_Paulo",
+          language: "pt-BR",
+          country: "BR",
+        },
+      });
     }
 
     // Busca os dados do perfil estendido do usuário
@@ -47,15 +62,26 @@ export async function GET() {
 
 export async function PATCH(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
+    const supabase = session.supabase;
+    const user = session.user;
     const body = await request.json();
     const validatedData = profileUpdateSchema.parse(body);
+
+    if (!user || session.isPainel) {
+      return NextResponse.json({
+        data: {
+          id: user?.id ?? "painel-admin",
+          name: validatedData.name ?? "Evandro",
+          email: user?.email ?? "admin@startmetric.com",
+          ...validatedData,
+        },
+      });
+    }
 
     // Atualiza apenas os campos passados do perfil referente ao auth.uid()
     const { data: updatedProfile, error: updateError } = await supabase

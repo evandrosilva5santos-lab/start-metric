@@ -19,7 +19,7 @@ function getInitials(name: string, email: string) {
     if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
     return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
   }
-  return email?.[0]?.toUpperCase() ?? "U";
+  return email?.[0]?.toUpperCase() ?? "EV";
 }
 
 const menuItemClass =
@@ -54,14 +54,17 @@ export function Header({ identity }: { identity?: Promise<SessionIdentity> }) {
 
   async function handleSignOut() {
     setIsSigningOut(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    try {
+      const supabase = createClient();
+      await supabase.auth.signOut();
+    } catch {}
+    document.cookie = "painel_session=; path=/; max-age=0";
     // Os números guardados para abrir rápido não ficam no navegador após sair.
     clearSnapshots();
     router.push("/auth");
   }
 
-  const initials = getInitials(userName ?? "", userEmail ?? "");
+  const initials = getInitials(userName ?? "Evandro", userEmail ?? "");
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-border bg-popover">
@@ -85,7 +88,7 @@ export function Header({ identity }: { identity?: Promise<SessionIdentity> }) {
                 {initials}
               </span>
               <span className="max-w-[140px] truncate text-sm font-medium text-text-primary">
-                {userName ?? userEmail ?? "Carregando…"}
+                {userName ?? userEmail ?? "Evandro"}
               </span>
               <ChevronDown
                 size={14}

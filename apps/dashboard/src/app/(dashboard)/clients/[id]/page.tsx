@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import type { Metadata } from "next";
 import { ArrowLeft, Mail, MessageCircle, Phone, Tag } from "lucide-react";
-import { createClient } from "@/lib/supabase/server";
+import { getDashboardSession } from "@/lib/auth/session";
 import { formatWhatsapp } from "@/lib/clients/schema";
 import { WhatsAppConnectionPanel } from "@/components/whatsapp/WhatsAppConnectionPanel";
 import { ShareLinkButton } from "@/components/clients/ShareLinkButton";
@@ -25,24 +25,18 @@ export default async function ClientDetailsPage({
   searchParams: SearchParams;
 }) {
   const [{ id }, { buscar }] = await Promise.all([params, searchParams]);
-  const supabase = await createClient();
+  const session = await getDashboardSession();
 
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) redirect("/auth");
+  if (!session.isAuthorized) redirect("/auth");
 
-  const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
-  if (!profile?.org_id) redirect("/clients");
+  const supabase = session.supabase;
 
   const { data: client } = await supabase
     .from("clients")
     .select("id, name, email, phone, whatsapp, niche, logo_url, notes, created_at")
     .eq("id", id)
-    .eq("org_id", profile.org_id)
     .is("archived_at", null)
-    .single();
+    .maybeSingle();
 
   if (!client) notFound();
 

@@ -99,12 +99,12 @@ export function Sidebar({ identity }: { identity?: Promise<SessionIdentity> }) {
       <div className="border-t border-border p-4">
         <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-dim text-xs font-bold uppercase text-primary">
-            {userEmail?.[0] ?? "U"}
+            {userEmail?.[0] ?? "E"}
           </span>
           <span className="min-w-0">
             <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Conta</span>
             <span className="block truncate text-xs font-medium text-text-primary" title={userEmail ?? undefined}>
-              {userEmail ?? "carregando…"}
+              {userEmail ?? "admin@startmetric.com"}
             </span>
           </span>
         </div>

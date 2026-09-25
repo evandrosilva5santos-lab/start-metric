@@ -1,7 +1,10 @@
 import "server-only";
 
 import { cache } from "react";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 import type { SessionIdentity } from "@/hooks/useSessionIdentity";
 
 export type SessionUser = {
@@ -72,5 +75,95 @@ export const getSessionProfile = cache(async (): Promise<SessionProfile | null> 
 
 export const getSessionIdentity = cache(async (): Promise<SessionIdentity> => {
   const [user, profile] = await Promise.all([getSessionUser(), getSessionProfile()]);
-  return { email: user?.email ?? null, name: profile?.name ?? null };
+  if (user?.email || profile?.name) {
+    return { email: user?.email ?? null, name: profile?.name ?? null };
+  }
+
+  try {
+    const cookieStore = await cookies();
+    const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+    if (await isPainelAuthorized(painelCookie)) {
+      return { email: "admin@startmetric.com", name: "Evandro" };
+    }
+  } catch {}
+
+  return { email: null, name: null };
 });
+
+export type DashboardSession = {
+  isAuthorized: boolean;
+  user: { id: string; email: string | null } | null;
+  orgId: string;
+  supabase: any;
+  isPainel: boolean;
+};
+
+export const getDashboardSession = cache(async (): Promise<DashboardSession> => {
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
+
+  let supabase: any = null;
+  let user: { id: string; email: string | null } | null = null;
+  let orgId: string | null = null;
+
+  try {
+    supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    if (data?.user) {
+      user = { id: data.user.id, email: data.user.email ?? null };
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("org_id")
+        .eq("id", data.user.id)
+        .single();
+      orgId = profile?.org_id ?? null;
+    }
+  } catch {}
+
+  if (!isPainel && !user) {
+    return {
+      isAuthorized: false,
+      user: null,
+      orgId: "",
+      supabase: null,
+      isPainel: false,
+    };
+  }
+
+  if (user && orgId) {
+    return {
+      isAuthorized: true,
+      user,
+      orgId,
+      supabase,
+      isPainel: false,
+    };
+  }
+
+  let adminClient: any = null;
+  try {
+    adminClient = createAdminClient();
+  } catch {
+    adminClient = supabase;
+  }
+
+  if (!orgId && adminClient) {
+    try {
+      const { data: orgs } = await adminClient.from("organizations").select("id, name");
+      if (orgs && orgs.length > 0) {
+        const evandroOrg = orgs.find((o: any) => o.name?.toLowerCase().includes("evandro"));
+        orgId = evandroOrg?.id || orgs[0].id;
+      }
+    } catch {}
+  }
+
+  return {
+    isAuthorized: true,
+    user: user ?? { id: "painel-admin", email: "admin@startmetric.com" },
+    orgId: orgId ?? "0b7ec073-d8cd-4ab8-8a36-fc2380c2b0b1",
+    supabase: adminClient ?? supabase,
+    isPainel: true,
+  };
+});
+

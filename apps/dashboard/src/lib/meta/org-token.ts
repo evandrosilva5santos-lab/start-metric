@@ -29,12 +29,25 @@ export async function getOrgMetaToken(supabase: DbClient, orgId: string): Promis
     .limit(1)
     .maybeSingle();
 
-  if (!data?.token_encrypted) return null;
+  const envToken =
+    process.env.META_TOKEN ||
+    process.env.META_SYSTEM_TOKEN ||
+    process.env.META_USER_TOKEN;
+
+  if (!data?.token_encrypted) {
+    if (envToken) {
+      return { token: envToken, tokenEncrypted: "env_token", tokenExpiresAt: null };
+    }
+    return null;
+  }
   try {
     const token = await decryptToken(data.token_encrypted, supabase);
     return { token, tokenEncrypted: data.token_encrypted, tokenExpiresAt: data.token_expires_at ?? null };
   } catch (err) {
     console.error("[meta/org-token] Falha ao abrir o token da organização:", err);
+    if (envToken) {
+      return { token: envToken, tokenEncrypted: "env_token", tokenExpiresAt: null };
+    }
     return null;
   }
 }

@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { getOrgMetaToken, listOrgMetaAccounts } from "@/lib/meta/org-token";
+import { getDashboardSession } from "@/lib/auth/session";
 
 const associateAccountSchema = z.object({
   account_id: z.string().uuid("ID de conta inválido"),
@@ -17,26 +17,18 @@ type Params = Promise<{ id: string }>;
 // Uma conta que era de outro cliente passa para este.
 export async function PUT(request: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const session = await getDashboardSession();
+  if (!session.isAuthorized) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
-  const orgId = profile?.org_id;
-  if (!orgId) {
-    return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-  }
+  const supabase = session.supabase;
+  const orgId = session.orgId;
 
   const { data: client } = await supabase
     .from("clients")
     .select("id")
     .eq("id", id)
-    .eq("org_id", orgId)
     .is("archived_at", null)
     .maybeSingle();
   if (!client) {
@@ -118,29 +110,19 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
+    const orgId = session.orgId;
 
     // Verificar se o cliente existe
     const { data: client, error: clientError } = await supabase
       .from("clients")
       .select("id")
       .eq("id", id)
-      .eq("org_id", profile.org_id)
       .is("archived_at", null)
       .single();
 
@@ -156,7 +138,7 @@ export async function POST(
       .from("ad_accounts")
       .select("id")
       .eq("id", account_id)
-      .eq("org_id", profile.org_id)
+      .eq("org_id", orgId)
       .single();
 
     if (accountError || !account) {
@@ -168,7 +150,7 @@ export async function POST(
       .from("ad_accounts")
       .update({ client_id: id })
       .eq("id", account_id)
-      .eq("org_id", profile.org_id);
+      .eq("org_id", orgId);
 
     if (updateError) {
       console.error("Erro ao associar conta:", updateError);
@@ -195,29 +177,19 @@ export async function DELETE(
     const url = new URL(request.url);
     const accountId = url.searchParams.get("account_id");
 
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
+    const orgId = session.orgId;
 
     // Verificar se o cliente existe
     const { data: client, error: clientError } = await supabase
       .from("clients")
       .select("id")
       .eq("id", id)
-      .eq("org_id", profile.org_id)
       .single();
 
     if (clientError || !client) {
@@ -227,7 +199,7 @@ export async function DELETE(
     let query = supabase
       .from("ad_accounts")
       .update({ client_id: null })
-      .eq("org_id", profile.org_id);
+      .eq("org_id", orgId);
 
     if (accountId) {
       // Desassociar conta específica

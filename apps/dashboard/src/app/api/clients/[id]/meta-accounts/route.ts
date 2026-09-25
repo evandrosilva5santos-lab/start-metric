@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { getOrgMetaToken, listOrgMetaAccounts } from "@/lib/meta/org-token";
 import { MetaApiError } from "@/lib/meta/client";
+import { getDashboardSession } from "@/lib/auth/session";
 
 export const dynamic = "force-dynamic";
 
@@ -10,26 +10,18 @@ type Params = Promise<{ id: string }>;
 // Contas que a conexão Meta da organização enxerga, marcando a quem cada uma já pertence.
 export async function GET(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-  if (authError || !user) {
+  const session = await getDashboardSession();
+  if (!session.isAuthorized) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
-  const orgId = profile?.org_id;
-  if (!orgId) {
-    return NextResponse.json({ error: "Organização não encontrada" }, { status: 403 });
-  }
+  const supabase = session.supabase;
+  const orgId = session.orgId;
 
   const { data: client } = await supabase
     .from("clients")
     .select("id")
     .eq("id", id)
-    .eq("org_id", orgId)
     .is("archived_at", null)
     .maybeSingle();
   if (!client) {
@@ -64,8 +56,8 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     supabase.from("ad_accounts").select("external_id, client_id").eq("org_id", orgId).eq("platform", "meta"),
     supabase.from("clients").select("id, name").eq("org_id", orgId),
   ]);
-  const clientName = new Map((clientsRes.data ?? []).map((c) => [c.id, c.name]));
-  const owner = new Map((linkedRes.data ?? []).map((a) => [a.external_id, a.client_id]));
+  const clientName = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c.name]));
+  const owner = new Map((linkedRes.data ?? []).map((a: any) => [a.external_id, a.client_id]));
 
   const contas = metaAccounts
     .map((acc) => {

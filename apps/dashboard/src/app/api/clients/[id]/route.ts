@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { updateClientSchema } from "@/lib/clients/schema";
+import { getDashboardSession } from "@/lib/auth/session";
 
 type Params = Promise<{ id: string }>;
 
@@ -11,22 +11,12 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
 
     // Buscar cliente com ad_accounts associadas
     const { data: client, error } = await supabase
@@ -46,7 +36,7 @@ export async function GET(
         ad_accounts(id, name, external_id, platform, status)
       `)
       .eq("id", id)
-      .eq("org_id", profile.org_id)
+      .is("archived_at", null)
       .single();
 
     if (error || !client) {
@@ -66,22 +56,12 @@ export async function PATCH(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
 
     const body = await request.json();
     const validatedData = updateClientSchema.parse(body);
@@ -95,7 +75,6 @@ export async function PATCH(
       .from("clients")
       .update(updateData)
       .eq("id", id)
-      .eq("org_id", profile.org_id)
       .select()
       .single();
 
@@ -119,29 +98,18 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
 
     // Soft delete: arquivar cliente
     const { data: client, error } = await supabase
       .from("clients")
       .update({ archived_at: new Date().toISOString() })
       .eq("id", id)
-      .eq("org_id", profile.org_id)
       .select()
       .single();
 
@@ -153,7 +121,6 @@ export async function DELETE(
     await supabase
       .from("ad_accounts")
       .update({ client_id: null })
-      .eq("org_id", profile.org_id)
       .eq("client_id", id);
 
     return NextResponse.json({ data: { id, archived: true } });

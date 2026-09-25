@@ -1,7 +1,7 @@
-import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClientSchema } from "@/lib/clients/schema";
+import { getDashboardSession } from "@/lib/auth/session";
 
 type ClientListRow = {
   id: string;
@@ -19,22 +19,13 @@ type ClientListRow = {
 
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
+    const orgId = session.orgId;
 
     // Buscar clientes com contagem de ad_accounts (com fallback se embedded count falhar)
     let clients: ClientListRow[] | null = null;
@@ -56,7 +47,7 @@ export async function GET() {
         updated_at,
         ad_accounts(count)
       `)
-      .eq("org_id", profile.org_id)
+      .eq("org_id", orgId)
       .is("archived_at", null)
       .order("created_at", { ascending: false });
 
@@ -78,7 +69,7 @@ export async function GET() {
           created_at,
           updated_at
         `)
-        .eq("org_id", profile.org_id)
+        .eq("org_id", orgId)
         .is("archived_at", null)
         .order("created_at", { ascending: false });
 
@@ -87,7 +78,7 @@ export async function GET() {
         return NextResponse.json({ clients: [] });
       }
 
-      clients = (clientsWithoutCount ?? []).map((c) => ({
+      clients = (clientsWithoutCount ?? []).map((c: any) => ({
         ...c,
         ad_accounts: [],
       })) as ClientListRow[];
@@ -98,7 +89,7 @@ export async function GET() {
     const { data: whatsappInstances, error: whatsappError } = await supabase
       .from("whatsapp_instances")
       .select("client_id, status, updated_at, last_connected_at")
-      .eq("org_id", profile.org_id)
+      .eq("org_id", orgId)
       .neq("status", "deleted")
       .not("client_id", "is", null);
 
@@ -115,7 +106,7 @@ export async function GET() {
       }
     >();
 
-    (whatsappInstances ?? []).forEach((instance) => {
+    (whatsappInstances ?? []).forEach((instance: any) => {
       if (!instance.client_id) return;
 
       const previous = whatsappByClient.get(instance.client_id);
@@ -183,22 +174,13 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient();
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
-
-    if (authError || !user) {
+    const session = await getDashboardSession();
+    if (!session.isAuthorized) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (!profile?.org_id) {
-      return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
-    }
+    const supabase = session.supabase;
+    const orgId = session.orgId;
 
     const body = await request.json();
     const validatedData = createClientSchema.parse(body);
@@ -207,7 +189,7 @@ export async function POST(request: NextRequest) {
     const { data: client, error: clientError } = await supabase
       .from("clients")
       .insert({
-        org_id: profile.org_id,
+        org_id: orgId,
         name: validatedData.name,
         email: validatedData.email ?? null,
         phone: validatedData.phone ?? null,
