@@ -8,13 +8,34 @@ import { runWatchForOrg } from "@/lib/garimpo/watch";
 
 export type ActionResult = { ok: true; message?: string } | { ok: false; error: string; needsConfirm?: boolean };
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 async function requireOrg() {
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
+
   const user = await getSessionUser();
-  if (!user) return null;
   const supabase = await getServerSupabase();
-  const { data } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
-  const orgId = (data?.org_id as string | null) ?? null;
-  return orgId ? { supabase, orgId } : null;
+
+  if (user) {
+    const { data } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
+    const orgId = (data?.org_id as string | null) ?? null;
+    if (orgId) return { supabase, orgId };
+  }
+
+  if (isPainel) {
+    try {
+      const { data } = await supabase.from("organizations").select("id").limit(1).maybeSingle();
+      const orgId = data?.id ?? "00000000-0000-0000-0000-000000000000";
+      return { supabase, orgId };
+    } catch {
+      return { supabase, orgId: "00000000-0000-0000-0000-000000000000" };
+    }
+  }
+
+  return null;
 }
 
 const scanSchema = z.object({

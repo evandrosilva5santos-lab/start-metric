@@ -17,10 +17,30 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 async function GarimpoDataLoader() {
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
+
   const profile = await getSessionProfile();
-  if (!profile) redirect("/auth");
-  if (!profile.orgId) {
+  if (!isPainel && !profile) redirect("/auth");
+
+  const supabase = await getServerSupabase();
+  let orgId = profile?.orgId;
+
+  if (!orgId && isPainel) {
+    try {
+      const { data: org } = await supabase.from("organizations").select("id").limit(1).maybeSingle();
+      orgId = org?.id ?? "00000000-0000-0000-0000-000000000000";
+    } catch {
+      orgId = "00000000-0000-0000-0000-000000000000";
+    }
+  }
+
+  if (!orgId) {
     return (
       <div className="rounded-lg border border-border bg-card p-6">
         <h1 className="font-display text-2xl font-bold text-foreground">Garimpo</h1>
@@ -28,8 +48,8 @@ async function GarimpoDataLoader() {
       </div>
     );
   }
-  const supabase = await getServerSupabase();
-  const data = await getGarimpoOverview(supabase, profile.orgId);
+
+  const data = await getGarimpoOverview(supabase, orgId);
   return <GarimpoClient data={data} generatedAt={nowIso()} />;
 }
 
