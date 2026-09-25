@@ -70,6 +70,7 @@ type MetaCreativeRef = {
   image_url?: string;
   title?: string;
   body?: string;
+  url_tags?: string;
 };
 
 type MetaAd = {
@@ -105,6 +106,7 @@ type AdDetail = {
     thumbnail_url: string;
     title: string;
     body: string;
+    url_tags?: string;
   } | null;
 };
 
@@ -431,7 +433,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       graphFetch(`${BASE_URL}/${accountId}/insights?time_range=${timeRangeParam}&time_increment=1&fields=${fieldsInsights}&access_token=${encodeURIComponent(token)}`),
       graphFetch(`${BASE_URL}/${accountId}/campaigns?fields=id,name,status,effective_status,objective,daily_budget,lifetime_budget&limit=100&access_token=${encodeURIComponent(token)}`),
       graphFetch(`${BASE_URL}/${accountId}/adsets?fields=id,name,campaign_id,status,effective_status,daily_budget,lifetime_budget,learning_stage_info,optimization_goal&limit=100&access_token=${encodeURIComponent(token)}`),
-      graphFetch(`${BASE_URL}/${accountId}/ads?fields=id,name,campaign_id,adset_id,status,effective_status,creative{id,name,thumbnail_url,image_url,title,body}&limit=100&access_token=${encodeURIComponent(token)}`),
+      graphFetch(`${BASE_URL}/${accountId}/ads?fields=id,name,campaign_id,adset_id,status,effective_status,creative{id,name,thumbnail_url,image_url,title,body,url_tags}&limit=100&access_token=${encodeURIComponent(token)}`),
       graphFetch(`${BASE_URL}/${accountId}/insights?level=campaign&time_range=${timeRangeParam}&fields=campaign_id,campaign_name,spend,impressions,clicks,actions,cpm,ctr&limit=100&access_token=${encodeURIComponent(token)}`),
       graphFetch(`${BASE_URL}/${accountId}/insights?level=ad&time_range=${timeRangeParam}&fields=ad_id,ad_name,campaign_id,campaign_name,spend,impressions,clicks,actions,cpm,ctr,video_p25_watched_actions,video_p50_watched_actions,video_p100_watched_actions&limit=100&access_token=${encodeURIComponent(token)}`),
     ]);
@@ -618,6 +620,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           thumbnail_url: ad.creative.thumbnail_url || ad.creative.image_url || "",
           title: ad.creative.title || "",
           body: ad.creative.body || "",
+          url_tags: ad.creative.url_tags || "",
         } : null,
       });
     }
@@ -738,6 +741,75 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
       criativos.sort((a, b) => b.spend - a.spend);
 
+    // Mapeamento e auditoria de rastreamento (UTMs) e retargeting
+    const adSpendMap: Record<string, { spend: number; results: number }> = {};
+    for (const ai of adInsights) {
+      if (ai.ad_id) {
+        const sp = parseFloat(ai.spend || "0");
+        const res = extractDeduplicatedResults(ai.actions).results;
+        adSpendMap[ai.ad_id] = { spend: sp, results: res };
+      }
+    }
+
+    const campaignNameMap: Record<string, string> = {};
+    for (const c of rawCampaigns) campaignNameMap[c.id] = c.name;
+
+    const adsetNameMap: Record<string, string> = {};
+    for (const as of rawAdsets) adsetNameMap[as.id] = as.name;
+
+    const trackingAds = rawAds.map((ad) => {
+      const urlTags = ad.creative?.url_tags || "";
+      const hasTracking = Boolean(urlTags && urlTags.trim().length > 0);
+      const sp = adSpendMap[ad.id]?.spend || 0;
+      const res = adSpendMap[ad.id]?.results || 0;
+      const cName = campaignNameMap[ad.campaign_id] || "";
+      const asName = adsetNameMap[ad.adset_id] || "";
+      const isRetargeting = /rmkt|retargeting|remarketing|envolvimento|quente|view|visitante|abandon/i.test(
+        `${cName} ${asName} ${ad.name}`
+      );
+
+      return {
+        id: ad.id,
+        name: ad.name,
+        campaignId: ad.campaign_id,
+        campaignName: cName,
+        adsetId: ad.adset_id,
+        adsetName: asName,
+        status: ad.status,
+        effectiveStatus: ad.effective_status,
+        spend: sp,
+        results: res,
+        hasTracking,
+        urlTags,
+        thumbnailUrl: ad.creative?.thumbnail_url || ad.creative?.image_url || null,
+        isRetargeting,
+      };
+    });
+
+    trackingAds.sort((a, b) => b.spend - a.spend);
+
+    const trackedAdsCount = trackingAds.filter((a) => a.hasTracking).length;
+    const untrackedAdsCount = trackingAds.filter((a) => !a.hasTracking).length;
+    const untrackedSpend = trackingAds.reduce((acc, a) => acc + (!a.hasTracking ? a.spend : 0), 0);
+    const trackedPercentage = trackingAds.length > 0 ? (trackedAdsCount / trackingAds.length) * 100 : 0;
+
+    const retargetingAds = trackingAds.filter((a) => a.isRetargeting);
+    const retargetingSpend = retargetingAds.reduce((acc, a) => acc + a.spend, 0);
+    const retargetingResults = retargetingAds.reduce((acc, a) => acc + a.results, 0);
+    const retargetingCampaignsCount = new Set(retargetingAds.map((a) => a.campaignId)).size;
+
+    const trackingSummary = {
+      totalAds: trackingAds.length,
+      trackedAds: trackedAdsCount,
+      untrackedAds: untrackedAdsCount,
+      untrackedSpend,
+      trackedPercentage,
+      retargetingCampaignsCount,
+      retargetingSpend,
+      retargetingResults,
+      ads: trackingAds,
+    };
+
     const heatmap = Array.from({ length: 7 }, () =>
       Array.from({ length: 24 }, () => ({ spend: 0, clicks: 0, leads: 0, count: 0 }))
     );
@@ -773,6 +845,16 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     }
 
     const avisos: Aviso[] = [];
+
+    if (untrackedSpend > 50) {
+      avisos.push({
+        tipo: "alerta",
+        titulo: "Verba rodando sem rastreio de vendas",
+        descricao: `Você investiu R$ ${untrackedSpend.toFixed(2)} no período em ${untrackedAdsCount} anúncios sem parâmetros de URL (url_tags vazio). Suas vendas não estão sendo atribuídas no checkout.`,
+        acao: "Acesse a aba Rastreamento para copiar o carimbo padrão e colar no Gerenciador de Anúncios.",
+      });
+    }
+
     const semEntrega = campanhas.filter((c) => c.situacao === "SEM_ENTREGA");
     if (semEntrega.length > 0) {
       avisos.push({
@@ -856,6 +938,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
       criativos,
       heatmap,
       avisos,
+      tracking: trackingSummary,
       timestamp: new Date().toISOString(),
     };
 

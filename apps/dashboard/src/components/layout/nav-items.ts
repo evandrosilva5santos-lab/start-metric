@@ -2,6 +2,7 @@ import {
   LayoutDashboard,
   Megaphone,
   Image as ImageIcon,
+  Target,
   Clock,
   Stethoscope,
   TrendingUp,
@@ -18,6 +19,7 @@ export const META_NAV: NavItem[] = [
   { icon: LayoutDashboard, label: "Visão geral", href: "/" },
   { icon: Megaphone, label: "Campanhas", href: "/campaigns" },
   { icon: ImageIcon, label: "Criativos", href: "/criativos" },
+  { icon: Target, label: "Rastreamento", href: "/tracking" },
   { icon: Clock, label: "Horário", href: "/horario" },
   { icon: Stethoscope, label: "Diagnóstico", href: "/diagnostico" },
 ];

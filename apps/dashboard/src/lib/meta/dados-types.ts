@@ -50,6 +50,7 @@ export type AdDetail = {
     thumbnail_url: string;
     title: string;
     body: string;
+    url_tags?: string;
   } | null;
 };
 
@@ -144,6 +145,35 @@ export type Variacoes = {
   clicks: number;
 };
 
+export type TrackingAdItem = {
+  id: string;
+  name: string;
+  campaignId: string;
+  campaignName: string;
+  adsetId: string;
+  adsetName: string;
+  status: string;
+  effectiveStatus: string;
+  spend: number;
+  results: number;
+  hasTracking: boolean;
+  urlTags: string;
+  thumbnailUrl: string | null;
+  isRetargeting: boolean;
+};
+
+export type TrackingSummary = {
+  totalAds: number;
+  trackedAds: number;
+  untrackedAds: number;
+  untrackedSpend: number;
+  trackedPercentage: number;
+  retargetingCampaignsCount: number;
+  retargetingSpend: number;
+  retargetingResults: number;
+  ads: TrackingAdItem[];
+};
+
 export type DadosResponse = {
   conta: { id: string; name: string; currency: string; timezone: string };
   totais: Totais;
@@ -155,6 +185,7 @@ export type DadosResponse = {
   /** 7 dias da semana (0 = domingo) × 24 horas. */
   heatmap: HeatmapCell[][];
   avisos: Aviso[];
+  tracking?: TrackingSummary;
   timestamp: string;
   cached?: boolean;
   warning?: string;
