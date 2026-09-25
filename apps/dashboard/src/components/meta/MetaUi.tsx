@@ -29,8 +29,8 @@ export function PageHeading({ title, subtitle }: { title: string; subtitle?: str
 /** "good" = subir é bom, "bad" = subir é ruim, "neutral" = só informa (ex.: gasto). */
 export type VariationSense = "good" | "bad" | "neutral";
 
-export function VariationBadge({ value, sense }: { value: number | undefined; sense: VariationSense }) {
-  if (value === undefined || !Number.isFinite(value)) return null;
+export function VariationBadge({ value, sense }: { value: number | null | undefined; sense: VariationSense }) {
+  if (value == null || !Number.isFinite(value)) return null;
   let tone = "border-border bg-surface-2 text-text-secondary";
   if (sense !== "neutral" && value !== 0) {
     const improved = sense === "good" ? value > 0 : value < 0;
@@ -59,7 +59,7 @@ export function KpiTile({
   label: string;
   value: string;
   hint?: string;
-  variation?: number;
+  variation?: number | null;
   sense?: VariationSense;
   emphasis?: boolean;
 }) {
@@ -163,20 +163,39 @@ export function MetaDataGate({ children }: { children: (data: DadosResponse) => 
     );
   }
 
-  if (dados.data) return <>{children(dados.data)}</>;
+  if (dados.data) {
+    return (
+      <>
+        {dados.data.rateLimited && dados.data.warning && (
+          <p role="status" className="flex items-start gap-2 rounded-lg border border-warning/30 bg-warning-dim px-4 py-3 text-sm text-warning">
+            <AlertTriangle size={16} className="mt-0.5 shrink-0" aria-hidden="true" />
+            <span>{dados.data.warning}</span>
+          </p>
+        )}
+        {children(dados.data)}
+      </>
+    );
+  }
 
   if (dados.isError) {
-    return <ErrorPanel message={dados.error.message} onRetry={() => void dados.refetch()} />;
+    const status = (dados.error as Error & { status?: number }).status;
+    return (
+      <ErrorPanel
+        title={status === 429 ? "A Meta pediu uma pausa" : undefined}
+        message={dados.error.message}
+        onRetry={() => void dados.refetch()}
+      />
+    );
   }
 
   return <MetaSkeleton />;
 }
 
-function ErrorPanel({ message, onRetry }: { message: string; onRetry: () => void }) {
+function ErrorPanel({ title = "Não deu para carregar os dados", message, onRetry }: { title?: string; message: string; onRetry: () => void }) {
   return (
     <div role="alert" className="mx-auto max-w-md rounded-lg border border-danger/30 bg-danger-dim p-6 text-center">
       <AlertTriangle className="mx-auto text-danger" size={24} />
-      <p className="mt-2 text-sm font-semibold text-foreground">Não deu para carregar os dados</p>
+      <p className="mt-2 text-sm font-semibold text-foreground">{title}</p>
       <p className="mt-1 text-xs text-text-secondary">{message}</p>
       <button
         type="button"

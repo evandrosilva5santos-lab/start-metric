@@ -28,7 +28,7 @@ function cellColor(intensity: number): string {
 export function HorarioClient() {
   return (
     <div className="space-y-6">
-      <PageHeading title="Horário" subtitle="Melhores dias e horas, no fuso do público da conta" />
+      <PageHeading title="Horário" subtitle="Melhores dias e horas, no fuso da conta de anúncios" />
       <MetaDataGate>{(data) => <Heatmap data={data} />}</MetaDataGate>
     </div>
   );
@@ -66,7 +66,7 @@ function Heatmap({ data }: { data: DadosResponse }) {
     <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
       <SectionCard
         title="Mapa de calor"
-        subtitle={`${metricLabel} por dia da semana e hora`}
+        subtitle={`${metricLabel} por dia da semana e hora (${data.conta.timezone})`}
         className="xl:col-span-9"
         action={
           <div role="radiogroup" aria-label="Métrica do mapa" className="flex shrink-0 rounded-lg border border-border bg-input p-0.5">
@@ -132,10 +132,10 @@ function Heatmap({ data }: { data: DadosResponse }) {
                       {DAYS[hovered.day]}, {hovered.hour}h
                     </span>{" "}
                     · Gasto {format("spend", hovered.cell.spend)} · Cliques {format("clicks", hovered.cell.clicks)} ·
-                    Resultados {format("leads", hovered.cell.leads)}
+                    {data.totais.primaryType} {format("leads", hovered.cell.leads)}
                   </>
                 ) : (
-                  "Passe o mouse num quadrado para ver os números."
+                  "Toque ou passe o mouse num quadrado para ver os números. Por hora, os resultados contam todas as campanhas e a Meta arredonda o recorte, então a soma pode diferir um pouco do total."
                 )}
               </p>
               <div className="flex items-center gap-2">

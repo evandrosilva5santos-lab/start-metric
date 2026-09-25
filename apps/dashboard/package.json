@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "test:garimpo": "node --test scripts/garimpo.test.mjs"
+    "test:garimpo": "node --test scripts/garimpo.test.mjs",
+    "test:meta": "node --test scripts/meta-regras.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.23",

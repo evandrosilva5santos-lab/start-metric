@@ -98,7 +98,8 @@ function CreativeCard({
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const isWinner = c.results > 15 && c.cpr < avgCpr;
-  const isFatigued = c.spend > 150 && c.ctr < 0.6;
+  // Regra do painel: CTR caiu mais de 20% E CPM subiu mais de 10% contra o período anterior.
+  const isFatigued = c.cansado;
 
   return (
     <li className="flex min-w-0 flex-col overflow-hidden rounded-lg border border-border bg-card">
@@ -125,7 +126,10 @@ function CreativeCard({
             </span>
           )}
           {isFatigued && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger-dim px-2 py-0.5 text-[11px] font-semibold text-danger">
+            <span
+              title="A taxa de clique caiu mais de 20% e o custo por mil exibições subiu mais de 10% contra o período anterior"
+              className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger-dim px-2 py-0.5 text-[11px] font-semibold text-danger"
+            >
               <AlertTriangle size={12} /> Cansado
             </span>
           )}
@@ -144,19 +148,20 @@ function CreativeCard({
 
         <dl className="grid grid-cols-3 gap-2 rounded-lg border border-border bg-surface-2 p-2.5 text-center">
           <Metric label="Gasto" value={formatMoney(c.spend, currency, hide)} />
-          <Metric label="Resultados" value={formatInteger(c.results, hide)} />
+          <Metric label={c.resultLabel} value={formatInteger(c.results, hide)} />
           <Metric label="CTR" value={formatRate(c.ctr)} />
         </dl>
 
         {c.isVideo && (
           <div className="space-y-2.5">
-            <RateBar icon label="Gancho (3s)" value={c.hookRate} />
-            <RateBar label="Assistiram até o fim" value={c.retentionRate} />
+            <RateBar icon label="Prenderam 3 segundos" value={c.hookRate} />
+            <RateBar label="Viram até o fim" value={c.retentionRate} />
+            <p className="text-[11px] text-text-muted">Em % de quem recebeu o anúncio (impressões).</p>
           </div>
         )}
 
         <div className="mt-auto flex items-center justify-between border-t border-border pt-3 text-xs">
-          <span className="text-text-secondary">Custo por resultado</span>
+          <span className="text-text-secondary">Custo por {c.resultLabel === "resultados" ? "resultado" : c.resultLabel.replace(/s$/, "")}</span>
           <span className="text-sm font-semibold tabular-nums text-foreground">
             {c.results > 0 ? formatMoney(c.cpr, currency, hide) : "—"}
           </span>

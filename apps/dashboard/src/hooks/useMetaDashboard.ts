@@ -8,7 +8,9 @@ import type { ClientRef, ContasResponse, DadosResponse, MetaAccount, MetaCampaig
 async function readJson<T extends { error?: string }>(res: Response): Promise<T> {
   const json = (await res.json().catch(() => ({}))) as T;
   if (!res.ok || json.error) {
-    throw new Error(json.error || `Falha ao carregar (${res.status})`);
+    const err = new Error(json.error || `Falha ao carregar (${res.status})`) as Error & { status?: number };
+    err.status = res.status;
+    throw err;
   }
   return json;
 }
