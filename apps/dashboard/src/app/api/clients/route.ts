@@ -1,17 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
-// Schema para validação
-const createClientSchema = z.object({
-  name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
-  email: z.string().email("E-mail inválido").optional().or(z.literal("")),
-  phone: z.string().max(20).optional(),
-  whatsapp: z.string().max(20).optional(),
-  logo_url: z.string().url("URL inválida").optional().or(z.literal("")),
-  notes: z.string().max(1000).optional(),
-  account_ids: z.array(z.string().uuid()).optional(),
-});
+import { createClientSchema } from "@/lib/clients/schema";
 
 type ClientListRow = {
   id: string;
@@ -215,11 +205,12 @@ export async function POST(request: NextRequest) {
       .insert({
         org_id: profile.org_id,
         name: validatedData.name,
-        email: validatedData.email || null,
-        phone: validatedData.phone || null,
-        whatsapp: validatedData.whatsapp || null,
-        logo_url: validatedData.logo_url || null,
-        notes: validatedData.notes || null,
+        email: validatedData.email ?? null,
+        phone: validatedData.phone ?? null,
+        whatsapp: validatedData.whatsapp ?? null,
+        niche: validatedData.niche ?? null,
+        logo_url: validatedData.logo_url ?? null,
+        notes: validatedData.notes ?? null,
       })
       .select()
       .single();
@@ -227,20 +218,6 @@ export async function POST(request: NextRequest) {
     if (clientError) {
       console.error("Erro ao criar cliente:", clientError);
       return NextResponse.json({ error: "Erro ao criar cliente" }, { status: 500 });
-    }
-
-    // Associar contas de anúncio se fornecidas
-    if (validatedData.account_ids && validatedData.account_ids.length > 0) {
-      const { error: accountsError } = await supabase
-        .from("ad_accounts")
-        .update({ client_id: client.id })
-        .in("id", validatedData.account_ids)
-        .eq("org_id", profile.org_id);
-
-      if (accountsError) {
-        console.error("Erro ao associar contas:", accountsError);
-        // Não falhar a requisição, apenas logar o erro
-      }
     }
 
     return NextResponse.json({ data: client }, { status: 201 });

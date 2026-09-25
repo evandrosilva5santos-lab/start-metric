@@ -323,28 +323,30 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
 
   const orgId: string = profile.org_id;
 
+  // Só contas que a própria organização ligou, com o token dela.
   const { data: adAccount } = await supabase
     .from("ad_accounts")
     .select("token_encrypted")
+    .eq("org_id", orgId)
     .eq("platform", "meta")
     .eq("external_id", accountId)
     .maybeSingle();
 
-  if (adAccount?.token_encrypted) {
+  if (!adAccount) {
+    return NextResponse.json({ error: "Conta de anúncio não encontrada nesta organização." }, { status: 404 });
+  }
+
+  if (adAccount.token_encrypted) {
     try {
       token = await decryptToken(adAccount.token_encrypted, supabase);
     } catch (err) {
-      console.warn("[meta/dados] Falha ao descriptografar token do Supabase, tentando fallback env:", err);
+      console.error("[meta/dados] Falha ao descriptografar token da conta:", err);
     }
   }
 
   if (!token) {
-    token = process.env.META_TOKEN || process.env.META_SYSTEM_TOKEN || process.env.META_USER_TOKEN || null;
-  }
-
-  if (!token) {
     return NextResponse.json(
-      { error: "Token da Meta não configurado para esta conta e nenhum token de fallback encontrado." },
+      { error: "A conexão com a Meta desta conta expirou. Conecte de novo em Configurações > Meta." },
       { status: 403 },
     );
   }

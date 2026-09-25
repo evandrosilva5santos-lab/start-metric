@@ -299,14 +299,32 @@ export async function exchangeCodeForToken(code: string, redirectUri: string): P
   return { accessToken: token.access_token, expiresIn: token.expires_in };
 }
 
+export type MetaAdAccountSummary = {
+  id: string;
+  name: string;
+  currency: string;
+  timezone_name: string;
+  account_status?: number;
+};
+
 /**
- * Busca as contas de anúncios vinculadas ao token do usuário.
+ * Busca todas as contas de anúncios que o token enxerga, seguindo a paginação
+ * (agências costumam ter centenas).
  */
-export async function fetchAdAccounts(token: string): Promise<{ id: string; name: string; currency: string; timezone_name: string }[]> {
-  const data = await graphFetch<{ data: { id: string; name: string; currency: string; timezone_name: string }[] }>(
-    "/me/adaccounts",
-    token,
-    { fields: "id,name,currency,timezone_name", limit: "50" }
-  );
-  return data.data ?? [];
+export async function fetchAdAccounts(token: string, maxPages = 20): Promise<MetaAdAccountSummary[]> {
+  const all: MetaAdAccountSummary[] = [];
+  let after: string | undefined;
+  for (let page = 0; page < maxPages; page++) {
+    const params: Record<string, string> = { fields: "id,name,currency,timezone_name,account_status", limit: "100" };
+    if (after) params.after = after;
+    const data = await graphFetch<{ data?: MetaAdAccountSummary[]; paging?: { cursors?: { after?: string }; next?: string } }>(
+      "/me/adaccounts",
+      token,
+      params,
+    );
+    all.push(...(data.data ?? []));
+    after = data.paging?.next ? data.paging.cursors?.after : undefined;
+    if (!after) break;
+  }
+  return all;
 }

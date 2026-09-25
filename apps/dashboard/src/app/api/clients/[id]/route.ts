@@ -1,15 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-
-const updateClientSchema = z.object({
-  name: z.string().min(2).max(100).optional(),
-  email: z.string().email().optional().or(z.literal("")),
-  phone: z.string().max(20).optional(),
-  whatsapp: z.string().max(20).optional(),
-  logo_url: z.string().url().optional().or(z.literal("")),
-  notes: z.string().max(1000).optional(),
-});
+import { updateClientSchema } from "@/lib/clients/schema";
 
 type Params = Promise<{ id: string }>;
 
@@ -93,14 +85,10 @@ export async function PATCH(
     const body = await request.json();
     const validatedData = updateClientSchema.parse(body);
 
-    // Construir objeto de update apenas com campos fornecidos
-    const updateData: Partial<z.infer<typeof updateClientSchema>> = {};
-    if (validatedData.name !== undefined) updateData.name = validatedData.name;
-    if (validatedData.email !== undefined) updateData.email = validatedData.email || undefined;
-    if (validatedData.phone !== undefined) updateData.phone = validatedData.phone || undefined;
-    if (validatedData.whatsapp !== undefined) updateData.whatsapp = validatedData.whatsapp || undefined;
-    if (validatedData.logo_url !== undefined) updateData.logo_url = validatedData.logo_url || undefined;
-    if (validatedData.notes !== undefined) updateData.notes = validatedData.notes || undefined;
+    // Só os campos enviados; string vazia chega aqui como null e limpa o campo.
+    const updateData = Object.fromEntries(
+      Object.entries(validatedData).filter(([, value]) => value !== undefined),
+    ) as z.infer<typeof updateClientSchema>;
 
     const { data: client, error } = await supabase
       .from("clients")

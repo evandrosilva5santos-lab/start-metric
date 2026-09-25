@@ -1,12 +1,115 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { getOrgMetaToken, listOrgMetaAccounts } from "@/lib/meta/org-token";
 
 const associateAccountSchema = z.object({
   account_id: z.string().uuid("ID de conta inválido"),
 });
 
+const setAccountsSchema = z.object({
+  external_ids: z.array(z.string().regex(/^act_[0-9]+$/, "Conta inválida")).max(1000),
+});
+
 type Params = Promise<{ id: string }>;
+
+// PUT: define o conjunto de contas do cliente (liga as marcadas, solta as desmarcadas).
+// Uma conta que era de outro cliente passa para este.
+export async function PUT(request: NextRequest, { params }: { params: Params }) {
+  const { id } = await params;
+  const supabase = await createClient();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
+  if (authError || !user) {
+    return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("org_id").eq("id", user.id).single();
+  const orgId = profile?.org_id;
+  if (!orgId) {
+    return NextResponse.json({ error: "Organização não encontrada" }, { status: 404 });
+  }
+
+  const { data: client } = await supabase
+    .from("clients")
+    .select("id")
+    .eq("id", id)
+    .eq("org_id", orgId)
+    .is("archived_at", null)
+    .maybeSingle();
+  if (!client) {
+    return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
+  }
+
+  let externalIds: string[];
+  try {
+    externalIds = [...new Set(setAccountsSchema.parse(await request.json()).external_ids)];
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json({ error: "Dados inválidos", details: error.issues }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
+  }
+
+  if (externalIds.length > 0) {
+    const orgToken = await getOrgMetaToken(supabase, orgId);
+    if (!orgToken) {
+      return NextResponse.json(
+        { error: "Conecte a Meta da sua organização em Configurações > Meta.", code: "meta_not_connected" },
+        { status: 409 },
+      );
+    }
+
+    let visible;
+    try {
+      visible = await listOrgMetaAccounts(orgId, orgToken.token);
+    } catch {
+      return NextResponse.json({ error: "A Meta não respondeu agora. Tente de novo." }, { status: 502 });
+    }
+    // Só contas que a conexão da própria organização enxerga.
+    const byId = new Map(visible.map((acc) => [acc.id, acc]));
+    const unknown = externalIds.filter((extId) => !byId.has(extId));
+    if (unknown.length > 0) {
+      return NextResponse.json({ error: "Algumas contas não pertencem à sua conexão Meta.", unknown }, { status: 403 });
+    }
+
+    const rows = externalIds.map((extId) => {
+      const acc = byId.get(extId)!;
+      return {
+        org_id: orgId,
+        platform: "meta",
+        external_id: extId,
+        name: acc.name || extId,
+        currency: acc.currency || "BRL",
+        timezone: acc.timezone_name || "America/Sao_Paulo",
+        token_encrypted: orgToken.tokenEncrypted,
+        token_expires_at: orgToken.tokenExpiresAt,
+        status: "active",
+        client_id: id,
+      };
+    });
+
+    const { error: upsertError } = await supabase.from("ad_accounts").upsert(rows, { onConflict: "org_id,external_id" });
+    if (upsertError) {
+      console.error("[clients/accounts] Erro ao ligar contas:", upsertError);
+      return NextResponse.json({ error: "Erro ao ligar as contas" }, { status: 500 });
+    }
+  }
+
+  let unlink = supabase.from("ad_accounts").update({ client_id: null }).eq("org_id", orgId).eq("client_id", id);
+  if (externalIds.length > 0) {
+    unlink = unlink.not("external_id", "in", `(${externalIds.join(",")})`);
+  }
+  const { error: unlinkError } = await unlink;
+  if (unlinkError) {
+    console.error("[clients/accounts] Erro ao soltar contas:", unlinkError);
+    return NextResponse.json({ error: "Erro ao atualizar as contas do cliente" }, { status: 500 });
+  }
+
+  return NextResponse.json({ data: { client_id: id, linked: externalIds.length } });
+}
 
 // POST: Associar ad_account ao cliente
 export async function POST(

@@ -22,6 +22,7 @@ export type Database = {
           id: string
           logo_url: string | null
           name: string
+          niche: string | null
           notes: string | null
           org_id: string
           phone: string | null
@@ -35,6 +36,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name: string
+          niche?: string | null
           notes?: string | null
           org_id: string
           phone?: string | null
@@ -48,6 +50,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           name?: string
+          niche?: string | null
           notes?: string | null
           org_id?: string
           phone?: string | null
