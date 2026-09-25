@@ -8,6 +8,7 @@ import {
   Users,
   FileText,
   Settings,
+  Pickaxe,
   type LucideIcon,
 } from "lucide-react";
 
@@ -20,6 +21,9 @@ export const META_NAV: NavItem[] = [
   { icon: Clock, label: "Horário", href: "/horario" },
   { icon: Stethoscope, label: "Diagnóstico", href: "/diagnostico" },
 ];
+
+/** Olha a Biblioteca de Anúncios, não as campanhas do usuário: sem controles da Meta no cabeçalho. */
+export const DISCOVER_NAV: NavItem[] = [{ icon: Pickaxe, label: "Garimpo", href: "/garimpo" }];
 
 export const MANAGE_NAV: NavItem[] = [
   { icon: TrendingUp, label: "Performance", href: "/performance" },

@@ -3,17 +3,12 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { decryptToken } from "@/lib/meta/token";
 import type { Database } from "@/lib/supabase/types";
+import { COMMERCIAL_COUNTRIES } from "../countries";
 import type { Ad, AdSource, SearchParams, SourceResult } from "./types";
 
 const GRAPH = "https://graph.facebook.com/v21.0/ads_archive";
 const TIMEOUT_MS = 20_000;
 const DEFAULT_LIMIT = 500;
-
-/** A Biblioteca só devolve anúncios comerciais que alcançaram UE/Reino Unido. */
-export const COMMERCIAL_COUNTRIES = new Set([
-  "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "DE", "GR", "HU", "IE", "IT", "LV", "LT", "LU",
-  "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE", "GB",
-]);
 
 const FIELDS = [
   "id",
