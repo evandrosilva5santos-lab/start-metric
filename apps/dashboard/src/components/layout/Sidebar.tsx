@@ -9,7 +9,7 @@ import { META_NAV, DISCOVER_NAV, MANAGE_NAV, isActivePath, type NavItem } from "
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" className="flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+    <Link href="/" prefetch={true} className="flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
       <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary-dim text-primary">
         <Zap size={16} fill="currentColor" />
       </span>
@@ -45,6 +45,7 @@ export function NavLinks({
           <li key={href}>
             <Link
               href={href}
+              prefetch={true}
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${

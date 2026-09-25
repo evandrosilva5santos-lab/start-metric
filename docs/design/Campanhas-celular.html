@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campanhas no celular — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /campaigns -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 390px; height: 1500px; display: flex; flex-direction: column; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <header style="height: 60px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid #141917; background: #0b100e;">
+    <button class="sm-btn sm-btn--ghost sm-btn--icon" aria-label="Abrir menu" style="width: 44px; height: 44px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
+    <span style="font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">Campanhas</span>
+    <span style="flex-grow: 1;"></span>
+    <button class="sm-btn sm-btn--ghost sm-btn--icon" aria-label="Sincronizar com a Meta" style="width: 44px; height: 44px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg></button>
+  </header>
+
+  <div style="flex-grow: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+
+    <div>
+      <p class="sm-eyebrow" style="margin-bottom: 8px;">Gestor de anúncios Meta</p>
+      <h1 style="margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--foreground);">Campanhas</h1>
+      <p style="margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-secondary);">Almeida Amaral Advogados · 18 ago a 16 set</p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; height: 48px; padding: 0 14px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;">
+      <span style="color: var(--text-secondary); display: inline-flex;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+      <label for="buscaM" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Buscar campanha por nome ou objetivo</label>
+      <input id="buscaM" type="search" placeholder="Buscar campanha…" style="flex-grow: 1; border: 0; background: transparent; color: #eaefee; font-family: var(--font-body); font-size: 14px; outline: none;">
+    </div>
+
+    <div style="display: flex; gap: 8px; overflow: hidden;">
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="true">Todas · 7</button>
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="false">Ativas · 4</button>
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="false">Atenção · 2</button>
+    </div>
+
+    <a href="#" class="sm-card" style="display: block; padding: 16px; border-color: #122a22; background: #0f1413; box-shadow: inset 3px 0 0 #44d5a4;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <p style="margin: 0; flex-grow: 1; font-size: 15px; font-weight: 700; color: var(--foreground);">[CONVERSÃO] SÃO PAULO CAPITAL</p>
+        <span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Ativa</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · R$ 12,00 por dia</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px;">
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">R$ 312,58</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">28</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Custo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--roi);">R$ 11,16</p></div>
+      </div>
+    </a>
+
+    <a href="#" class="sm-card" style="display: block; padding: 16px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <p style="margin: 0; flex-grow: 1; font-size: 15px; font-weight: 700; color: var(--foreground);">[CONVERSÃO] AMAZONAS E RONDÔNIA</p>
+        <span class="sm-badge sm-badge--roi">Ativa</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · R$ 10,00 por dia</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px;">
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">R$ 271,41</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">12</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Custo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">R$ 22,62</p></div>
+      </div>
+    </a>
+
+    <a href="#" class="sm-card" style="display: block; padding: 16px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <p style="margin: 0; flex-grow: 1; font-size: 15px; font-weight: 700; color: var(--foreground);">MC — ENGAJAMENTO · Rondônia</p>
+        <span class="sm-badge sm-badge--warning"><span class="sm-badge__dot"><i></i><b></b></span>Precisa de você</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">Engajamento · R$ 6,00 por dia</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px;">
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">R$ 180,00</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--foreground);">1</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Custo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--destructive);">R$ 180,00</p></div>
+      </div>
+      <p style="margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--destructive);">Dez vezes acima do seu custo médio. Pause ou troque o criativo hoje.</p>
+    </a>
+
+    <a href="#" class="sm-card" style="display: block; padding: 16px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <p style="margin: 0; flex-grow: 1; font-size: 15px; font-weight: 700; color: var(--foreground);">[TRÁFEGO] NOVO PÚBLICO FRIO</p>
+        <span class="sm-badge sm-badge--warning">Sem entrega</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">Tráfego · ligada, sem gasto no período</p>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 14px;">
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--text-primary);">—</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--text-primary);">—</p></div>
+        <div style="padding: 10px 12px; border-radius: 12px; background: #131816;"><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Custo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 900; letter-spacing: -0.04em; color: var(--text-primary);">—</p></div>
+      </div>
+      <p style="margin: 12px 0 0; font-size: 12px; line-height: 1.5; color: var(--warning);">Está ligada mas não entregou nenhuma vez. Confira o público e o orçamento.</p>
+    </a>
+
+    <a href="#" class="sm-card" style="display: block; padding: 16px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <p style="margin: 0; flex-grow: 1; font-size: 15px; font-weight: 700; color: var(--foreground);">MC — ENGAJAMENTO · Acre</p>
+        <span class="sm-badge sm-badge--secondary">Pausada</span>
+      </div>
+      <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">Engajamento · R$ 62,57 gastos antes de pausar</p>
+    </a>
+
+  </div>
+</div>
+</body>
+</html>

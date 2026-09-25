@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Criativos no celular — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /criativos -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 390px; height: 1560px; display: flex; flex-direction: column; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <header style="height: 60px; flex-shrink: 0; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid #141917; background: #0b100e;">
+    <button class="sm-btn sm-btn--ghost sm-btn--icon" aria-label="Abrir menu" style="width: 44px; height: 44px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6h16"/><path d="M4 12h16"/><path d="M4 18h16"/></svg></button>
+    <span style="font-family: var(--font-display); font-size: 16px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">Criativos</span>
+    <span style="flex-grow: 1;"></span>
+    <button class="sm-btn sm-btn--ghost sm-btn--icon" aria-label="Atualizar dados dos criativos" style="width: 44px; height: 44px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></button>
+  </header>
+
+  <div style="flex-grow: 1; padding: 20px 16px 24px; display: flex; flex-direction: column; gap: 16px; overflow: hidden;">
+
+    <div>
+      <p class="sm-eyebrow" style="margin-bottom: 8px;">Criativos</p>
+      <h1 style="margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--foreground);">Criativos</h1>
+      <p style="margin: 8px 0 0; font-size: 13px; line-height: 1.5; color: var(--text-secondary);">Compare, encontre o que está cansando e tire mais do que já funciona.</p>
+    </div>
+
+    <div style="display: flex; gap: 8px; overflow: hidden;">
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="true">Todos</button>
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="false">Vídeos</button>
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="false">Imagens</button>
+      <button class="sm-tabs__trigger" style="height: 44px; flex-shrink: 0;" aria-pressed="false">Cansando</button>
+    </div>
+
+    <label for="ordemM" style="margin: -4px 0 -8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Ordenar por</label>
+    <select id="ordemM" style="height: 48px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px; font-weight: 600;">
+      <option>Menor custo por conversa</option>
+      <option>Maior gasto</option>
+      <option>Quantos pararam nos 3 primeiros segundos</option>
+    </select>
+
+    <article class="sm-cc">
+      <div class="sm-cc__thumb"><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg></span><b>imagem</b></div>
+      <div class="sm-cc__body">
+        <p class="sm-cc__name">ESTÁTICO 04</p>
+        <div class="sm-cc__tags">
+          <span class="sm-cc__tag">Imagem</span>
+          <span class="sm-cc__tag">São Paulo Capital</span>
+        </div>
+        <div class="sm-cc__pair">
+          <div><span class="sm-cc__k">Gasto</span><span class="sm-cc__big">R$ 104,06</span></div>
+          <div><span class="sm-cc__k">Conversas</span><span class="sm-cc__big">12</span></div>
+        </div>
+        <div class="sm-cc__grid">
+          <div class="sm-cc__cell"><span class="sm-cc__k">Custo</span><span class="sm-cc__v sm-cc__v--good">R$ 8,67</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">CTR</span><span class="sm-cc__v">0,8%</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">3 seg</span><span class="sm-cc__v">—</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">Até o fim</span><span class="sm-cc__v">—</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="sm-cc">
+      <div class="sm-cc__thumb"><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="12" rx="2.5"/><path d="m22 8-5 4 5 4V8Z"/></svg></span><b>vídeo</b></div>
+      <div class="sm-cc__body">
+        <p class="sm-cc__name">VÍDEO 003</p>
+        <div class="sm-cc__tags">
+          <span class="sm-cc__tag">Vídeo</span>
+          <span class="sm-cc__tag">São Paulo Capital</span>
+        </div>
+        <div class="sm-cc__pair">
+          <div><span class="sm-cc__k">Gasto</span><span class="sm-cc__big">R$ 148,22</span></div>
+          <div><span class="sm-cc__k">Conversas</span><span class="sm-cc__big">9</span></div>
+        </div>
+        <div class="sm-cc__grid">
+          <div class="sm-cc__cell"><span class="sm-cc__k">Custo</span><span class="sm-cc__v sm-cc__v--good">R$ 16,47</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">CTR</span><span class="sm-cc__v">1,0%</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">3 seg</span><span class="sm-cc__v">28,4%</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">Até o fim</span><span class="sm-cc__v">9,1%</span></div>
+        </div>
+      </div>
+    </article>
+
+    <article class="sm-cc">
+      <div class="sm-cc__thumb"><span><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="12" rx="2.5"/><path d="m22 8-5 4 5 4V8Z"/></svg></span><b>vídeo</b></div>
+      <div class="sm-cc__body">
+        <p class="sm-cc__name">VÍDEO 001</p>
+        <div class="sm-cc__tags">
+          <span class="sm-cc__tag">Vídeo</span>
+          <span class="sm-cc__tag sm-cc__tag--warn">abertura fraca</span>
+        </div>
+        <div class="sm-cc__pair">
+          <div><span class="sm-cc__k">Gasto</span><span class="sm-cc__big">R$ 62,57</span></div>
+          <div><span class="sm-cc__k">Conversas</span><span class="sm-cc__big">1</span></div>
+        </div>
+        <div class="sm-cc__grid">
+          <div class="sm-cc__cell"><span class="sm-cc__k">Custo</span><span class="sm-cc__v sm-cc__v--bad">R$ 62,57</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">CTR</span><span class="sm-cc__v">0,3%</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">3 seg</span><span class="sm-cc__v">12,1%</span></div>
+          <div class="sm-cc__cell"><span class="sm-cc__k">Até o fim</span><span class="sm-cc__v">3,4%</span></div>
+        </div>
+      </div>
+    </article>
+
+    <div class="sm-insight">
+      <div class="sm-insight__head">
+        <span style="color: var(--primary); margin-top: 2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 14.06 4 16l5.94 1.94L12 24l2.06-6.06L20 16l-5.94-1.94L12 8Z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg></span>
+        <div><p class="sm-insight__title">Leitura dos criativos</p><p class="sm-insight__sub">O que repetir e o que trocar.</p></div>
+      </div>
+      <div class="sm-item sm-item--flag">
+        <span style="color: var(--warning); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+        <div>
+          <p class="sm-item__kicker">Atenção</p>
+          <p class="sm-item__title">A abertura do VÍDEO 001 não segura</p>
+          <p class="sm-item__body">Só 12,1% de quem viu passou dos 3 primeiros segundos. Troque a abertura antes de mexer no público.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

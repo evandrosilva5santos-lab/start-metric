@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Garimpo · oferta — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /garimpo/[domain] -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1400px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes<small>Gestão de contas</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Garimpo.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg><span>Garimpo<small>Ofertas em escala</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Varredura</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">Nicho: emagrecimento</p>
+      <p class="sm-conn"><i></i> rodando há 2h14</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <a class="sm-btn sm-btn--ghost sm-btn--sm" href="Garimpo.html" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg> Voltar para a esteira</a>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--ghost" style="height: 44px; color: var(--destructive);">Descartar</button>
+      <button class="sm-btn sm-btn--outline" style="height: 44px;">Baixar criativos</button>
+      <button class="sm-btn sm-btn--roi" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg> Aprovar e monitorar todo dia</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+
+      <div>
+        <p class="sm-eyebrow">Oferta</p>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <h1 class="sm-hero">metodoalfa.com.br</h1>
+          <span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Escalando</span>
+        </div>
+        <p class="sm-sub">Seis páginas apontam para este domínio. Primeiro anúncio visto em 12 de julho, ainda no ar.</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Anúncios no ar</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">382</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Somando as seis páginas.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Mais antigo no ar</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">74 dias</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Dois meses e meio pagando a conta.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Novos em 14 dias</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">+118</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Está subindo verba agora.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Criativo repetido</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">4 de 6</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">A mesma peça em quatro páginas.</p></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        <div class="sm-card">
+          <div class="sm-card__header">
+            <h2 class="sm-card__title">Anúncios no ar, dia a dia</h2>
+            <p class="sm-card__desc">Cada degrau é uma página nova entrando na operação</p>
+          </div>
+          <div class="sm-card__content">
+            <svg viewBox="0 0 900 200" preserveAspectRatio="none" style="width: 100%; height: 200px; display: block;" role="img" aria-label="Crescimento do número de anúncios no ar ao longo de 74 dias">
+              <line x1="0" y1="50" x2="900" y2="50" stroke="#141917" stroke-width="1"/>
+              <line x1="0" y1="110" x2="900" y2="110" stroke="#141917" stroke-width="1"/>
+              <line x1="0" y1="170" x2="900" y2="170" stroke="#1c1f1e" stroke-width="1"/>
+              <polygon points="0,168 120,160 240,150 340,120 460,112 560,78 680,64 800,30 900,14 900,190 0,190" fill="rgba(68,213,164,0.10)"/>
+              <polyline points="0,168 120,160 240,150 340,120 460,112 560,78 680,64 800,30 900,14" fill="none" stroke="var(--series-1)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+              <line x1="340" y1="14" x2="340" y2="190" stroke="#2a2011" stroke-width="1" stroke-dasharray="4 4"/>
+              <line x1="560" y1="14" x2="560" y2="190" stroke="#2a2011" stroke-width="1" stroke-dasharray="4 4"/>
+              <line x1="800" y1="14" x2="800" y2="190" stroke="#2a2011" stroke-width="1" stroke-dasharray="4 4"/>
+            </svg>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
+              <span>12 jul</span><span>2ª página</span><span>4ª página</span><span>6ª página</span><span>hoje</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-insight">
+          <div class="sm-insight__head">
+            <span style="color: var(--primary); margin-top: 2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 14.06 4 16l5.94 1.94L12 24l2.06-6.06L20 16l-5.94-1.94L12 8Z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg></span>
+            <div><p class="sm-insight__title">Leitura da oferta</p><p class="sm-insight__sub">O que dá para afirmar e o que não dá.</p></div>
+          </div>
+          <div class="sm-item">
+            <span class="sm-item__rank">1</span>
+            <div><p class="sm-item__title">Está escalando, não testando</p><p class="sm-item__body">Cento e dezoito anúncios novos em quatorze dias, com a sexta página entrando na última semana.</p></div>
+          </div>
+          <div class="sm-item">
+            <span class="sm-item__rank">2</span>
+            <div><p class="sm-item__title">A oferta já se pagou</p><p class="sm-item__body">O anúncio mais antigo está no ar há setenta e quatro dias. Ninguém sustenta isso no prejuízo.</p></div>
+          </div>
+          <div class="sm-item sm-item--flag">
+            <span style="color: var(--warning); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+            <div><p class="sm-item__kicker">Cuidado</p><p class="sm-item__title">Isto não é ROI medido</p><p class="sm-item__body">São sinais públicos de comportamento. Ninguém fora da conta vê retorno de verdade — trate como indício forte, não como número.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 20px;">
+        <div>
+          <p class="text-hud" style="margin: 0 0 12px; font-size: 10px; color: var(--text-secondary);">Páginas que apontam para este domínio</p>
+          <div class="sm-table-wrap">
+            <table class="sm-table">
+              <thead><tr><th scope="col">Página</th><th scope="col">Situação</th><th scope="col" style="text-align: right;">Anúncios</th><th scope="col" style="text-align: right;">No ar desde</th></tr></thead>
+              <tbody>
+                <tr><td class="name">Método Alfa Oficial</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">142</td><td class="num">12 jul</td></tr>
+                <tr><td class="name">Alfa Emagrecimento</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">98</td><td class="num">29 jul</td></tr>
+                <tr><td class="name">Vida Leve Brasil</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">61</td><td class="num">14 ago</td></tr>
+                <tr><td class="name">Protocolo Alfa</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">44</td><td class="num">27 ago</td></tr>
+                <tr><td class="name">Alfa Resultados</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">29</td><td class="num">9 set</td></tr>
+                <tr><td class="name">Comunidade Alfa</td><td><span class="sm-badge sm-badge--warning">Sem entrega</span></td><td class="num">8</td><td class="num">16 set</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top: 16px; padding: 16px 18px; border-radius: 16px; border: 1px solid #1c1f1e; background: #0f1413;">
+            <p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Cadeia de redirecionamento</p>
+            <p style="margin: 0; font-size: 13px; line-height: 1.7; color: var(--text-primary); word-break: break-all;">go.trkalfa.com<span style="color: var(--text-secondary);"> → </span>clk.alfa-go.net<span style="color: var(--text-secondary);"> → </span><strong style="color: var(--foreground);">metodoalfa.com.br</strong>/vsl-a3</p>
+            <p style="margin: 10px 0 0; font-size: 12px; color: var(--text-secondary);">O rastreador do meio aparece em outros dois domínios da esteira — provavelmente o mesmo operador.</p>
+          </div>
+        </div>
+
+        <div>
+          <p class="text-hud" style="margin: 0 0 12px; font-size: 10px; color: var(--text-secondary);">Criativos</p>
+          <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;">
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #122a22; position: relative; display: flex; align-items: flex-end; padding: 10px;"><span class="sm-badge sm-badge--roi" style="font-size: 10px;">4 páginas</span></div>
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></div>
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #122a22; display: flex; align-items: flex-end; padding: 10px;"><span class="sm-badge sm-badge--roi" style="font-size: 10px;">3 páginas</span></div>
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></div>
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></div>
+            <div style="aspect-ratio: 4 / 5; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></div>
+          </div>
+          <p style="margin: 12px 0 0; font-size: 12px; color: var(--text-secondary);">Mostrando 6 de 382, agrupados por semelhança. O selo verde marca a mesma peça rodando em páginas diferentes.</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Entrar — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /auth -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 900px; display: grid; grid-template-columns: 1.1fr 1fr; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <div style="padding: 64px 72px; display: flex; flex-direction: column; border-right: 1px solid #141917;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+      <span class="sm-sidebar__mark" style="width: 36px; height: 36px;"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b style="font-size: 20px;">Start Metric</b><i>Inteligência de ROI para tráfego pago</i></span>
+    </div>
+
+    <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; max-width: 540px;">
+      <p class="sm-eyebrow">Painel</p>
+      <h1 style="margin: 0; font-family: var(--font-display); font-size: 44px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.05; color: var(--foreground);">Saiba se o dinheiro de ontem virou resultado.</h1>
+      <p style="margin: 20px 0 0; font-size: 15px; line-height: 1.6; color: var(--text-secondary);">Abra pela manhã, entenda em dez segundos o que aconteceu e saiba o que mexer antes do café esfriar.</p>
+
+      <div style="display: flex; gap: 32px; margin-top: 40px;">
+        <div>
+          <p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--primary);">10 s</p>
+          <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">para entender o dia</p>
+        </div>
+        <div>
+          <p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--primary);">1 frase</p>
+          <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">explicando cada número</p>
+        </div>
+        <div>
+          <p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--primary);">0</p>
+          <p style="margin: 6px 0 0; font-size: 12px; color: var(--text-secondary);">planilhas para abrir</p>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="sm-quote" style="text-align: left; max-width: 420px;">"Mais claro do que o Gerenciador de Anúncios."</p>
+      <p class="sm-quote-by" style="text-align: left;">— Start Metric</p>
+    </div>
+  </div>
+
+  <div style="padding: 64px 72px; display: flex; flex-direction: column; justify-content: center;">
+    <div style="width: 100%; max-width: 420px; margin: 0 auto;">
+
+      <h2 style="margin: 0; font-family: var(--font-display); font-size: 28px; font-weight: 800; letter-spacing: -0.03em; color: var(--foreground);">Entrar</h2>
+      <p style="margin: 10px 0 0; font-size: 14px; color: var(--text-secondary);">Use o e-mail cadastrado na sua organização.</p>
+
+      <div class="sm-alert glass" style="margin-top: 24px;">
+        <span class="sm-alert__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 8v4"/><path d="M12 16h.01"/></svg></span>
+        <div>
+          <p class="sm-alert__title">E-mail ou senha não conferem.</p>
+          <p class="sm-alert__hint">Confira o e-mail e tente de novo, ou use "Esqueci minha senha".</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 24px; display: flex; flex-direction: column; gap: 6px;">
+        <label for="email" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">E-mail</label>
+        <input id="email" type="email" autocomplete="email" placeholder="voce@suaempresa.com.br" style="height: 48px; padding: 0 14px; border-radius: 16px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px; outline: none;">
+      </div>
+
+      <div style="margin-top: 16px; display: flex; flex-direction: column; gap: 6px;">
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <label for="senha" style="font-size: 12px; font-weight: 600; color: var(--text-primary);">Senha</label>
+          <a href="#" style="font-size: 12px; font-weight: 600;">Esqueci minha senha</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px; height: 48px; padding: 0 8px 0 14px; border-radius: 16px; border: 1px solid #44d5a4; background: #131816;">
+          <input id="senha" type="password" autocomplete="current-password" value="••••••••••" style="flex-grow: 1; border: 0; background: transparent; color: #eaefee; font-family: var(--font-body); font-size: 14px; outline: none;">
+          <button class="sm-btn sm-btn--ghost sm-btn--icon" aria-label="Mostrar a senha" style="width: 36px; height: 36px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div>
+      </div>
+
+      <button class="sm-btn sm-btn--default sm-btn--lg" style="width: 100%; height: 52px; margin-top: 24px;">Entrar no painel</button>
+
+      <div style="display: flex; align-items: center; gap: 14px; margin: 28px 0;">
+        <span style="flex-grow: 1; height: 1px; background: #1c1f1e;"></span>
+        <span style="font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted);">ou</span>
+        <span style="flex-grow: 1; height: 1px; background: #1c1f1e;"></span>
+      </div>
+
+      <button class="sm-btn sm-btn--outline sm-btn--lg" style="width: 100%; height: 52px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/><path d="M7 14c1.8-5.3 4.2-5.3 6 0s4.2 5.3 6 0"/></svg> Entrar com a conta Meta</button>
+
+      <p style="margin: 28px 0 0; font-size: 12px; line-height: 1.6; color: var(--text-secondary);">Ainda não tem acesso? Peça um convite a quem administra a conta da sua organização.</p>
+
+      <div style="display: flex; align-items: flex-start; gap: 10px; margin-top: 24px; padding: 14px 16px; border-radius: 16px; border: 1px solid #1c1f1e; background: #0f1413;">
+        <span style="display: inline-flex; color: var(--primary); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg></span>
+        <p style="margin: 0; font-size: 12px; line-height: 1.5; color: var(--text-secondary);">O acesso às suas contas de anúncios fica criptografado no servidor e nunca chega a esta tela.</p>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

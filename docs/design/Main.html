@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Visão geral — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: / -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1460px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes<small>Gestão de contas</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Conta ativa</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground); overflow: hidden; text-overflow: ellipsis;">evandro@startinc.com.br</p>
+      <p class="sm-conn"><i></i> 2 contas conectadas</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <label for="conta" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Conta</label>
+      <select id="conta" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;">
+        <option>Almeida Amaral Advogados</option>
+        <option>Grupo VIP Moving</option>
+      </select>
+      <label for="periodo" style="margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Período</label>
+      <select id="periodo" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;">
+        <option>Últimos 30 dias</option>
+        <option>Hoje</option>
+        <option>Ontem</option>
+        <option>Últimos 7 dias</option>
+        <option>Últimos 14 dias</option>
+        <option>Este mês</option>
+        <option>Mês passado</option>
+      </select>
+      <span class="sm-badge sm-badge--roi" style="margin-left: 8px;"><span class="sm-badge__dot"><i></i><b></b></span>Sincronizado há 4 min</span>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--secondary sm-btn--icon" aria-label="Ocultar valores em reais" style="width: 44px; height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path d="m2 2 20 20"/></svg></button>
+      <button class="sm-btn sm-btn--default" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg> Atualizar</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px; overflow: hidden;">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div>
+          <p class="sm-eyebrow">Painel</p>
+          <h1 class="sm-hero">Boa noite, Evandro</h1>
+          <p class="sm-sub">Como os seus anúncios estão indo na Meta Ads · 18 ago a 16 set · fuso da conta de anúncios</p>
+        </div>
+        <div>
+          <p class="sm-quote">"Mais claro do que o Gerenciador de Anúncios."</p>
+          <p class="sm-quote-by">— Start Metric</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <article class="sm-kpi">
+          <div class="sm-kpi__top">
+            <span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></svg></span>
+            <svg class="sm-kpi__spark" viewBox="0 0 130 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="2,30 8.6,24.8 15.3,27.4 21.9,19.6 28.5,22.2 35.2,14.4 41.8,24.8 48.4,17 55.1,6.6 61.7,19.6 68.3,11.8 74.9,22.2 81.6,14.4 88.2,9.2 94.8,17 101.5,4 108.1,14.4 114.7,6.6 121.4,17 128,9.2" fill="none" stroke="var(--series-1)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          </div>
+          <p class="sm-kpi__label">Total investido</p>
+          <p class="sm-kpi__value">R$ 1.080,66</p>
+          <p class="sm-kpi__foot"><span class="sm-kpi__delta sm-kpi__delta--down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></svg> 27,6%</span> vs 30 dias antes</p>
+          <p class="sm-kpi__meaning">Você gastou menos que no mês passado.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top">
+            <span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg></span>
+            <svg class="sm-kpi__spark" viewBox="0 0 130 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="2,30 8.6,26 15.3,28 21.9,22 28.5,26 35.2,20 41.8,24 48.4,16 55.1,22 61.7,14 68.3,20 74.9,12 81.6,18 88.2,10 94.8,16 101.5,8 108.1,14 114.7,6 121.4,12 128,4" fill="none" stroke="var(--series-2)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          </div>
+          <p class="sm-kpi__label">Conversas iniciadas</p>
+          <p class="sm-kpi__value">61</p>
+          <p class="sm-kpi__foot"><span class="sm-kpi__delta sm-kpi__delta--up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg> 12,4%</span> vs 30 dias antes</p>
+          <p class="sm-kpi__meaning">Mais gente puxou assunto no WhatsApp.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top">
+            <span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg></span>
+            <svg class="sm-kpi__spark" viewBox="0 0 130 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="2,24.8 8.6,30 15.3,22.2 21.9,27.4 28.5,17 35.2,24.8 41.8,14.4 48.4,22.2 55.1,19.6 61.7,11.8 68.3,22.2 74.9,14.4 81.6,6.6 88.2,19.6 94.8,9.2 101.5,17 108.1,4 114.7,14.4 121.4,6.6 128,11.8" fill="none" stroke="var(--series-3)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          </div>
+          <p class="sm-kpi__label">Custo por conversa</p>
+          <p class="sm-kpi__value">R$ 17,72</p>
+          <p class="sm-kpi__foot"><span class="sm-kpi__delta sm-kpi__delta--down"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg> 25,7%</span> vs 30 dias antes</p>
+          <p class="sm-kpi__meaning">Cada conversa está saindo mais cara.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top">
+            <span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg></span>
+            <svg class="sm-kpi__spark" viewBox="0 0 130 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="2,25.3 8.6,30 15.3,22.9 21.9,27.6 28.5,18.2 35.2,25.3 41.8,15.8 48.4,22.9 55.1,11.1 61.7,20.5 68.3,13.5 74.9,18.2 81.6,6.4 88.2,15.8 94.8,8.7 101.5,18.2 108.1,11.1 114.7,4 121.4,13.5 128,6.4" fill="none" stroke="var(--series-4)" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/></svg>
+          </div>
+          <p class="sm-kpi__label">Retorno sobre o investimento</p>
+          <p class="sm-kpi__value">3,12x</p>
+          <p class="sm-kpi__foot"><span class="sm-kpi__delta sm-kpi__delta--up"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg> 8,1%</span> vs 30 dias antes</p>
+          <p class="sm-kpi__meaning">Cada real investido voltou R$ 3,12.</p>
+        </article>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <div class="sm-card" style="padding: 16px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">CTR do link</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">0,86%</p><p style="margin: 6px 0 0; font-size: 11px; color: var(--text-secondary);">Taxa de cliques</p></div>
+        <div class="sm-card" style="padding: 16px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">CPM médio</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">R$ 22,09</p><p style="margin: 6px 0 0; font-size: 11px; color: var(--text-secondary);">Por mil impressões</p></div>
+        <div class="sm-card" style="padding: 16px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Impressões</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">48.912</p><p style="margin: 6px 0 0; font-size: 11px; color: var(--text-secondary);">Quantas vezes apareceu</p></div>
+        <div class="sm-card" style="padding: 16px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Cliques no link</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">421</p><p style="margin: 6px 0 0; font-size: 11px; color: var(--text-secondary);">Tráfego direcionado</p></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 20px;">
+        <div class="sm-card">
+          <div class="sm-card__header" style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;">
+            <div>
+              <h2 class="sm-card__title">Evolução diária</h2>
+              <p class="sm-card__desc">Investimento e conversas, dia a dia · 18 ago a 16 set</p>
+            </div>
+            <div style="display: flex; align-items: center; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);"><span style="width: 12px; height: 2px; background: var(--series-1); border-radius: 9999px;"></span>Investido</span>
+              <span style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary);"><span style="width: 12px; height: 2px; background: var(--series-2); border-radius: 9999px;"></span>Conversas</span>
+            </div>
+          </div>
+          <div class="sm-card__content">
+            <svg viewBox="0 0 960 200" preserveAspectRatio="none" style="width: 100%; height: 200px; display: block;" role="img" aria-label="Linha do investimento e das conversas por dia no período">
+              <line x1="0" y1="40" x2="960" y2="40" stroke="#141917" stroke-width="1"/>
+              <line x1="0" y1="90" x2="960" y2="90" stroke="#141917" stroke-width="1"/>
+              <line x1="0" y1="140" x2="960" y2="140" stroke="#141917" stroke-width="1"/>
+              <line x1="0" y1="190" x2="960" y2="190" stroke="#1c1f1e" stroke-width="1"/>
+              <polygon points="0,120 69,96 137,132 206,84 274,108 343,72 411,116 480,60 549,92 617,48 686,104 754,64 823,40 891,76 960,52 960,190 0,190" fill="rgba(68,213,164,0.10)"/>
+              <polyline points="0,120 69,96 137,132 206,84 274,108 343,72 411,116 480,60 549,92 617,48 686,104 754,64 823,40 891,76 960,52" fill="none" stroke="var(--series-1)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+              <polyline points="0,158 69,146 137,164 206,134 274,152 343,122 411,158 480,110 549,140 617,104 686,148 754,116 823,96 891,128 960,102" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"/>
+            </svg>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
+              <span>18 ago</span><span>25 ago</span><span>1 set</span><span>8 set</span><span>16 set</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-insight">
+          <div class="sm-insight__head">
+            <span style="color: var(--primary); margin-top: 2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 14.06 4 16l5.94 1.94L12 24l2.06-6.06L20 16l-5.94-1.94L12 8Z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg></span>
+            <div><p class="sm-insight__title">Diagnóstico</p><p class="sm-insight__sub">O que está pegando, e o que fazer.</p></div>
+          </div>
+          <div class="sm-item sm-item--flag">
+            <span style="color: var(--warning); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+            <div>
+              <p class="sm-item__kicker">Atenção</p>
+              <p class="sm-item__title">Uma campanha queimou R$ 180,00 por uma conversa</p>
+              <p class="sm-item__body">MC — Engajamento · Rondônia está dez vezes acima do seu custo médio. Pause hoje e realoque a verba para São Paulo Capital.</p>
+            </div>
+          </div>
+          <p class="sm-insight__group"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0Z"/><path d="M7 5H4v2a3 3 0 0 0 3 3"/><path d="M17 5h3v2a3 3 0 0 1-3 3"/><path d="M10 20h4"/><path d="M12 14v6"/></svg> Entregam mais barato</p>
+          <div class="sm-item"><span class="sm-item__rank">1</span><div><p class="sm-item__title">Remarketing 7 dias</p><p class="sm-item__body">R$ 6,01 por conversa</p></div></div>
+          <div class="sm-item"><span class="sm-item__rank">2</span><div><p class="sm-item__title">Estático 04</p><p class="sm-item__body">R$ 8,67 por conversa</p></div></div>
+          <p class="sm-insight__group"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 13c-1.5 1.5-2 5-2 5s3.5-.5 5-2"/><path d="M12 15 9 12c1-4 4-8 9-8 0 5-4 8-8 9Z"/><circle cx="15" cy="9" r="1.2"/></svg> O que fazer agora</p>
+          <div class="sm-item">
+            <span style="color: var(--primary); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg></span>
+            <div><p class="sm-item__title">Escale São Paulo Capital</p><p class="sm-item__body">Entrega a R$ 11,16 por conversa com 28 resultados. Suba o orçamento de 20% a 30% e acompanhe por três dias.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 20px;">
+        <div class="sm-card">
+          <div class="sm-card__header">
+            <h2 class="sm-card__title">Da impressão à compra</h2>
+            <p class="sm-card__desc">Quanto passa de uma etapa para a outra</p>
+          </div>
+          <div class="sm-card__content sm-funnel">
+            <div class="sm-funnel__step">
+              <div class="sm-funnel__head"><span class="sm-funnel__ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg></span><span class="sm-funnel__lbl">Impressões</span><span class="sm-funnel__val">48.912</span></div>
+              <div class="sm-funnel__track"><div class="sm-funnel__fill" style="width: 100%;"></div></div>
+              <div class="sm-funnel__foot"><span class="sm-funnel__rate sm-funnel__rate--base">base</span></div>
+            </div>
+            <div class="sm-funnel__step">
+              <div class="sm-funnel__head"><span class="sm-funnel__ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m4 4 7 16 2.5-6.5L20 11Z"/></svg></span><span class="sm-funnel__lbl">Cliques no link</span><span class="sm-funnel__val">421</span></div>
+              <div class="sm-funnel__track"><div class="sm-funnel__fill" style="width: 34%;"></div></div>
+              <div class="sm-funnel__foot"><span class="sm-funnel__rate">0,86% de passagem</span></div>
+            </div>
+            <div class="sm-funnel__step">
+              <div class="sm-funnel__head"><span class="sm-funnel__ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg></span><span class="sm-funnel__lbl">Conversas iniciadas</span><span class="sm-funnel__val">61</span></div>
+              <div class="sm-funnel__track"><div class="sm-funnel__fill" style="width: 18%;"></div></div>
+              <div class="sm-funnel__foot"><span class="sm-funnel__rate">14,5% de passagem</span></div>
+            </div>
+            <div class="sm-funnel__step">
+              <div class="sm-funnel__head"><span class="sm-funnel__ico"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2 3h3l2.6 12.4a1.5 1.5 0 0 0 1.5 1.1h8.3a1.5 1.5 0 0 0 1.5-1.2L21 7H6"/></svg></span><span class="sm-funnel__lbl">Contratos fechados</span><span class="sm-funnel__val">7</span></div>
+              <div class="sm-funnel__track"><div class="sm-funnel__fill" style="width: 9%;"></div></div>
+              <div class="sm-funnel__foot"><span class="sm-funnel__rate">11,5% de passagem</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 12px; min-width: 0;">
+          <div style="display: flex; align-items: flex-end; justify-content: space-between;">
+            <div>
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">Principais campanhas</h2>
+              <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Números consolidados da conta</p>
+            </div>
+            <a class="sm-btn sm-btn--ghost sm-btn--sm" href="Campanhas.html">Ver todas</a>
+          </div>
+          <div class="sm-table-wrap">
+            <table class="sm-table">
+              <thead>
+                <tr><th scope="col">Campanha</th><th scope="col">Situação</th><th scope="col" style="text-align: right;">Gasto</th><th scope="col" style="text-align: right;">Conversas</th><th scope="col" style="text-align: right;">Custo</th></tr>
+              </thead>
+              <tbody>
+                <tr><td class="name">[CONVERSÃO] SÃO PAULO CAPITAL</td><td><span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Ativa</span></td><td class="num">R$ 312,58</td><td class="num">28</td><td class="pos">R$ 11,16</td></tr>
+                <tr><td class="name">[CONVERSÃO] AMAZONAS E RONDÔNIA</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 271,41</td><td class="num">12</td><td class="num">R$ 22,62</td></tr>
+                <tr><td class="name">[CONVERSÃO] ACRE</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 188,04</td><td class="num">9</td><td class="num">R$ 20,89</td></tr>
+                <tr><td class="name">MC — ENGAJAMENTO · Rondônia</td><td><span class="sm-badge sm-badge--warning"><span class="sm-badge__dot"><i></i><b></b></span>Precisa de você</span></td><td class="num">R$ 180,00</td><td class="num">1</td><td class="neg">R$ 180,00</td></tr>
+                <tr><td class="name">[CONVERSÃO] REMARKETING 7D</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 66,06</td><td class="num">11</td><td class="pos">R$ 6,01</td></tr>
+                <tr><td class="name">[TRÁFEGO] NOVO PÚBLICO FRIO</td><td><span class="sm-badge sm-badge--warning">Sem entrega</span></td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

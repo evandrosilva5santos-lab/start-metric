@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Campanhas — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /campaigns -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1200px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes<small>Gestão de contas</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Conta ativa</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">evandro@startinc.com.br</p>
+      <p class="sm-conn"><i></i> 2 contas conectadas</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <label for="conta2" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Conta</label>
+      <select id="conta2" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;">
+        <option>Almeida Amaral Advogados</option>
+      </select>
+      <label for="periodo2" style="margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Período</label>
+      <select id="periodo2" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;">
+        <option>Últimos 30 dias</option>
+        <option>Hoje</option>
+        <option>Mês passado</option>
+      </select>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--secondary sm-btn--icon" aria-label="Ocultar valores em reais" style="width: 44px; height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/><path d="m2 2 20 20"/></svg></button>
+      <button class="sm-btn sm-btn--default" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2 3 14h9l-1 8 10-12h-9l1-8Z"/></svg> Sincronizar com a Meta</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div>
+          <p class="sm-eyebrow">Gestor de anúncios Meta</p>
+          <h1 class="sm-hero">Campanhas</h1>
+          <p class="sm-sub">Escolha uma campanha à esquerda para ver conjuntos, anúncios e mexer no orçamento.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="sm-badge sm-badge--roi">4 ativas</span>
+          <span class="sm-badge sm-badge--secondary">1 pausada</span>
+          <span class="sm-badge sm-badge--warning">2 precisam de você</span>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.35fr; gap: 20px; flex-grow: 1; min-height: 0;">
+
+        <div class="sm-card" style="display: flex; flex-direction: column; padding: 0; overflow: hidden;">
+          <div style="padding: 16px 20px; border-bottom: 1px solid #141917; display: flex; flex-direction: column; gap: 12px;">
+            <div class="sm-tabs__list" role="tablist" aria-label="Filtro por situação da campanha">
+              <button class="sm-tabs__trigger" role="tab" aria-selected="true">Todas</button>
+              <button class="sm-tabs__trigger" role="tab" aria-selected="false">Ativas</button>
+              <button class="sm-tabs__trigger" role="tab" aria-selected="false">Pausadas</button>
+              <button class="sm-tabs__trigger" role="tab" aria-selected="false">Atenção</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; height: 44px; padding: 0 14px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;">
+              <span style="color: var(--text-secondary); display: inline-flex;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg></span>
+              <label for="busca" style="position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap;">Buscar campanha por nome ou objetivo</label>
+              <input id="busca" type="search" placeholder="Buscar campanha…" style="flex-grow: 1; border: 0; background: transparent; color: #eaefee; font-family: var(--font-body); font-size: 14px; outline: none;">
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: space-between; padding: 10px 20px; background: #131816; border-bottom: 1px solid #1c1f1e; font-family: var(--font-body); font-size: 12px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">
+            <span>Campanha</span><span>Situação</span>
+          </div>
+
+          <div role="list" aria-label="Lista de campanhas" style="flex-grow: 1; overflow: hidden;">
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; background: #122a22; box-shadow: inset 3px 0 0 #44d5a4; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">[CONVERSÃO] SÃO PAULO CAPITAL</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · R$ 12,00/dia · R$ 312,58 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Ativa</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">[CONVERSÃO] AMAZONAS E RONDÔNIA</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · R$ 10,00/dia · R$ 271,41 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--roi">Ativa</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">[CONVERSÃO] ACRE</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · orçamento do conjunto · R$ 188,04 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--roi">Ativa</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">MC — ENGAJAMENTO · Rondônia</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Engajamento · R$ 6,00/dia · R$ 180,00 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--warning"><span class="sm-badge__dot"><i></i><b></b></span>Precisa de você</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">[CONVERSÃO] REMARKETING 7D</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Conversas · R$ 5,00/dia · R$ 66,06 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--roi">Ativa</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid #141917; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">MC — ENGAJAMENTO · Acre</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Engajamento · R$ 4,00/dia · R$ 62,57 no período</p>
+              </div>
+              <span class="sm-badge sm-badge--secondary">Pausada</span>
+            </a>
+            <a role="listitem" href="#" style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; text-decoration: none;">
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-size: 14px; font-weight: 600; color: var(--foreground);">[TRÁFEGO] NOVO PÚBLICO FRIO</p>
+                <p style="margin: 4px 0 0; font-size: 12px; color: var(--text-secondary);">Tráfego · R$ 8,00/dia · ligada, sem gasto no período</p>
+              </div>
+              <span class="sm-badge sm-badge--warning">Sem entrega</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="sm-card" style="display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+          <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 20px;">
+            <div style="min-width: 0;">
+              <h2 style="margin: 0; font-family: var(--font-display); font-size: 20px; font-weight: 900; letter-spacing: -0.02em; color: var(--foreground);">[CONVERSÃO] SÃO PAULO CAPITAL</h2>
+              <p style="margin: 6px 0 0; font-size: 13px; color: var(--text-secondary);">Conversas · Almeida Amaral Advogados · id 120210987654321</p>
+            </div>
+            <button class="sm-btn sm-btn--secondary"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg> Pausar campanha</button>
+          </div>
+
+          <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;">
+            <label for="orc" style="font-size: 13px; font-weight: 600; color: var(--text-primary);">Orçamento diário</label>
+            <span style="font-size: 14px; color: var(--text-secondary);">R$</span>
+            <input id="orc" type="text" value="12,00" style="width: 96px; height: 40px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #0f1413; color: #eaefee; font-family: var(--font-body); font-size: 14px; font-variant-numeric: tabular-nums; outline: none;">
+            <button class="sm-btn sm-btn--roi sm-btn--sm">Salvar na Meta</button>
+            <span style="flex-grow: 1;"></span>
+            <span class="sm-badge sm-badge--cyan">9 anúncios</span>
+          </div>
+
+          <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px;">
+            <div style="padding: 14px 16px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;"><p class="text-hud" style="margin: 0 0 8px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">R$ 312,58</p></div>
+            <div style="padding: 14px 16px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;"><p class="text-hud" style="margin: 0 0 8px; font-size: 10px; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">28</p></div>
+            <div style="padding: 14px 16px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;"><p class="text-hud" style="margin: 0 0 8px; font-size: 10px; color: var(--text-secondary);">Custo por conversa</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">R$ 11,16</p></div>
+            <div style="padding: 14px 16px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816;"><p class="text-hud" style="margin: 0 0 8px; font-size: 10px; color: var(--text-secondary);">CTR do link</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 24px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">1,4%</p></div>
+          </div>
+
+          <div>
+            <p style="margin: 0 0 10px; font-size: 13px; font-weight: 600; color: var(--text-primary);">Gasto dia a dia</p>
+            <div style="display: flex; align-items: flex-end; gap: 5px; height: 92px;">
+              <div style="flex-grow: 1; height: 38%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 54%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 31%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 66%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 48%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 72%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 41%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 84%; background: #44d5a4; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 59%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 77%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 45%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 68%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 92%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 55%; background: #122a22; border-radius: 4px 4px 0 0;"></div><div style="flex-grow: 1; height: 63%; background: #122a22; border-radius: 4px 4px 0 0;"></div>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 11px; color: var(--text-secondary);"><span>2 set</span><span>9 set</span><span>16 set</span></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; flex-grow: 1; min-height: 0;">
+            <div>
+              <p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Conjuntos de anúncios</p>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">SP · 25-54 · Interesse jurídico</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 184,20 · 17 conversas</p></div><span class="sm-badge sm-badge--roi">Ativo</span></div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">SP · Público semelhante 1%</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 128,38 · 11 conversas</p></div><span class="sm-badge sm-badge--roi">Ativo</span></div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">SP · Retargeting site 14 dias</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">Em aprendizagem</p></div><span class="sm-badge sm-badge--warning">Aprendendo</span></div>
+              </div>
+            </div>
+            <div>
+              <p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Anúncios</p>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">ESTÁTICO 04</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 8,67 por conversa</p></div><span class="sm-badge sm-badge--roi">Ativo</span></div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">VÍDEO 003</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 16,47 por conversa</p></div><span class="sm-badge sm-badge--roi">Ativo</span></div>
+                <div style="display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 12px; background: #131816;"><div style="flex-grow: 1; min-width: 0;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">CARROSSEL 02</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 13,38 por conversa</p></div><span class="sm-badge sm-badge--secondary">Pausado</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

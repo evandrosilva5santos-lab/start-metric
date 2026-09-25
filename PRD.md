@@ -1,6 +1,9 @@
 # PRD — Start Metric (Versão Consolidada)
 
-> **Fonte única de verdade.** Consolidado a partir de: PRD.md (original), prd-saas-tracking-gestao-campanhas.md, plano-execucao-mvp-tracking-saas.md e task-01-scaffold-monorepo.md.
+> **Fonte única de verdade.** Consolidado a partir de: PRD.md, [DESIGN.md](./DESIGN.md) e [SCHEMA.md](./SCHEMA.md).
+> Documentos canônicos de suporte:
+> - Design System e Telas: [`DESIGN.md`](./DESIGN.md)
+> - Arquitetura de Dados e Schemas: [`SCHEMA.md`](./SCHEMA.md)
 > Os demais arquivos são histórico — não editar.
 
 ---

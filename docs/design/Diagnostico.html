@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnóstico — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /diagnostico -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1300px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Diagnostico.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg><span>Diagnóstico<small>Avisos e ações</small></span></a>
+      <a class="sm-nav-item" href="Horario.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Horário<small>Quando estar no ar</small></span></a>
+      <a class="sm-nav-item" href="Garimpo.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg><span>Garimpo<small>Ofertas em escala</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Conta ativa</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">evandro@startinc.com.br</p>
+      <p class="sm-conn"><i></i> 2 contas conectadas</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <label for="contaD" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Conta</label>
+      <select id="contaD" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Almeida Amaral Advogados</option><option>Grupo VIP Moving</option></select>
+      <label for="periodoD" style="margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Período</label>
+      <select id="periodoD" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Últimos 7 dias</option><option>Últimos 30 dias</option></select>
+      <span class="sm-badge sm-badge--roi" style="margin-left: 8px;"><span class="sm-badge__dot"><i></i><b></b></span>Recalculado às 18h42</span>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--outline" style="height: 44px;">Enviar no WhatsApp</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px; overflow: hidden;">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div>
+          <p class="sm-eyebrow">Diagnóstico</p>
+          <h1 class="sm-hero">O que fazer hoje</h1>
+          <p class="sm-sub">Seis avisos nesta conta. Três pedem ação sua ainda hoje.</p>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span class="sm-badge sm-badge--destructive">3 urgentes</span>
+          <span class="sm-badge sm-badge--warning">2 para olhar</span>
+          <span class="sm-badge sm-badge--roi">1 indo bem</span>
+        </div>
+      </div>
+
+      <div>
+        <p class="text-hud" style="margin: 0 0 12px; font-size: 10px; color: var(--destructive);">Precisa de você hoje</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+
+          <div class="sm-card" style="padding: 20px; border-color: #2a1615;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #2a1615; color: var(--destructive); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">Uma campanha queimou R$ 180,00 por uma conversa só</p>
+                <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">MC — Engajamento · Rondônia está dez vezes acima do custo médio da conta, que é de R$ 17,72. Pause hoje e mande a verba para São Paulo Capital, que entrega a R$ 11,16.</p>
+                <p style="margin: 10px 0 0; font-size: 12px; color: var(--text-secondary);">Gasto nos últimos 7 dias: R$ 180,00 · 1 conversa · CTR de 0,3%</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                <button class="sm-btn sm-btn--destructive sm-btn--sm">Pausar campanha</button>
+                <button class="sm-btn sm-btn--ghost sm-btn--sm">Ver campanha</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sm-card" style="padding: 20px; border-color: #2a1615;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #2a1615; color: var(--destructive); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7 0l2-2a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-2 2a5 5 0 0 0 7 7l1-1"/><path d="m2 2 20 20"/></svg></span>
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">Sua conexão com a Meta Ads expirou</p>
+                <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">A conta Grupo VIP Moving parou de sincronizar em 2 de setembro. Os números dela estão parados há 23 dias. Reconecte em Configurações › Integrações.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                <button class="sm-btn sm-btn--roi sm-btn--sm">Reconectar conta</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sm-card" style="padding: 20px; border-color: #2a1615;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #2a1615; color: var(--destructive); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/></svg></span>
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">Uma campanha está ligada e não entregou nenhuma vez</p>
+                <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">[TRÁFEGO] Novo público frio está ativa há 6 dias com R$ 8,00 por dia reservados e não gastou nada. Normalmente é público pequeno demais ou lance abaixo do leilão.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                <button class="sm-btn sm-btn--default sm-btn--sm">Abrir conjunto</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <p class="text-hud" style="margin: 0 0 12px; font-size: 10px; color: var(--warning);">Vale olhar esta semana</p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+
+          <div class="sm-card" style="padding: 20px; border-color: #2a2011;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #2a2011; color: var(--warning); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="12" rx="2.5"/><path d="m22 8-5 4 5 4V8Z"/></svg></span>
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">A abertura do VÍDEO 001 não segura ninguém</p>
+                <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">Só 12,1% de quem viu passou dos 3 primeiros segundos, e 3,4% chegou ao fim. O problema está no primeiro segundo — troque a abertura antes de mexer no público.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                <button class="sm-btn sm-btn--outline sm-btn--sm">Ver criativo</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="sm-card" style="padding: 20px; border-color: #2a2011;">
+            <div style="display: flex; align-items: flex-start; gap: 16px;">
+              <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #2a2011; color: var(--warning); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg></span>
+              <div style="flex-grow: 1; min-width: 0;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">O ESTÁTICO 07 está cansando o público</p>
+                <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">Cada pessoa já viu esse anúncio 3,4 vezes, e o custo por conversa subiu de R$ 18,90 para R$ 25,71 em duas semanas. Troque a peça ou amplie o público.</p>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+                <button class="sm-btn sm-btn--outline sm-btn--sm">Ver criativo</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div>
+        <p class="text-hud" style="margin: 0 0 12px; font-size: 10px; color: var(--roi);">Está indo bem</p>
+        <div class="sm-card" style="padding: 20px; border-color: #122a22;">
+          <div style="display: flex; align-items: flex-start; gap: 16px;">
+            <span style="display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: 12px; background: #122a22; color: var(--roi); flex-shrink: 0;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg></span>
+            <div style="flex-grow: 1; min-width: 0;">
+              <p style="margin: 0; font-family: var(--font-display); font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--foreground);">São Paulo Capital aguenta mais verba</p>
+              <p style="margin: 8px 0 0; font-size: 14px; line-height: 1.6; color: var(--text-primary);">Entrega a R$ 11,16 por conversa há nove dias seguidos, abaixo do alvo de R$ 20,00, com frequência ainda em 1,6. Suba o orçamento de 20% a 30% e acompanhe por três dias.</p>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 8px; flex-shrink: 0;">
+              <button class="sm-btn sm-btn--roi sm-btn--sm">Escalar campanha</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

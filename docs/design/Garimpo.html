@@ -1,0 +1,227 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Garimpo — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /garimpo -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1400px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes<small>Gestão de contas</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Garimpo.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg><span>Garimpo<small>Ofertas em escala</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Varredura</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">Nicho: emagrecimento</p>
+      <p class="sm-conn"><i></i> rodando há 2h14</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <label for="nicho" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Nicho ou palavra</label>
+      <input id="nicho" type="search" value="emagrecimento" style="height: 36px; width: 200px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; outline: none;">
+      <label for="pais" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">País</label>
+      <select id="pais" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Brasil</option><option>Portugal</option><option>Alemanha</option><option>Todos</option></select>
+      <label for="fonte" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Fonte</label>
+      <select id="fonte" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Raspagem</option><option>API oficial (UE e Reino Unido)</option></select>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--outline" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M1 14h6"/><path d="M9 8h6"/><path d="M17 16h6"/></svg> Cortes</button>
+      <button class="sm-btn sm-btn--default" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg> Pausar varredura</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div>
+          <p class="sm-eyebrow">Garimpo</p>
+          <h1 class="sm-hero">Ofertas em escala</h1>
+          <p class="sm-sub">Quem está gastando de verdade no seu nicho, agrupado por domínio de destino.</p>
+        </div>
+        <div>
+          <p class="sm-quote">"Página é descartável. Domínio é o negócio."</p>
+          <p class="sm-quote-by">— Start Metric</p>
+        </div>
+      </div>
+
+      <div style="display: flex; align-items: center; gap: 14px; padding: 14px 20px; border-radius: 16px; border: 1px solid #122a22; background: #0f1413;">
+        <span style="display: inline-flex; color: var(--primary);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg></span>
+        <p style="margin: 0; flex-grow: 1; font-size: 13px; color: var(--text-primary);"><strong style="color: var(--foreground);">Varrendo há 2h14.</strong> 18.420 anúncios lidos · 312 domínios encontrados · próxima página em 4s · nenhum bloqueio até agora.</p>
+        <span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Sessão ativa</span>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <article class="sm-kpi">
+          <div class="sm-kpi__top"><span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12h20"/><circle cx="12" cy="12" r="10"/><path d="M12 2a15 15 0 0 1 0 20a15 15 0 0 1 0-20"/></svg></span></div>
+          <p class="sm-kpi__label">Domínios novos hoje</p>
+          <p class="sm-kpi__value">41</p>
+          <p class="sm-kpi__meaning">Apareceram pela primeira vez nesta varredura.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top"><span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg></span></div>
+          <p class="sm-kpi__label">Passaram no corte</p>
+          <p class="sm-kpi__value">9</p>
+          <p class="sm-kpi__meaning">Acima de 30 anúncios e 14 dias no ar.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top"><span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="13" height="13" rx="2"/><path d="M8 21h11a2 2 0 0 0 2-2V8"/></svg></span></div>
+          <p class="sm-kpi__label">Criativo em mais de uma página</p>
+          <p class="sm-kpi__value">6</p>
+          <p class="sm-kpi__meaning">Sinal de quem escala com blindagem.</p>
+        </article>
+        <article class="sm-kpi">
+          <div class="sm-kpi__top"><span class="sm-kpi__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg></span></div>
+          <p class="sm-kpi__label">Anúncios lidos</p>
+          <p class="sm-kpi__value">18.420</p>
+          <p class="sm-kpi__meaning">Duplicados já descontados pelo hash.</p>
+        </article>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+        <div class="sm-tabs__list" role="tablist" aria-label="Estado na esteira">
+          <button class="sm-tabs__trigger" role="tab" aria-selected="true">Novos · 9</button>
+          <button class="sm-tabs__trigger" role="tab" aria-selected="false">Em análise · 3</button>
+          <button class="sm-tabs__trigger" role="tab" aria-selected="false">Aprovados · 12</button>
+          <button class="sm-tabs__trigger" role="tab" aria-selected="false">Descartados · 47</button>
+        </div>
+        <label for="ordem" style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-secondary);">Ordenar por
+          <select id="ordem" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Crescimento em 14 dias</option><option>Total de anúncios</option><option>Dias no ar do mais antigo</option><option>Número de páginas</option></select>
+        </label>
+      </div>
+
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+
+        <a href="Garimpo-oferta.html" class="sm-card" style="display: block; padding: 20px; border-color: #122a22; box-shadow: inset 3px 0 0 #44d5a4;">
+          <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">metodoalfa.com.br</p>
+                <span class="sm-badge sm-badge--roi"><span class="sm-badge__dot"><i></i><b></b></span>Escalando</span>
+                <span class="sm-badge sm-badge--cyan">6 páginas</span>
+              </div>
+              <p style="margin: 8px 0 0; font-size: 13px; color: var(--text-secondary);">Emagrecimento · o mesmo criativo aparece em 4 das 6 páginas · cadeia de redirecionamento com 2 saltos</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 108px); gap: 12px; flex-shrink: 0;">
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Anúncios</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">382</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Mais antigo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">74 d</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Novos em 14 d</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">+118</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Curva</p><svg viewBox="0 0 108 30" preserveAspectRatio="none" style="width: 108px; height: 30px;" aria-hidden="true"><polyline points="0,26 15,24 30,22 45,18 60,14 75,9 90,6 108,2" fill="none" stroke="var(--series-1)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 10px; margin-top: 18px;">
+            <span style="width: 56px; height: 56px; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></span>
+            <span style="width: 56px; height: 56px; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></span>
+            <span style="width: 56px; height: 56px; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></span>
+            <span style="width: 56px; height: 56px; border-radius: 12px; background: #131816; border: 1px solid #1c1f1e;"></span>
+            <span style="font-size: 12px; color: var(--text-secondary);">+378 criativos</span>
+            <span style="flex-grow: 1;"></span>
+            <span class="sm-btn sm-btn--roi sm-btn--sm">Aprovar e monitorar</span>
+            <span class="sm-btn sm-btn--ghost sm-btn--sm">Descartar</span>
+          </div>
+        </a>
+
+        <div class="sm-card" style="padding: 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">ofertaturbo.io</p>
+                <span class="sm-badge sm-badge--warning"><span class="sm-badge__dot"><i></i><b></b></span>Destino divergente</span>
+                <span class="sm-badge sm-badge--cyan">11 páginas</span>
+              </div>
+              <p style="margin: 8px 0 0; font-size: 13px; color: var(--text-secondary);">A Biblioteca mostra um domínio e a cadeia resolve outro. Confira antes de usar como referência.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 108px); gap: 12px; flex-shrink: 0;">
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Anúncios</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">540</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Mais antigo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--warning);">12 d</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Novos em 14 d</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">+540</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Curva</p><svg viewBox="0 0 108 30" preserveAspectRatio="none" style="width: 108px; height: 30px;" aria-hidden="true"><polyline points="0,28 40,27 60,24 75,16 90,7 108,1" fill="none" stroke="var(--series-4)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-card" style="padding: 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">cursodeingles.app</p>
+                <span class="sm-badge sm-badge--roi">Paga há muito tempo</span>
+                <span class="sm-badge sm-badge--secondary">2 páginas</span>
+              </div>
+              <p style="margin: 8px 0 0; font-size: 13px; color: var(--text-secondary);">Volume baixo e estável há três meses. Não está escalando, mas não morre — oferta madura.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 108px); gap: 12px; flex-shrink: 0;">
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Anúncios</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">34</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Mais antigo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">96 d</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Novos em 14 d</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--text-primary);">+4</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Curva</p><svg viewBox="0 0 108 30" preserveAspectRatio="none" style="width: 108px; height: 30px;" aria-hidden="true"><polyline points="0,16 20,15 40,17 60,15 80,16 108,14" fill="none" stroke="var(--series-2)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-card" style="padding: 20px;">
+          <div style="display: flex; align-items: flex-start; gap: 20px;">
+            <div style="flex-grow: 1; min-width: 0;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <p style="margin: 0; font-family: var(--font-display); font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: var(--foreground);">lojaverdefit.com.br</p>
+                <span class="sm-badge sm-badge--outline">Sem histórico</span>
+                <span class="sm-badge sm-badge--secondary">1 página</span>
+              </div>
+              <p style="margin: 8px 0 0; font-size: 13px; color: var(--text-secondary);">Entrou no ar há 8 dias. Cedo demais para dizer se paga — volta a aparecer na próxima varredura.</p>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(4, 108px); gap: 12px; flex-shrink: 0;">
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Anúncios</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">28</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Mais antigo</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--text-primary);">8 d</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Novos em 14 d</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--text-primary);">—</p></div>
+              <div><p class="text-hud" style="margin: 0 0 6px; font-size: 10px; color: var(--text-secondary);">Curva</p><p style="margin: 0; font-size: 12px; color: var(--text-secondary);">sem base</p></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

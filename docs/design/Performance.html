@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Relatórios — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /performance -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1120px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="#"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/></svg><span>Clientes<small>Gestão de contas</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Performance.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Conta ativa</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">evandro@startinc.com.br</p>
+      <p class="sm-conn"><i></i> 2 contas conectadas</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <span class="sm-badge sm-badge--cyan"><span class="sm-badge__dot"><i></i><b></b></span>Última sincronização: hoje, 18h42</span>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--outline" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg> Exportar CSV</button>
+      <button class="sm-btn sm-btn--default" style="height: 44px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12Z"/></svg> Enviar no WhatsApp</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 20px; overflow: hidden;">
+
+      <div>
+        <p class="sm-eyebrow">Relatórios</p>
+        <h1 class="sm-hero">Performance</h1>
+        <p class="sm-sub">Gasto, receita atribuída e retorno por campanha · 18 ago a 16 set · fuso da conta de anúncios</p>
+      </div>
+
+      <div class="sm-alert glass">
+        <span class="sm-alert__icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+        <div style="flex-grow: 1;">
+          <p class="sm-alert__title">A Meta limitou as consultas desta conta.</p>
+          <p class="sm-alert__hint">Os números abaixo são de 6 minutos atrás, das 18h36. Tente de novo em alguns minutos.</p>
+        </div>
+        <button class="sm-btn sm-btn--outline sm-btn--sm">Tentar de novo</button>
+      </div>
+
+      <div style="display: flex; align-items: flex-end; gap: 16px; flex-wrap: wrap; padding: 16px 20px; border-radius: 16px; border: 1px solid #1c1f1e; background: #0f1413;">
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="pconta" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Conta</label>
+          <select id="pconta" style="height: 44px; min-width: 240px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px;"><option>Todas</option><option>Almeida Amaral Advogados</option><option>Grupo VIP Moving</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="pstatus" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Situação</label>
+          <select id="pstatus" style="height: 44px; min-width: 180px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px;"><option>Todas</option><option>Ativa</option><option>Pausada</option><option>Sem entrega</option></select>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="pde" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">De</label>
+          <input id="pde" type="date" value="2026-08-18" style="height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px;">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 6px;">
+          <label for="pate" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Até</label>
+          <input id="pate" type="date" value="2026-09-16" style="height: 44px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 14px;">
+        </div>
+        <button class="sm-btn sm-btn--default" style="height: 44px;">Aplicar recorte</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Gasto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">R$ 1.080,66</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">O que saiu do caixa no período.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Receita atribuída</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">R$ 3.371,66</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Contratos ligados a estes anúncios.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Retorno</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">3,12x</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Cada real investido voltou R$ 3,12.</p></div>
+        <div class="sm-card" style="padding: 18px 20px;"><p class="text-hud" style="margin: 0 0 10px; font-size: 10px; color: var(--text-secondary);">Lucro bruto</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 30px; font-weight: 900; letter-spacing: -0.05em; color: var(--roi);">R$ 2.291,00</p><p style="margin: 8px 0 0; font-size: 12px; color: var(--text-secondary);">Receita menos o que foi gasto.</p></div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px;">
+        <div class="sm-card" style="padding: 14px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Conversas</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">61</p></div>
+        <div class="sm-card" style="padding: 14px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Custo por conversa</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">R$ 17,72</p></div>
+        <div class="sm-card" style="padding: 14px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Impressões</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">48.912</p></div>
+        <div class="sm-card" style="padding: 14px 20px;"><p style="margin: 0 0 6px; font-size: 12px; font-weight: 600; color: var(--text-secondary);">Campanhas no recorte</p><p class="text-mono" style="margin: 0; font-family: var(--font-display); font-size: 22px; font-weight: 900; letter-spacing: -0.05em; color: var(--foreground);">7</p></div>
+      </div>
+
+      <div class="sm-table-wrap">
+        <table class="sm-table">
+          <caption style="caption-side: bottom; margin: 12px 16px; font-size: 11px; color: var(--text-secondary); text-align: left;">Taxas e custos recalculados a partir dos totais, não pela média das linhas.</caption>
+          <thead>
+            <tr><th scope="col">Campanha</th><th scope="col">Conta</th><th scope="col">Situação</th><th scope="col" style="text-align: right;">Gasto</th><th scope="col" style="text-align: right;">Receita</th><th scope="col" style="text-align: right;">Retorno</th></tr>
+          </thead>
+          <tbody>
+            <tr><td class="name">[CONVERSÃO] SÃO PAULO CAPITAL</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 312,58</td><td class="num">R$ 1.408,00</td><td class="pos">4,50x</td></tr>
+            <tr><td class="name">[CONVERSÃO] AMAZONAS E RONDÔNIA</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 271,41</td><td class="num">R$ 880,00</td><td class="pos">3,24x</td></tr>
+            <tr><td class="name">[CONVERSÃO] ACRE</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 188,04</td><td class="num">R$ 616,00</td><td class="pos">3,28x</td></tr>
+            <tr><td class="name">[CONVERSÃO] REMARKETING 7D</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--roi">Ativa</span></td><td class="num">R$ 66,06</td><td class="num">R$ 379,50</td><td class="pos">5,75x</td></tr>
+            <tr><td class="name">MC — ENGAJAMENTO · Rondônia</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--warning">Precisa de você</span></td><td class="num">R$ 180,00</td><td class="num">R$ 88,16</td><td class="neg">0,49x</td></tr>
+            <tr><td class="name">MC — ENGAJAMENTO · Acre</td><td>Almeida Amaral</td><td><span class="sm-badge sm-badge--secondary">Pausada</span></td><td class="num">R$ 62,57</td><td class="num">—</td><td class="num">—</td></tr>
+            <tr><td class="name">[TRÁFEGO] NOVO PÚBLICO FRIO</td><td>Grupo VIP Moving</td><td><span class="sm-badge sm-badge--warning">Sem entrega</span></td><td class="num">—</td><td class="num">—</td><td class="num">—</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

@@ -95,11 +95,11 @@ export function Header({ identity }: { identity?: Promise<SessionIdentity> }) {
 
             {isUserMenuOpen && (
               <div className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-lg border border-border bg-popover p-1.5">
-                <Link href="/settings/profile" onClick={() => setIsUserMenuOpen(false)} className={menuItemClass}>
+                <Link href="/settings/profile" prefetch={true} onClick={() => setIsUserMenuOpen(false)} className={menuItemClass}>
                   <User size={16} className="text-text-muted" />
                   Meu perfil
                 </Link>
-                <Link href="/settings" onClick={() => setIsUserMenuOpen(false)} className={menuItemClass}>
+                <Link href="/settings" prefetch={true} onClick={() => setIsUserMenuOpen(false)} className={menuItemClass}>
                   <Settings size={16} className="text-text-muted" />
                   Configurações
                 </Link>

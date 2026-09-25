@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Horário — Start Metric</title>
+<!-- Exportado do canvas de design do Start Metric. Rota: /horario -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="project/components/bundle.css">
+<style>
+:root{
+--background:#080a09;--foreground:#eaefee;--card:#0f1413;--card-foreground:#eaefee;
+--popover:#0b100e;--popover-foreground:#eaefee;--surface-1:#0f1413;--surface-2:#131816;--surface-border:#141917;
+--primary:#44d5a4;--primary-foreground:#04140e;--primary-dim:#0d251d;--primary-strong:#122a22;--primary-bright:#42e6af;--primary-glow:rgba(68,213,164,0);
+--secondary:#131816;--secondary-foreground:#d6dbd9;--muted:#0f1413;--muted-foreground:#9ba09e;
+--accent:#122a22;--accent-foreground:#44d5a4;--roi:#44d5a4;--roi-foreground:#04140e;--roi-dim:#122a22;--roi-glow:rgba(68,213,164,0);
+--warning:#e7ac49;--warning-dim:#2a2011;--destructive:#d27c75;--destructive-foreground:#ffffff;--danger:#d27c75;--danger-dim:#2a1615;
+--border:#1c1f1e;--input:#131816;--ring:#44d5a4;
+--text-primary:#d6dbd9;--text-secondary:#9ba09e;--text-muted:#656766;
+--white-hairline:#141917;--white-hairline-strong:#1c1f1e;
+--series-1:#44d5a4;--series-2:#6298ec;--series-3:#9d90ed;--series-4:#e7ac49;
+--font-body:"Space Grotesk","Inter","Segoe UI",sans-serif;
+--font-display:"Sora","Space Grotesk","Inter",sans-serif;
+--font-quote:Georgia,"Times New Roman",serif;
+--space-1:4px;--space-1\.5:6px;--space-2:8px;--space-3:12px;--space-4:16px;--space-5:20px;--space-6:24px;--space-8:32px;--space-12:48px;
+--radius-sm:0.5rem;--radius-md:0.75rem;--radius-lg:1rem;--radius-xl:1.5rem;--radius-2xl:2rem;--radius-3xl:2.5rem;--radius-full:9999px;
+--glass:none;--glass-solid:none;--card-drop:none;--glow-primary:none;--glow-primary-sm:none;--glow-roi:none;
+--action-primary:none;--action-roi:none;--action-glow-hover:none;--badge-halo:none;
+--blur-1:14px;--blur-2:18px;--blur-3:24px;
+}
+body{margin:0;background:#080a09;color:#eaefee;font-family:var(--font-body);-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#44d5a4;text-decoration:none}
+a:hover{color:#42e6af}
+</style>
+</head>
+<body>
+<div style="width: 1440px; height: 1100px; display: flex; background: #080a09; color: #eaefee; font-family: var(--font-body);">
+
+  <aside class="sm-sidebar" style="flex-shrink: 0;">
+    <div class="sm-sidebar__brand">
+      <span class="sm-sidebar__mark"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg></span>
+      <span class="sm-sidebar__word"><b>Start Metric</b><i>Inteligência de ROI</i></span>
+    </div>
+    <nav class="sm-sidebar__nav" aria-label="Navegação principal">
+      <a class="sm-nav-item" href="Main.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Dashboard<small>Visão geral do ROI</small></span></a>
+      <a class="sm-nav-item" href="Campanhas.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 11 15-7v16L3 13Z"/><path d="M3 11v2a2 2 0 0 0 2 2h1"/><path d="M7 15v4a1 1 0 0 0 1 1h2"/></svg><span>Campanhas<small>Split-view &amp; gestão</small></span></a>
+      <a class="sm-nav-item" href="Criativos.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="1.6"/><path d="m21 15-5-5L5 21"/></svg><span>Criativos<small>Alta performance</small></span></a>
+      <a class="sm-nav-item" href="Diagnostico.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg><span>Diagnóstico<small>Avisos e ações</small></span></a>
+      <a class="sm-nav-item" href="Horario.html" aria-current="page"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg><span>Horário<small>Quando estar no ar</small></span></a>
+      <a class="sm-nav-item" href="Garimpo.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg><span>Garimpo<small>Ofertas em escala</small></span></a>
+      <a class="sm-nav-item" href="Performance.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v18h18"/><rect x="7" y="11" width="3" height="6" rx="1"/><rect x="13" y="7" width="3" height="10" rx="1"/></svg><span>Relatórios<small>Análise profunda</small></span></a>
+      <a class="sm-nav-item" href="Ajustes.html"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg><span>Configurações<small>Preferências</small></span></a>
+    </nav>
+    <div class="sm-sidebar__foot">
+      <p style="margin: 0 0 6px; font-size: 11px; font-weight: 600; color: var(--text-muted);">Conta ativa</p>
+      <p style="margin: 0 0 8px; font-size: 13px; font-weight: 700; color: var(--foreground);">evandro@startinc.com.br</p>
+      <p class="sm-conn"><i></i> 2 contas conectadas</p>
+    </div>
+  </aside>
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <header style="height: 64px; flex-shrink: 0; display: flex; align-items: center; gap: 12px; padding: 0 32px; border-bottom: 1px solid #141917; background: #0b100e;">
+      <label for="contaH" style="font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Conta</label>
+      <select id="contaH" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Almeida Amaral Advogados</option></select>
+      <label for="metrica" style="margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">O calor mostra</label>
+      <select id="metrica" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Custo por conversa (menor é mais quente)</option><option>Conversas</option><option>Gasto</option></select>
+      <label for="periodoH" style="margin-left: 8px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-secondary);">Período</label>
+      <select id="periodoH" style="height: 36px; padding: 0 12px; border-radius: 12px; border: 1px solid #1c1f1e; background: #131816; color: #eaefee; font-family: var(--font-body); font-size: 13px; font-weight: 600;"><option>Últimos 30 dias</option><option>Últimos 90 dias</option></select>
+      <span style="flex-grow: 1;"></span>
+      <button class="sm-btn sm-btn--outline" style="height: 44px;">Exportar CSV</button>
+    </header>
+
+    <div style="flex-grow: 1; padding: 28px 32px 32px; display: flex; flex-direction: column; gap: 24px; overflow: hidden;">
+
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 32px;">
+        <div>
+          <p class="sm-eyebrow">Horário</p>
+          <h1 class="sm-hero">Quando vale estar no ar</h1>
+          <p class="sm-sub">Custo por conversa por dia da semana e hora · 18 ago a 16 set · fuso da conta de anúncios</p>
+        </div>
+        <div>
+          <p class="sm-quote">"Quanto mais quente, mais barata sai a conversa naquela hora."</p>
+          <p class="sm-quote-by">— Start Metric</p>
+        </div>
+      </div>
+
+      <div class="sm-card">
+        <div class="sm-card__header">
+          <h2 class="sm-card__title">Mapa de calor</h2>
+          <p class="sm-card__desc">Cada célula é uma hora. Passe o mouse para ver dia, hora e leitura.</p>
+        </div>
+        <div class="sm-card__content">
+          <div class="sm-heat">
+            <div class="sm-heat__hours">
+              <span>0h</span><span>3h</span><span>6h</span><span>9h</span><span>12h</span><span>15h</span><span>18h</span><span>21h</span><span>23h</span>
+            </div>
+            <div class="sm-heat__row"><span class="sm-heat__day">Seg</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Seg 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Seg 6h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Seg 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Seg 8h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Seg 9h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 10h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 11h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 12h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Seg 13h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Seg 14h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 15h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 16h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Seg 17h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Seg 18h · bom"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Seg 19h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Seg 20h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Seg 21h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Seg 22h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Seg 23h · fraco"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Ter</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Ter 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Ter 6h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Ter 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Ter 8h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Ter 9h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Ter 10h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Ter 11h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Ter 12h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Ter 13h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Ter 14h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Ter 15h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Ter 16h · bom"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Ter 17h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Ter 18h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Ter 19h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Ter 20h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Ter 21h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Ter 22h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Ter 23h · razoável"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Qua</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qua 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Qua 6h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Qua 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Qua 8h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Qua 9h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 10h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qua 11h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 12h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qua 13h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qua 14h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 15h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 16h · bom"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qua 17h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qua 18h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qua 19h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qua 20h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 21h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qua 22h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qua 23h · razoável"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Qui</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Qui 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Qui 6h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Qui 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Qui 8h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Qui 9h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qui 10h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qui 11h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qui 12h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qui 13h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qui 14h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qui 15h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qui 16h · bom"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qui 17h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qui 18h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qui 19h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.94;" title="Qui 20h · melhor janela"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qui 21h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Qui 22h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Qui 23h · razoável"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Sex</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sex 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sex 6h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sex 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sex 8h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sex 9h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 10h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 11h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 12h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sex 13h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sex 14h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 15h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 16h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Sex 17h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Sex 18h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Sex 19h · bom"></span><span class="sm-heat__cell" style="opacity: 0.7;" title="Sex 20h · bom"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sex 21h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sex 22h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sex 23h · muito fraco"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Sáb</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Sáb 6h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sáb 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sáb 8h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sáb 9h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 10h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 11h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 12h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 13h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 14h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sáb 15h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sáb 16h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sáb 17h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sáb 18h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Sáb 19h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 20h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Sáb 21h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sáb 22h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Sáb 23h · muito fraco"></span></div></div>
+<div class="sm-heat__row"><span class="sm-heat__day">Dom</span><div class="sm-heat__cells"><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 0h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 1h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 2h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 3h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 4h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 5h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.05;" title="Dom 6h · quase nada"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 7h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 8h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 9h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 10h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 11h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 12h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 13h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Dom 14h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Dom 15h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Dom 16h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Dom 17h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.46;" title="Dom 18h · razoável"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 19h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.28;" title="Dom 20h · fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 21h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 22h · muito fraco"></span><span class="sm-heat__cell" style="opacity: 0.14;" title="Dom 23h · muito fraco"></span></div></div>
+                </div>
+              </div>
+            </sc-for>
+            <div class="sm-heat__legend">
+              <span>conversa mais cara</span>
+              <span class="sm-heat__cell" style="opacity: 0.05;"></span><span class="sm-heat__cell" style="opacity: 0.14;"></span><span class="sm-heat__cell" style="opacity: 0.28;"></span><span class="sm-heat__cell" style="opacity: 0.46;"></span><span class="sm-heat__cell" style="opacity: 0.7;"></span><span class="sm-heat__cell" style="opacity: 0.94;"></span>
+              <span>conversa mais barata</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.4fr; gap: 20px;">
+
+        <div class="sm-card">
+          <div class="sm-card__header">
+            <h2 class="sm-card__title">Melhores janelas</h2>
+            <p class="sm-card__desc">Onde a conversa sai mais barata</p>
+          </div>
+          <div class="sm-card__content" style="display: flex; flex-direction: column; gap: 10px;">
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #131816;">
+              <span class="sm-item__rank">1</span>
+              <div style="flex-grow: 1;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">Terça a quinta, 19h às 22h</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 9,40 por conversa · 31% de todas as conversas</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #131816;">
+              <span class="sm-item__rank">2</span>
+              <div style="flex-grow: 1;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">Segunda a sexta, 12h às 14h</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 14,80 por conversa · 18% das conversas</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #131816;">
+              <span class="sm-item__rank">3</span>
+              <div style="flex-grow: 1;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">Sábado, 15h às 19h</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--text-secondary);">R$ 16,20 por conversa · 9% das conversas</p></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 12px; background: #2a1615;">
+              <span style="display: inline-flex; color: var(--destructive);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 17h6v-6"/><path d="m22 17-8.5-8.5-5 5L2 7"/></svg></span>
+              <div style="flex-grow: 1;"><p style="margin: 0; font-size: 13px; font-weight: 600; color: var(--foreground);">Todo dia, 1h às 6h</p><p style="margin: 3px 0 0; font-size: 11px; color: var(--destructive);">R$ 64,10 por conversa · 4% das conversas e 14% do gasto</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sm-insight">
+          <div class="sm-insight__head">
+            <span style="color: var(--primary); margin-top: 2px;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9.94 14.06 4 16l5.94 1.94L12 24l2.06-6.06L20 16l-5.94-1.94L12 8Z"/><path d="M19 3v4"/><path d="M17 5h4"/></svg></span>
+            <div><p class="sm-insight__title">Leitura do horário</p><p class="sm-insight__sub">O que fazer com esse padrão.</p></div>
+          </div>
+          <div class="sm-item sm-item--flag">
+            <span style="color: var(--warning); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+            <div>
+              <p class="sm-item__kicker">Atenção</p>
+              <p class="sm-item__title">A madrugada come 14% da verba e devolve 4% das conversas</p>
+              <p class="sm-item__body">Entre 1h e 6h a conversa sai a R$ 64,10. Sem programação de horário, o leilão gasta a noite inteira. Configure a veiculação para começar às 8h.</p>
+            </div>
+          </div>
+          <div class="sm-item">
+            <span style="color: var(--primary); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/></svg></span>
+            <div>
+              <p class="sm-item__title">Concentre a verba de terça a quinta à noite</p>
+              <p class="sm-item__body">Três noites respondem por 31% das conversas a R$ 9,40. É quase metade do custo médio da conta, que é de R$ 17,72.</p>
+            </div>
+          </div>
+          <div class="sm-item">
+            <span style="color: var(--text-secondary); margin-top: 1px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+            <div>
+              <p class="sm-item__title">A programação por horário exige orçamento vitalício</p>
+              <p class="sm-item__body">Na Meta, só dá para escolher horas do dia quando o conjunto usa orçamento vitalício. Com orçamento diário, a opção nem aparece.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+</body>
+</html>

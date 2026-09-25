@@ -383,6 +383,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           warning: "Limite temporário da Meta atingido. Servindo dados do cache de 90s.",
         });
       }
+      if (accData.error.code === 190) {
+        void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        return NextResponse.json(
+          {
+            error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,
+            code: 190,
+            tokenExpired: true,
+          },
+          { status: 400 }
+        );
+      }
       return NextResponse.json({ error: `Erro na conta (${accData.error.code}): ${accData.error.message}` }, { status: 400 });
     }
 
@@ -433,6 +444,17 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
           rateLimitHit: true,
           warning: "Limite de consultas da Meta atingido. Exibindo dados recentes em cache.",
         });
+      }
+      if (r?.error?.code === 190) {
+        void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        return NextResponse.json(
+          {
+            error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,
+            code: 190,
+            tokenExpired: true,
+          },
+          { status: 400 }
+        );
       }
     }
 

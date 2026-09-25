@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { HorarioClient } from "@/components/meta/HorarioClient";
+import { SkeletonHeatmap } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Horário | Start Metric",
@@ -7,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function HorarioPage() {
-  return <HorarioClient />;
+  return (
+    <Suspense fallback={<SkeletonHeatmap />}>
+      <HorarioClient />
+    </Suspense>
+  );
 }

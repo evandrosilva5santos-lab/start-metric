@@ -48,6 +48,9 @@ function cutoffDate(days: number): string {
   return now.toISOString().slice(0, 10);
 }
 
+const INSIGHTS_CACHE_TTL_MS = 60 * 1000;
+const insightsMemoryCache = new Map<string, { timestamp: number; data: DailyInsightResponse[] }>();
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const supabase = await createClient();
 
@@ -70,6 +73,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   if (!isValidParam(accountIdParam) || !isValidParam(datePresetParam)) {
     return NextResponse.json({ error: "Parâmetros inválidos" }, { status: 400 });
+  }
+
+  const cacheKey = `${user.id}:${accountIdParam}:${datePresetParam}`;
+  const now = Date.now();
+  const cached = insightsMemoryCache.get(cacheKey);
+  if (cached && now - cached.timestamp < INSIGHTS_CACHE_TTL_MS) {
+    return NextResponse.json(cached.data);
   }
 
   const normalized = normalizeAccountId(accountIdParam);
@@ -142,5 +152,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     byDate.set(row.date, current);
   }
 
-  return NextResponse.json(Array.from(byDate.values()));
+  const result = Array.from(byDate.values());
+  if (insightsMemoryCache.size >= 100) {
+    const oldest = insightsMemoryCache.keys().next().value;
+    if (oldest !== undefined) insightsMemoryCache.delete(oldest);
+  }
+  insightsMemoryCache.set(cacheKey, { timestamp: now, data: result });
+
+  return NextResponse.json(result);
 }

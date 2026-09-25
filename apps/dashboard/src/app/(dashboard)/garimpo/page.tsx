@@ -1,7 +1,9 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getServerSupabase, getSessionProfile } from "@/lib/auth/session";
 import { getGarimpoOverview } from "@/lib/garimpo/queries";
 import { GarimpoClient } from "@/components/garimpo/GarimpoClient";
+import { SkeletonGarimpoGrid } from "@/components/ui/Skeleton";
 
 export const metadata = {
   title: "Garimpo | Start Metric",
@@ -15,7 +17,7 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-export default async function GarimpoPage() {
+async function GarimpoDataLoader() {
   const profile = await getSessionProfile();
   if (!profile) redirect("/auth");
   if (!profile.orgId) {
@@ -29,4 +31,12 @@ export default async function GarimpoPage() {
   const supabase = await getServerSupabase();
   const data = await getGarimpoOverview(supabase, profile.orgId);
   return <GarimpoClient data={data} generatedAt={nowIso()} />;
+}
+
+export default function GarimpoPage() {
+  return (
+    <Suspense fallback={<SkeletonGarimpoGrid />}>
+      <GarimpoDataLoader />
+    </Suspense>
+  );
 }

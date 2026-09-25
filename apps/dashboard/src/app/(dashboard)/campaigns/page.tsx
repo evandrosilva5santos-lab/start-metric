@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { CampanhasClient } from "@/components/meta/CampanhasClient";
+import { SkeletonTable } from "@/components/ui/Skeleton";
 
 export const metadata: Metadata = {
   title: "Campanhas | Start Metric",
@@ -7,5 +9,9 @@ export const metadata: Metadata = {
 };
 
 export default function CampaignsPage() {
-  return <CampanhasClient />;
+  return (
+    <Suspense fallback={<SkeletonTable />}>
+      <CampanhasClient />
+    </Suspense>
+  );
 }
