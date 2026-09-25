@@ -84,8 +84,13 @@ export function useMetaDados() {
   const query = useQuery({
     queryKey: key,
     queryFn: async ({ signal, queryKey }) => {
+      // Aba escondida ou celular no bolso: não gasta cota da Meta à toa
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        const cached = queryClient.getQueryData<DadosResponse>(queryKey);
+        if (cached) return cached;
+      }
       // Primeira carga pode vir do cache do servidor; toda recarga depois
-      // disso (ao vivo, botão atualizar) pede dados novos à Meta.
+      // disso (ao vivo, botão atualizar, acordar) pede dados novos à Meta.
       const fresh = (queryClient.getQueryState(queryKey)?.dataUpdatedAt ?? 0) > 0;
       const params = new URLSearchParams({ account_id: accountId, range });
       if (fresh) params.set("fresh", "true");
@@ -95,11 +100,57 @@ export function useMetaDados() {
     },
     enabled: Boolean(accountId),
     staleTime: 3 * 60 * 1000,
-    refetchInterval: liveInterval > 0 ? liveInterval * 1000 : false,
-    // Aba escondida não gasta cota da Meta; ao voltar, atualiza na hora.
+    // Atualiza sozinho enquanto aberto na frente da pessoa; para quando escondido
+    refetchInterval: () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return false;
+      }
+      return liveInterval > 0 ? liveInterval * 1000 : false;
+    },
     refetchIntervalInBackground: false,
-    refetchOnWindowFocus: liveInterval > 0,
+    refetchOnWindowFocus: false, // Controlado com precisão pelo listener de acordar abaixo
+    refetchOnReconnect: true,
+    retry: 1,
+    retryDelay: 1500,
   });
+
+  // iPhone Standalone PWA / Tela de início e retorno de aba:
+  // Ao reabrir ou tirar do bolso, o iOS acorda o app da memória sem recarregar a página.
+  // Escutamos visibilitychange, pageshow, focus e online para buscar na hora.
+  useEffect(() => {
+    if (!accountId) return;
+
+    let lastWakeAttempt = 0;
+
+    const handleWake = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+        return;
+      }
+      const now = Date.now();
+      const state = queryClient.getQueryState(key);
+      const updatedAt = state?.dataUpdatedAt ?? 0;
+      const elapsedSinceUpdate = now - updatedAt;
+      const elapsedSinceLastAttempt = now - lastWakeAttempt;
+
+      // Se passou mais de 10s da última busca e não houve tentativa recente, atualiza na hora
+      if (elapsedSinceUpdate > 10_000 && elapsedSinceLastAttempt > 4_000) {
+        lastWakeAttempt = now;
+        void queryClient.refetchQueries({ queryKey: key, exact: true });
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleWake);
+    window.addEventListener("pageshow", handleWake);
+    window.addEventListener("focus", handleWake);
+    window.addEventListener("online", handleWake);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleWake);
+      window.removeEventListener("pageshow", handleWake);
+      window.removeEventListener("focus", handleWake);
+      window.removeEventListener("online", handleWake);
+    };
+  }, [accountId, key, queryClient]);
 
   const refresh = useCallback(
     () => queryClient.refetchQueries({ queryKey: key, exact: true }),

@@ -9,6 +9,7 @@ node_modules/
 # build
 .next/
 dist/
+!packages/reports/dist/
 out/
 build/
 screenshots/

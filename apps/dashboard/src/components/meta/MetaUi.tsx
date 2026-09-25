@@ -1,7 +1,8 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
-import { AlertTriangle, Link2 } from "lucide-react";
+import { AlertTriangle, Link2, WifiOff } from "lucide-react";
 import { formatVariation } from "@/lib/format";
 import { useMetaAccounts, useMetaDados } from "@/hooks/useMetaDashboard";
 import type { DadosResponse } from "@/lib/meta/dados-types";
@@ -173,10 +174,26 @@ export function MetaDataGate({ children }: { children: (data: DadosResponse) => 
 }
 
 function ErrorPanel({ message, onRetry }: { message: string; onRetry: () => void }) {
+  const isNetworkError =
+    message.toLowerCase().includes("failed to fetch") ||
+    message.toLowerCase().includes("network") ||
+    message.toLowerCase().includes("conexão") ||
+    message.toLowerCase().includes("offline") ||
+    message.toLowerCase().includes("err_") ||
+    (typeof navigator !== "undefined" && !navigator.onLine);
+
   const isTokenExpired =
     message.includes("190") ||
     message.toLowerCase().includes("access token") ||
     message.toLowerCase().includes("session has been invalidated");
+
+  // No celular a conexão oscila: quando a internet voltar, tenta sozinho
+  useEffect(() => {
+    if (!isNetworkError) return;
+    const handleOnline = () => onRetry();
+    window.addEventListener("online", handleOnline);
+    return () => window.removeEventListener("online", handleOnline);
+  }, [isNetworkError, onRetry]);
 
   if (isTokenExpired) {
     return (
@@ -208,9 +225,31 @@ function ErrorPanel({ message, onRetry }: { message: string; onRetry: () => void
     );
   }
 
+  // Falha de rede: cartão calmo sem vermelho, reconecta sozinho
+  if (isNetworkError) {
+    return (
+      <div role="status" className="mx-auto max-w-md rounded-2xl border border-border/80 bg-card p-6 text-center shadow-sm">
+        <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-surface-2 text-text-secondary">
+          <WifiOff size={22} />
+        </div>
+        <h2 className="mt-3.5 font-display text-base font-semibold text-foreground">Aguardando sinal de internet</h2>
+        <p className="mt-1 text-xs text-text-secondary leading-relaxed">
+          A conexão com a rede caiu ou está oscilando. O painel se reconecta e atualiza sozinho assim que o sinal voltar.
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="mt-4 inline-flex h-9 items-center rounded-lg border border-border bg-input px-4 text-sm font-medium text-text-primary hover:border-white-hairline-strong transition-colors"
+        >
+          Tentar agora
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div role="alert" className="mx-auto max-w-md rounded-2xl border border-danger/30 bg-danger-dim p-6 text-center">
-      <AlertTriangle className="mx-auto text-danger" size={24} />
+    <div role="alert" className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 text-center">
+      <AlertTriangle className="mx-auto text-warning" size={24} />
       <p className="mt-2 text-sm font-semibold text-foreground">Não deu para carregar os dados</p>
       <p className="mt-1 text-xs text-text-secondary">{message}</p>
       <button

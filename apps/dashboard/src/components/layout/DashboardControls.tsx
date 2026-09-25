@@ -17,21 +17,111 @@ const selectClass =
 const iconButtonClass =
   "h-9 w-9 shrink-0 flex items-center justify-center rounded-lg border border-border bg-input text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
 
-function useNow(intervalMs: number) {
-  const [now, setNow] = useState(() => Date.now());
+function useOnlineStatus() {
+  const [online, setOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
   useEffect(() => {
-    const id = window.setInterval(() => setNow(Date.now()), intervalMs);
-    return () => window.clearInterval(id);
-  }, [intervalMs]);
-  return now;
+    const handleOnline = () => setOnline(true);
+    const handleOffline = () => setOnline(false);
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+  return online;
 }
 
-function updatedLabel(updatedAt: number, now: number): string {
-  if (!updatedAt) return "carregando…";
-  const minutes = Math.floor((now - updatedAt) / 60_000);
-  if (minutes < 1) return "atualizado agora";
-  if (minutes < 60) return `atualizado há ${minutes} min`;
-  return `atualizado às ${new Date(updatedAt).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}`;
+function formatExactTime(updatedAt: number): string {
+  if (!updatedAt) return "";
+  return new Date(updatedAt).toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
+function LiveBadge({
+  live,
+  isError,
+  isFetching,
+  updatedAt,
+  isOnline,
+  onRefresh,
+}: {
+  live: boolean;
+  isError: boolean;
+  isFetching: boolean;
+  updatedAt: number;
+  isOnline: boolean;
+  onRefresh: () => void;
+}) {
+  const time = formatExactTime(updatedAt);
+  const isCooledDown = live && (isError || !isOnline);
+
+  if (isFetching) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary-dim/30 px-2.5 py-1 text-xs font-medium text-primary tabular-nums"
+        title="Buscando dados frescos com a Meta…"
+      >
+        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+        <span>Atualizando…</span>
+      </div>
+    );
+  }
+
+  // Falha de rede ou sem conexão: esfria suavemente mantendo os dados na tela (sem alarme vermelho)
+  if (isCooledDown) {
+    return (
+      <button
+        type="button"
+        onClick={onRefresh}
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/70 bg-surface-2/60 px-2.5 py-1 text-xs font-medium text-text-secondary tabular-nums transition-colors hover:border-white-hairline-strong hover:text-text-primary"
+        title={
+          time
+            ? `Conexão oscilando. Dados de ${time} preservados na tela. Toque para tentar agora.`
+            : "Aguardando sinal de rede. Toque para tentar."
+        }
+      >
+        <span className="h-2 w-2 rounded-full bg-amber-400/80 transition-colors" aria-hidden="true" />
+        <span>{time ? `Pausado · dados de ${time}` : "Aguardando rede"}</span>
+      </button>
+    );
+  }
+
+  // Ao vivo ativo e com resposta da Meta
+  if (live) {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary-dim/40 px-2.5 py-1 text-xs font-semibold text-primary tabular-nums transition-all"
+        title="Ao vivo · atualiza automaticamente enquanto a tela estiver visível"
+      >
+        <span className="relative flex h-2 w-2">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 motion-reduce:hidden" />
+          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+        </span>
+        <span>{time ? `Ao vivo · ${time}` : "Ao vivo"}</span>
+      </div>
+    );
+  }
+
+  // Atualização manual
+  return (
+    <button
+      type="button"
+      onClick={onRefresh}
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-input px-2.5 py-1 text-xs font-medium text-text-muted tabular-nums hover:text-text-primary transition-colors"
+      title="Atualização manual. Toque para buscar agora."
+    >
+      <span className="h-2 w-2 rounded-full bg-text-muted" aria-hidden="true" />
+      <span>{time ? `Atualizado às ${time}` : "Manual"}</span>
+    </button>
+  );
 }
 
 /** Conta, período, modo ao vivo, atualizar e ocultar valores: valem para todas as telas da Meta. */
@@ -48,7 +138,7 @@ export function DashboardControls() {
   const setRange = useDashboardFilters((s) => s.setRange);
   const setLiveInterval = useDashboardFilters((s) => s.setLiveInterval);
   const toggleHideValues = useDashboardFilters((s) => s.toggleHideValues);
-  const now = useNow(15_000);
+  const isOnline = useOnlineStatus();
 
   const selectedAccount = accounts.find((a) => a.id === accountId);
   const selectedClient = clients.find((c) => c.id === clientId);
@@ -69,7 +159,7 @@ export function DashboardControls() {
         aria-label="Cliente"
         title={selectedClient?.name}
         disabled={accountsLoading || clients.length === 0}
-        className={`${selectClass} min-w-0 max-w-[200px] truncate`}
+        className={`${selectClass} min-w-0 max-w-[180px] truncate`}
       >
         {clients.length === 0 && <option value="">{accountsLoading ? "Carregando…" : "Nenhum cliente"}</option>}
         {clients.map((c) => (
@@ -85,7 +175,7 @@ export function DashboardControls() {
         aria-label="Conta de anúncios"
         title={selectedAccount?.name}
         disabled={accountsLoading || clientAccounts.length === 0}
-        className={`${selectClass} min-w-0 max-w-[240px] truncate`}
+        className={`${selectClass} min-w-0 max-w-[220px] truncate`}
       >
         {clientAccounts.length === 0 && <option value="">{accountsLoading ? "Carregando contas…" : "Nenhuma conta"}</option>}
         {clientAccounts.map((acc) => (
@@ -113,10 +203,10 @@ export function DashboardControls() {
         <span
           aria-hidden="true"
           className={`pointer-events-none absolute left-3 h-2 w-2 rounded-full ${
-            live ? "bg-primary animate-pulse motion-reduce:animate-none" : "bg-text-muted"
+            live ? "bg-primary" : "bg-text-muted"
           }`}
         />
-        <span className="sr-only">Modo de atualização</span>
+        <span className="sr-only">Frequência de atualização</span>
         <select
           value={liveInterval}
           onChange={(e) => setLiveInterval(Number(e.target.value) as LiveInterval)}
@@ -130,19 +220,22 @@ export function DashboardControls() {
         </select>
       </label>
 
-      <span
-        role="status"
-        className="shrink-0 whitespace-nowrap text-xs text-text-muted tabular-nums"
-      >
-        {dados.isError ? "falha ao atualizar" : updatedLabel(dados.dataUpdatedAt, now)}
-      </span>
+      {/* Selo de "Ao vivo" com hora exata e esfriamento gracioso */}
+      <LiveBadge
+        live={live}
+        isError={dados.isError}
+        isFetching={dados.isFetching}
+        updatedAt={dados.dataUpdatedAt}
+        isOnline={isOnline}
+        onRefresh={() => void dados.refresh()}
+      />
 
       <button
         type="button"
         onClick={() => void dados.refresh()}
         disabled={!dados.hasAccount || dados.isFetching}
-        aria-label="Atualizar dados da Meta"
-        title="Atualizar"
+        aria-label="Atualizar dados da Meta agora"
+        title="Atualizar agora"
         className={iconButtonClass}
       >
         <RefreshCw size={15} className={dados.isFetching ? "animate-spin text-primary" : ""} />

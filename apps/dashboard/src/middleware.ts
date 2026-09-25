@@ -3,7 +3,18 @@ import { type NextRequest, NextResponse } from "next/server";
 import { isPlatformAdminEmail } from "@/lib/admin/access";
 import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 
-const PUBLIC_PATHS = ["/auth", "/admin/auth"];
+const PUBLIC_PATHS = [
+  "/auth",
+  "/admin/auth",
+  "/manifest.webmanifest",
+  "/manifest.json",
+  "/icon.svg",
+  "/icon-maskable.svg",
+  "/favicon.ico",
+  "/favicon.png",
+  "/apple-touch-icon.png",
+  "/apple-touch-icon-precomposed.png",
+];
 
 // Use server-side vars (without NEXT_PUBLIC_ prefix) in Edge Runtime.
 // In Vercel, also define SUPABASE_URL and SUPABASE_ANON_KEY (duplicates of
@@ -39,8 +50,19 @@ export async function middleware(request: NextRequest) {
     },
   });
 
-  // Do not redirect API routes here; enforce auth inside each handler.
-  if (pathname.startsWith("/api")) return response;
+  // Do not redirect API routes, icons or manifests; allow public access for PWA installation
+  if (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/icons") ||
+    pathname === "/manifest.webmanifest" ||
+    pathname === "/manifest.json" ||
+    pathname.endsWith(".webmanifest") ||
+    pathname.endsWith(".png") ||
+    pathname.endsWith(".svg") ||
+    pathname.endsWith(".ico")
+  ) {
+    return response;
+  }
 
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     // Se já autenticado por senha do painel, redireciona /auth para o painel
