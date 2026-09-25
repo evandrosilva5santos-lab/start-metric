@@ -11,7 +11,7 @@ import { clearSnapshots } from "@/lib/dashboard/snapshot";
 import { useDashboardFilters } from "@/store/dashboard-filters";
 import { DashboardControls } from "@/components/layout/DashboardControls";
 import { BrandMark, NavLinks } from "@/components/layout/Sidebar";
-import { MANAGE_NAV, META_NAV, isMetaPath } from "@/components/layout/nav-items";
+import { DISCOVER_NAV, MANAGE_NAV, META_NAV, isMetaPath } from "@/components/layout/nav-items";
 
 function getInitials(name: string, email: string) {
   if (name) {
@@ -143,6 +143,12 @@ export function Header({ identity }: { identity?: Promise<SessionIdentity> }) {
         <nav id="mobile-nav" aria-label="Menu principal" className="space-y-5 border-t border-border px-3 py-4 lg:hidden">
           <NavLinks
             items={META_NAV}
+            pathname={pathname}
+            diagnosticCount={diagnosticCount}
+            onNavigate={() => setIsMobileMenuOpen(false)}
+          />
+          <NavLinks
+            items={DISCOVER_NAV}
             pathname={pathname}
             diagnosticCount={diagnosticCount}
             onNavigate={() => setIsMobileMenuOpen(false)}

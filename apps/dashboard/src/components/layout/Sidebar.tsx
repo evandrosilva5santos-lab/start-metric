@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { Zap } from "lucide-react";
 import { useSessionIdentity, type SessionIdentity } from "@/hooks/useSessionIdentity";
 import { useDiagnosticCount } from "@/hooks/useMetaDashboard";
-import { META_NAV, MANAGE_NAV, isActivePath, type NavItem } from "@/components/layout/nav-items";
+import { META_NAV, DISCOVER_NAV, MANAGE_NAV, isActivePath, type NavItem } from "@/components/layout/nav-items";
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
@@ -84,6 +84,10 @@ export function Sidebar({ identity }: { identity?: Promise<SessionIdentity> }) {
         <div>
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Meta Ads</p>
           <NavLinks items={META_NAV} pathname={pathname} diagnosticCount={diagnosticCount} />
+        </div>
+        <div>
+          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Descoberta</p>
+          <NavLinks items={DISCOVER_NAV} pathname={pathname} diagnosticCount={diagnosticCount} />
         </div>
         <div>
           <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Gestão</p>

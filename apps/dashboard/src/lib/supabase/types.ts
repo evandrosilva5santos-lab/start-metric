@@ -827,6 +827,358 @@ export type Database = {
           },
         ]
       }
+      garimpo_ads: {
+        Row: {
+          ad_archive_id: string
+          body_text: string | null
+          captured_at: string
+          creative_hash: string | null
+          cta: string | null
+          format: string | null
+          hash_kind: string | null
+          id: string
+          is_active: boolean
+          media_url: string | null
+          offer_id: string
+          org_id: string
+          page_id: string
+          started_at: string | null
+        }
+        Insert: {
+          ad_archive_id: string
+          body_text?: string | null
+          captured_at?: string
+          creative_hash?: string | null
+          cta?: string | null
+          format?: string | null
+          hash_kind?: string | null
+          id?: string
+          is_active?: boolean
+          media_url?: string | null
+          offer_id: string
+          org_id: string
+          page_id: string
+          started_at?: string | null
+        }
+        Update: {
+          ad_archive_id?: string
+          body_text?: string | null
+          captured_at?: string
+          creative_hash?: string | null
+          cta?: string | null
+          format?: string | null
+          hash_kind?: string | null
+          id?: string
+          is_active?: boolean
+          media_url?: string | null
+          offer_id?: string
+          org_id?: string
+          page_id?: string
+          started_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_ads_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "garimpo_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garimpo_ads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garimpo_ads_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "garimpo_pages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_cuts: {
+        Row: {
+          formats: string[]
+          id: string
+          min_ads: number
+          min_days: number
+          min_pages: number
+          org_id: string
+          updated_at: string
+        }
+        Insert: {
+          formats?: string[]
+          id?: string
+          min_ads?: number
+          min_days?: number
+          min_pages?: number
+          org_id: string
+          updated_at?: string
+        }
+        Update: {
+          formats?: string[]
+          id?: string
+          min_ads?: number
+          min_days?: number
+          min_pages?: number
+          org_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_cuts_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_offer_daily: {
+        Row: {
+          active_ads: number
+          day: string
+          offer_id: string
+          org_id: string
+          pages: number
+        }
+        Insert: {
+          active_ads: number
+          day: string
+          offer_id: string
+          org_id: string
+          pages: number
+        }
+        Update: {
+          active_ads?: number
+          day?: string
+          offer_id?: string
+          org_id?: string
+          pages?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_offer_daily_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "garimpo_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garimpo_offer_daily_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_offer_domains: {
+        Row: {
+          checked_at: string
+          displayed_domain: string | null
+          divergent: boolean
+          id: string
+          offer_id: string
+          org_id: string
+          raw_link: string
+          redirect_chain: string[]
+          resolve_error: string | null
+          resolved_domain: string | null
+        }
+        Insert: {
+          checked_at?: string
+          displayed_domain?: string | null
+          divergent?: boolean
+          id?: string
+          offer_id: string
+          org_id: string
+          raw_link: string
+          redirect_chain?: string[]
+          resolve_error?: string | null
+          resolved_domain?: string | null
+        }
+        Update: {
+          checked_at?: string
+          displayed_domain?: string | null
+          divergent?: boolean
+          id?: string
+          offer_id?: string
+          org_id?: string
+          raw_link?: string
+          redirect_chain?: string[]
+          resolve_error?: string | null
+          resolved_domain?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_offer_domains_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "garimpo_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garimpo_offer_domains_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_offers: {
+        Row: {
+          country: string | null
+          domain: string
+          first_seen_at: string
+          id: string
+          last_seen_at: string
+          niche: string | null
+          org_id: string
+          score: number | null
+          score_parts: Json | null
+          status: Database["public"]["Enums"]["garimpo_offer_status"]
+          updated_at: string
+          watch: boolean
+        }
+        Insert: {
+          country?: string | null
+          domain: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          niche?: string | null
+          org_id: string
+          score?: number | null
+          score_parts?: Json | null
+          status?: Database["public"]["Enums"]["garimpo_offer_status"]
+          updated_at?: string
+          watch?: boolean
+        }
+        Update: {
+          country?: string | null
+          domain?: string
+          first_seen_at?: string
+          id?: string
+          last_seen_at?: string
+          niche?: string | null
+          org_id?: string
+          score?: number | null
+          score_parts?: Json | null
+          status?: Database["public"]["Enums"]["garimpo_offer_status"]
+          updated_at?: string
+          watch?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_offers_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_pages: {
+        Row: {
+          first_seen_at: string
+          id: string
+          offer_id: string
+          org_id: string
+          page_id_meta: string
+          page_name: string | null
+        }
+        Insert: {
+          first_seen_at?: string
+          id?: string
+          offer_id: string
+          org_id: string
+          page_id_meta: string
+          page_name?: string | null
+        }
+        Update: {
+          first_seen_at?: string
+          id?: string
+          offer_id?: string
+          org_id?: string
+          page_id_meta?: string
+          page_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_pages_offer_id_fkey"
+            columns: ["offer_id"]
+            isOneToOne: false
+            referencedRelation: "garimpo_offers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "garimpo_pages_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      garimpo_runs: {
+        Row: {
+          ads_read: number | null
+          cost_per_thousand: number | null
+          country: string | null
+          domains_found: number | null
+          error_text: string | null
+          finished_at: string | null
+          id: string
+          niche: string | null
+          org_id: string
+          source: Database["public"]["Enums"]["garimpo_run_source"]
+          started_at: string
+          status: string
+        }
+        Insert: {
+          ads_read?: number | null
+          cost_per_thousand?: number | null
+          country?: string | null
+          domains_found?: number | null
+          error_text?: string | null
+          finished_at?: string | null
+          id?: string
+          niche?: string | null
+          org_id: string
+          source: Database["public"]["Enums"]["garimpo_run_source"]
+          started_at?: string
+          status?: string
+        }
+        Update: {
+          ads_read?: number | null
+          cost_per_thousand?: number | null
+          country?: string | null
+          domains_found?: number | null
+          error_text?: string | null
+          finished_at?: string | null
+          id?: string
+          niche?: string | null
+          org_id?: string
+          source?: Database["public"]["Enums"]["garimpo_run_source"]
+          started_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "garimpo_runs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -866,7 +1218,8 @@ export type Database = {
       get_user_org_id: { Args: never; Returns: string }
     }
     Enums: {
-      [_ in never]: never
+      garimpo_offer_status: "novo" | "em_analise" | "aprovado" | "descartado"
+      garimpo_run_source: "api_oficial" | "terceiro" | "scraper_proprio"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -993,6 +1346,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      garimpo_offer_status: ["novo", "em_analise", "aprovado", "descartado"],
+      garimpo_run_source: ["api_oficial", "terceiro", "scraper_proprio"],
+    },
   },
 } as const
