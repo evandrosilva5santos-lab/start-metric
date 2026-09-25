@@ -77,7 +77,11 @@ Thumbs.db
 .aiox/
 .agent/
 .antigravity/
-.claude/
+.claude/*
+!.claude/skills/
+!.claude/agents/
+!.claude/ECC.md
+!.claude/ECC-LICENSE
 .codex/
 .cursor/
 .gemini/
