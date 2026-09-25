@@ -27,26 +27,43 @@ export async function GET(): Promise<NextResponse> {
     return NextResponse.json({ error: "Organização não encontrada" }, { status: 403 });
   }
 
-  const [accountsRes, clientsRes] = await Promise.all([
-    supabase
-      .from("ad_accounts")
-      .select("external_id, name, currency, timezone, status, client_id")
-      .eq("org_id", profile.org_id)
-      .eq("platform", "meta")
-      .order("name", { ascending: true }),
-    supabase
-      .from("clients")
-      .select("id, name")
-      .eq("org_id", profile.org_id)
-      .is("archived_at", null)
-      .order("name", { ascending: true }),
+  const orgId = profile.org_id;
+  const accountsQuery = (columns: string) =>
+    supabase.from("ad_accounts").select(columns).eq("org_id", orgId).eq("platform", "meta").order("name", { ascending: true });
+
+  const [firstAccountsRes, clientsRes] = await Promise.all([
+    accountsQuery("external_id, name, currency, timezone, status, client_id"),
+    supabase.from("clients").select("id, name").eq("org_id", orgId).is("archived_at", null).order("name", { ascending: true }),
   ]);
 
-  if (accountsRes.error || clientsRes.error) {
-    return NextResponse.json({ error: "Erro ao listar contas da organização" }, { status: 500 });
+  // Banco sem a migração de clientes (coluna client_id): lista as contas mesmo assim.
+  let accountsRes = firstAccountsRes;
+  if (accountsRes.error?.code === "42703") {
+    console.warn("[meta/contas] ad_accounts.client_id não existe; aplique a migração 20260318000000_clients_full.sql");
+    accountsRes = await accountsQuery("external_id, name, currency, timezone, status");
   }
 
-  const contas = (accountsRes.data ?? [])
+  if (accountsRes.error) {
+    console.error("[meta/contas] Erro ao listar ad_accounts:", accountsRes.error.code, accountsRes.error.message);
+    return NextResponse.json(
+      { error: `Erro ao listar contas da organização (${accountsRes.error.code ?? "sem código"})` },
+      { status: 500 },
+    );
+  }
+  if (clientsRes.error) {
+    console.warn("[meta/contas] Clientes indisponíveis, seguindo sem eles:", clientsRes.error.code, clientsRes.error.message);
+  }
+
+  type AccountRow = {
+    external_id: string;
+    name: string | null;
+    currency: string | null;
+    timezone: string | null;
+    status: string;
+    client_id?: string | null;
+  };
+
+  const contas = ((accountsRes.data ?? []) as unknown as AccountRow[])
     .map((row) => ({
       id: row.external_id,
       name: row.name || row.external_id,
@@ -54,7 +71,7 @@ export async function GET(): Promise<NextResponse> {
       timezone_name: row.timezone || "America/Sao_Paulo",
       statusText: STATUS_TEXT[row.status] ?? "Desconhecido",
       isActive: row.status === "active",
-      clientId: row.client_id,
+      clientId: row.client_id ?? null,
     }))
     .sort((a, b) => {
       if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
@@ -63,7 +80,7 @@ export async function GET(): Promise<NextResponse> {
 
   return NextResponse.json({
     contas,
-    clientes: clientsRes.data ?? [],
+    clientes: clientsRes.error ? [] : (clientsRes.data ?? []),
     total: contas.length,
     timestamp: new Date().toISOString(),
   });

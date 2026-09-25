@@ -32,6 +32,8 @@ export function useMetaAccounts() {
       return { contas: json.contas ?? [], clientes: json.clientes ?? [] };
     },
     staleTime: 5 * 60 * 1000,
+    // Erro de servidor aparece logo, com "Tentar de novo", em vez de 3 tentativas escondidas.
+    retry: 1,
   });
 
   const accounts: MetaAccount[] = useMemo(() => query.data?.contas ?? [], [query.data]);
