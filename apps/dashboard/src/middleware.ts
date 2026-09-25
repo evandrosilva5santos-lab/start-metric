@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { type NextRequest, NextResponse } from "next/server";
 import { isPlatformAdminEmail } from "@/lib/admin/access";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 
 const PUBLIC_PATHS = ["/auth", "/admin/auth"];
 
@@ -29,6 +30,8 @@ export async function middleware(request: NextRequest) {
   const isAdminAuthPath = pathname === "/admin/auth" || pathname.startsWith("/admin/auth/");
   const isAdminProtectedPath = isAdminPath && !isAdminAuthPath;
   const isRootPath = pathname === "/";
+  const isAuthPath = pathname === "/auth";
+  const authedLandingPath = "/performance";
 
   const response = NextResponse.next({
     request: {
@@ -40,15 +43,36 @@ export async function middleware(request: NextRequest) {
   if (pathname.startsWith("/api")) return response;
 
   if (PUBLIC_PATHS.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
+    // Se já autenticado por senha do painel, redireciona /auth para o painel
+    const painelCookie = request.cookies.get(PAINEL_COOKIE_NAME)?.value;
+    if (isAuthPath && (await isPainelAuthorized(painelCookie))) {
+      const url = request.nextUrl.clone();
+      url.pathname = authedLandingPath;
+      return NextResponse.redirect(url);
+    }
+    return response;
+  }
+
+  // 1. Verificação prioritária de acesso por PAINEL_SENHA
+  const painelCookie = request.cookies.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainelAuthed = await isPainelAuthorized(painelCookie);
+
+  if (isPainelAuthed) {
+    if (isRootPath) {
+      const url = request.nextUrl.clone();
+      url.pathname = authedLandingPath;
+      return NextResponse.redirect(url);
+    }
     return response;
   }
 
   // Fail-closed: sem env vars de autenticação não podemos validar o JWT,
   // então redirecionamos para /auth em vez de deixar a rota passar.
   if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-    if (isRootPath || isAdminProtectedPath) {
+    if (isRootPath || isAdminProtectedPath || pathname.startsWith("/")) {
       const url = request.nextUrl.clone();
       url.pathname = isAdminProtectedPath ? "/admin/auth" : "/auth";
+      url.searchParams.set("next", sanitizeNextPath(`${pathname}${request.nextUrl.search}`));
       return NextResponse.redirect(url);
     }
     return new NextResponse("Autenticação indisponível", { status: 503 });
@@ -73,9 +97,6 @@ export async function middleware(request: NextRequest) {
   const { data: claimsData } = await supabase.auth.getClaims();
   const claims = claimsData?.claims;
   const user = claims?.sub ? { id: claims.sub, email: claims.email } : null;
-
-  const isAuthPath = pathname === "/auth";
-  const authedLandingPath = "/performance";
 
   if (!user && isRootPath) {
     const url = request.nextUrl.clone();

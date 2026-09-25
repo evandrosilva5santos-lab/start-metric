@@ -153,21 +153,46 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
     }
 
     if (tab === "login") {
-      const { error: loginError } = await supabase.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-      });
+      // 1. Tentar autenticação com PAINEL_SENHA / DASHBOARD_PASSWORD
+      if (password) {
+        try {
+          const authRes = await fetch("/api/auth", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const authData = await authRes.json().catch(() => ({}));
+          if (authRes.ok && authData?.ok) {
+            setLoading(false);
+            setRedirecting(true);
+            router.replace(nextPath);
+            return;
+          }
+        } catch {
+          // Prossegue para Supabase se falhar
+        }
+      }
 
-      setLoading(false);
-      if (loginError) {
-        setError(mapAuthError(loginError.message));
+      // 2. Se há e-mail informado, tenta autenticar via Supabase
+      if (email.trim()) {
+        const { error: loginError } = await supabase.auth.signInWithPassword({
+          email: email.trim(),
+          password,
+        });
+
+        setLoading(false);
+        if (loginError) {
+          setError(mapAuthError(loginError.message));
+          return;
+        }
+
+        setRedirecting(true);
+        router.replace(nextPath);
         return;
       }
 
-      setRedirecting(true);
-      // Navegação no cliente: reaproveita o JS, as fontes e o CSS já baixados
-      // em vez de recarregar a página inteira.
-      router.replace(nextPath);
+      setLoading(false);
+      setError("Senha incorreta. Verifique e tente novamente.");
       return;
     }
 
@@ -525,8 +550,13 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
 
                 {/* E-mail */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                    E-mail
+                  <label htmlFor="email" className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                    <span>E-mail</span>
+                    {tab === "login" && (
+                      <span className="text-[10px] text-slate-500 font-normal lowercase">
+                        (opcional se entrar com a senha do painel)
+                      </span>
+                    )}
                   </label>
                   <input
                     id="email"
@@ -534,8 +564,8 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="gestor@agencia.com.br"
-                    required
+                    placeholder={tab === "login" ? "gestor@agencia.com.br (ou deixe em branco)" : "gestor@agencia.com.br"}
+                    required={tab === "signup"}
                     autoComplete="email"
                     className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
                   />
@@ -544,7 +574,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                 {/* Senha */}
                 <div className="space-y-2">
                   <label htmlFor="password" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
-                    Senha
+                    {tab === "login" ? "Senha do Painel ou da Conta" : "Senha"}
                   </label>
                   <div className="relative">
                     <input
@@ -554,7 +584,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       onBlur={() => tab === "signup" && setPasswordTouched(true)}
-                      placeholder="••••••••"
+                      placeholder={tab === "login" ? "Digite a senha do painel" : "••••••••"}
                       required
                       autoComplete={tab === "signup" ? "new-password" : "current-password"}
                       className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"

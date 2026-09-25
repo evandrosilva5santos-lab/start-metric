@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { decryptToken } from "@/lib/meta/token";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 
 export const dynamic = "force-dynamic";
 
@@ -299,54 +300,64 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
   const rangeType = searchParams.get("range") || "last_30d";
   const forceFresh = searchParams.get("fresh") === "true";
 
-  let token: string | null = null;
+  const painelCookie = req.cookies.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  let user = null;
+  let supabase = null;
+  try {
+    supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {
+    // Supabase opcional se autenticado via PAINEL_SENHA
+  }
 
-  if (authError || !user) {
+  if (!isPainel && !user) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
+  const envToken =
+    process.env.META_TOKEN ||
+    process.env.META_SYSTEM_TOKEN ||
+    process.env.META_USER_TOKEN;
 
-  if (!profile?.org_id) {
-    return NextResponse.json({ error: "Organização não encontrada" }, { status: 403 });
-  }
+  let token: string | null = envToken || null;
+  let orgId = "default_org";
 
-  const orgId: string = profile.org_id;
+  if (supabase && user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("org_id")
+      .eq("id", user.id)
+      .single();
 
-  // Só contas que a própria organização ligou, com o token dela.
-  const { data: adAccount } = await supabase
-    .from("ad_accounts")
-    .select("token_encrypted")
-    .eq("org_id", orgId)
-    .eq("platform", "meta")
-    .eq("external_id", accountId)
-    .maybeSingle();
+    if (profile?.org_id) {
+      orgId = profile.org_id;
 
-  if (!adAccount) {
-    return NextResponse.json({ error: "Conta de anúncio não encontrada nesta organização." }, { status: 404 });
-  }
+      if (!token) {
+        const { data: adAccount } = await supabase
+          .from("ad_accounts")
+          .select("token_encrypted")
+          .eq("org_id", orgId)
+          .eq("platform", "meta")
+          .eq("external_id", accountId)
+          .maybeSingle();
 
-  if (adAccount.token_encrypted) {
-    try {
-      token = await decryptToken(adAccount.token_encrypted, supabase);
-    } catch (err) {
-      console.error("[meta/dados] Falha ao descriptografar token da conta:", err);
+        if (adAccount?.token_encrypted) {
+          try {
+            token = await decryptToken(adAccount.token_encrypted, supabase);
+          } catch (err) {
+            console.error("[meta/dados] Falha ao descriptografar token:", err);
+          }
+        }
+      }
     }
   }
 
   if (!token) {
     return NextResponse.json(
-      { error: "A conexão com a Meta desta conta expirou. Conecte de novo em Configurações > Meta." },
+      { error: "A conexão com a Meta desta conta expirou ou META_TOKEN não está configurado." },
       { status: 403 },
     );
   }
@@ -384,7 +395,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       }
       if (accData.error.code === 190) {
-        void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        if (supabase) void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
         return NextResponse.json(
           {
             error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,
@@ -446,7 +457,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       }
       if (r?.error?.code === 190) {
-        void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        if (supabase) void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
         return NextResponse.json(
           {
             error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,
