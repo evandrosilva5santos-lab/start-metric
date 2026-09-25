@@ -1,211 +1,153 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { AnimatePresence } from "framer-motion";
-import { Users, Plus } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useQueryClient } from "@tanstack/react-query";
+import { Plus, Search, Users } from "lucide-react";
+import { Button, EmptyState } from "@/components/ui";
 import { ClientModal } from "@/components/clients/ClientModal";
 import { ClientCard, type ClientCardData } from "@/components/clients/ClientCard";
 
-type Client = ClientCardData;
-
 export function ClientsPageClient() {
-  const [clients, setClients] = useState<Client[]>([]);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [clients, setClients] = useState<ClientCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const [editingClient, setEditingClient] = useState<Client | null>(null);
+  const [editing, setEditing] = useState<ClientCardData | null>(null);
+  const [search, setSearch] = useState("");
 
-  const fetchClients = async () => {
-    setLoading(true);
+  const fetchClients = useCallback(async () => {
     setError(null);
     try {
-      const response = await fetch("/api/clients");
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || "Erro ao buscar clientes");
-      }
-
-      setClients(result.data || []);
+      const res = await fetch("/api/clients");
+      const json = (await res.json()) as { data?: ClientCardData[]; error?: string };
+      if (!res.ok) throw new Error(json.error || "Erro ao buscar clientes");
+      setClients(json.data ?? []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro desconhecido");
+      setError(err instanceof Error ? err.message : "Erro ao buscar clientes");
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchClients();
   }, []);
 
-  const handleCreate = () => {
-    setEditingClient(null);
+  useEffect(() => {
+    void fetchClients();
+  }, [fetchClients]);
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return clients;
+    return clients.filter((c) => c.name.toLowerCase().includes(q) || (c.niche ?? "").toLowerCase().includes(q));
+  }, [clients, search]);
+
+  function openCreate() {
+    setEditing(null);
     setModalOpen(true);
-  };
+  }
 
-  const handleEdit = (client: Client) => {
-    setEditingClient(client);
-    setModalOpen(true);
-  };
-
-  const handleArchive = async (clientId: string) => {
-    if (!confirm("Tem certeza que deseja arquivar este cliente?")) return;
-
-    try {
-      const response = await fetch(`/api/clients/${clientId}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Erro ao arquivar cliente");
-      }
-
-      await fetchClients();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Erro ao arquivar");
+  async function handleArchive(clientId: string) {
+    if (!confirm("Arquivar este cliente? As contas dele voltam para “Sem cliente”.")) return;
+    const res = await fetch(`/api/clients/${clientId}`, { method: "DELETE" });
+    if (!res.ok) {
+      alert("Não deu para arquivar o cliente.");
+      return;
     }
-  };
-
-  const handleModalClose = () => {
-    setModalOpen(false);
-    setEditingClient(null);
-  };
-
-  const handleSaved = () => {
-    setModalOpen(false);
-    setEditingClient(null);
-    fetchClients();
-  };
-
-  const getInitials = (name: string) => {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  };
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight">
-              Clientes
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              Gerencie seus clientes e contas de anúncio
-            </p>
-          </div>
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div
-              key={i}
-              className="h-40 bg-slate-900/50 border border-slate-800 rounded-2xl animate-pulse"
-            />
-          ))}
-        </div>
-      </div>
-    );
+    await queryClient.invalidateQueries({ queryKey: ["meta", "contas"] });
+    await fetchClients();
   }
 
-  if (error) {
-    return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight">
-              Clientes
-            </h1>
-          </div>
-          <button
-            onClick={fetchClients}
-            className="px-4 py-2 bg-cyan-400 text-slate-950 font-bold rounded-xl hover:bg-cyan-300 transition-colors"
-          >
-            Tentar novamente
-          </button>
-        </div>
-        <div className="bg-red-400/10 border border-red-400/20 rounded-2xl p-6">
-          <p className="text-red-400">{error}</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (clients.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-[400px]">
-        <div className="w-16 h-16 rounded-2xl bg-slate-800 flex items-center justify-center mb-4">
-          <Users className="w-8 h-8 text-slate-600" />
-        </div>
-        <h2 className="text-xl font-bold text-white mb-2">
-          Nenhum cliente ainda
-        </h2>
-        <p className="text-slate-400 text-center max-w-md mb-6">
-          Crie seu primeiro cliente para organizar as contas de anúncio
-        </p>
-        <button
-          onClick={handleCreate}
-          className="px-6 py-3 bg-cyan-400 text-slate-950 font-bold rounded-xl hover:bg-cyan-300 transition-colors inline-flex items-center gap-2"
-        >
-          <Plus size={20} />
-          Criar primeiro cliente
-        </button>
-      </div>
-    );
+  function handleSaved(saved: { id: string }) {
+    const wasCreating = !editing;
+    setModalOpen(false);
+    setEditing(null);
+    void queryClient.invalidateQueries({ queryKey: ["meta", "contas"] });
+    if (wasCreating) {
+      router.push(`/clients/${saved.id}?buscar=1`);
+      return;
+    }
+    void fetchClients();
   }
 
   return (
-    <>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-black text-white uppercase tracking-tight">
-              Clientes
-            </h1>
-            <p className="text-sm text-slate-400 mt-1">
-              {clients.length} {clients.length === 1 ? "cliente" : "clientes"}
-            </p>
-          </div>
-          <button
-            onClick={handleCreate}
-            className="px-4 py-2 bg-cyan-400 text-slate-950 font-bold rounded-xl hover:bg-cyan-300 transition-colors inline-flex items-center gap-2"
-          >
-            <Plus size={18} />
-            Novo Cliente
-          </button>
+    <div className="space-y-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">Clientes</h1>
+          <p className="mt-1 text-sm text-text-secondary">
+            Cadastre o cliente e ligue as contas de anúncio dele. No topo você escolhe o cliente e depois a conta.
+          </p>
         </div>
-
-        {/* Grid de Clientes */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <AnimatePresence>
-            {clients.map((client) => (
-              <ClientCard
-                key={client.id}
-                client={client}
-                getInitials={getInitials}
-                onEdit={handleEdit}
-                onArchive={handleArchive}
-              />
-            ))}
-          </AnimatePresence>
-        </div>
+        <Button onClick={openCreate} className="h-11 shrink-0">
+          <Plus size={18} />
+          Novo cliente
+        </Button>
       </div>
 
-      {/* Modal */}
-      <AnimatePresence>
-        {modalOpen && (
-          <ClientModal
-            isOpen={modalOpen}
-            onClose={handleModalClose}
-            client={editingClient}
-            onSaved={handleSaved}
+      {clients.length > 0 && (
+        <label className="relative block max-w-sm">
+          <span className="sr-only">Buscar cliente</span>
+          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nome ou nicho…"
+            className="h-11 w-full rounded-lg border border-border bg-input pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted hover:border-white-hairline-strong focus-visible:ring-2 focus-visible:ring-ring"
           />
-        )}
-      </AnimatePresence>
-    </>
+        </label>
+      )}
+
+      {loading ? (
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3" aria-busy="true">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-[196px] animate-pulse rounded-lg bg-surface-2 motion-reduce:animate-none" />
+          ))}
+        </div>
+      ) : error ? (
+        <div role="alert" className="rounded-lg border border-danger/30 bg-danger-dim p-5">
+          <p className="text-sm text-danger">{error}</p>
+          <Button variant="outline" className="mt-3 h-11" onClick={() => void fetchClients()}>
+            Tentar de novo
+          </Button>
+        </div>
+      ) : clients.length === 0 ? (
+        <EmptyState
+          icon={Users}
+          title="Nenhum cliente ainda"
+          description="Cadastre o primeiro cliente com nome, nicho e WhatsApp. Depois, busque as contas de anúncio dele."
+          action={{ label: "Cadastrar cliente", onClick: openCreate }}
+        />
+      ) : filtered.length === 0 ? (
+        <p className="py-10 text-center text-sm text-text-muted">Nenhum cliente com esse nome ou nicho.</p>
+      ) : (
+        <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+          {filtered.map((client) => (
+            <ClientCard
+              key={client.id}
+              client={client}
+              onEdit={(c) => {
+                setEditing(c);
+                setModalOpen(true);
+              }}
+              onArchive={(id) => void handleArchive(id)}
+            />
+          ))}
+        </ul>
+      )}
+
+      {modalOpen && (
+        <ClientModal
+          isOpen={modalOpen}
+          client={editing}
+          onClose={() => {
+            setModalOpen(false);
+            setEditing(null);
+          }}
+          onSaved={handleSaved}
+        />
+      )}
+    </div>
   );
 }

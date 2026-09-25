@@ -23,11 +23,16 @@ export const LIVE_OPTIONS = [
 
 export type LiveInterval = (typeof LIVE_OPTIONS)[number]["value"];
 
+/** Valor do seletor para as contas que ainda não foram ligadas a nenhum cliente. */
+export const NO_CLIENT = "none";
+
 type DashboardFiltersState = {
+  clientId: string;
   accountId: string;
   range: RangeValue;
   liveInterval: LiveInterval;
   hideValues: boolean;
+  setClientId: (clientId: string) => void;
   setAccountId: (accountId: string) => void;
   setRange: (range: RangeValue) => void;
   setLiveInterval: (liveInterval: LiveInterval) => void;
@@ -37,10 +42,12 @@ type DashboardFiltersState = {
 export const useDashboardFilters = create<DashboardFiltersState>()(
   persist(
     (set) => ({
+      clientId: "",
       accountId: "",
       range: "last_30d",
       liveInterval: 30,
       hideValues: false,
+      setClientId: (clientId) => set({ clientId }),
       setAccountId: (accountId) => set({ accountId }),
       setRange: (range) => set({ range }),
       setLiveInterval: (liveInterval) => set({ liveInterval }),

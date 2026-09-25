@@ -9,6 +9,7 @@ type ClientListRow = {
   email: string | null;
   phone: string | null;
   whatsapp: string | null;
+  niche: string | null;
   logo_url: string | null;
   notes: string | null;
   created_at: string;
@@ -47,6 +48,7 @@ export async function GET() {
         email,
         phone,
         whatsapp,
+        niche,
         logo_url,
         notes,
         archived_at,
@@ -69,6 +71,7 @@ export async function GET() {
           email,
           phone,
           whatsapp,
+          niche,
           logo_url,
           notes,
           archived_at,
@@ -159,6 +162,7 @@ export async function GET() {
         email: client.email,
         phone: client.phone,
         whatsapp: client.whatsapp,
+        niche: client.niche,
         logo_url: client.logo_url,
         notes: client.notes,
         created_at: client.created_at,

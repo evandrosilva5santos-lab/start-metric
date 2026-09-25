@@ -141,16 +141,24 @@ export function MetaDataGate({ children }: { children: (data: DadosResponse) => 
     return (
       <div className="mx-auto max-w-md rounded-lg border border-border bg-card p-8 text-center">
         <Link2 className="mx-auto text-primary" size={28} />
-        <h2 className="mt-3 font-display text-lg font-semibold text-foreground">Conecte uma conta da Meta</h2>
+        <h2 className="mt-3 font-display text-lg font-semibold text-foreground">Nenhuma conta de anúncio ligada</h2>
         <p className="mt-1 text-sm text-text-secondary">
-          Nenhuma conta de anúncios está ligada à sua organização ainda.
+          Conecte a Meta da sua organização e depois, dentro de cada cliente, use “Buscar contas de anúncio”.
         </p>
-        <Link
-          href="/settings/meta"
-          className="mt-5 inline-flex h-10 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary-bright"
-        >
-          Conectar Meta Ads
-        </Link>
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
+          <Link
+            href="/clients"
+            className="inline-flex h-11 items-center rounded-lg bg-primary px-4 text-sm font-semibold text-primary-foreground hover:bg-primary-bright"
+          >
+            Ir para Clientes
+          </Link>
+          <Link
+            href="/settings/meta"
+            className="inline-flex h-11 items-center rounded-lg border border-border bg-input px-4 text-sm font-semibold text-text-primary hover:border-white-hairline-strong"
+          >
+            Conectar Meta Ads
+          </Link>
+        </div>
       </div>
     );
   }

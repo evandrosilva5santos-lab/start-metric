@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, RefreshCw } from "lucide-react";
-import { useMetaAccounts, useMetaDados } from "@/hooks/useMetaDashboard";
+import { clientOf, useMetaAccounts, useMetaDados } from "@/hooks/useMetaDashboard";
 import {
   LIVE_OPTIONS,
   RANGE_OPTIONS,
@@ -36,8 +36,10 @@ function updatedLabel(updatedAt: number, now: number): string {
 
 /** Conta, período, modo ao vivo, atualizar e ocultar valores: valem para todas as telas da Meta. */
 export function DashboardControls() {
-  const { accounts, isLoading: accountsLoading } = useMetaAccounts();
+  const { accounts, clients, clientAccounts, isLoading: accountsLoading } = useMetaAccounts();
   const dados = useMetaDados();
+  const clientId = useDashboardFilters((s) => s.clientId);
+  const setClientId = useDashboardFilters((s) => s.setClientId);
   const accountId = useDashboardFilters((s) => s.accountId);
   const range = useDashboardFilters((s) => s.range);
   const liveInterval = useDashboardFilters((s) => s.liveInterval);
@@ -49,21 +51,46 @@ export function DashboardControls() {
   const now = useNow(15_000);
 
   const selectedAccount = accounts.find((a) => a.id === accountId);
+  const selectedClient = clients.find((c) => c.id === clientId);
+
+  function chooseClient(nextClientId: string) {
+    setClientId(nextClientId);
+    const pool = accounts.filter((a) => clientOf(a) === nextClientId);
+    const next = pool.find((a) => a.isActive) ?? pool[0];
+    if (next) setAccountId(next.id);
+  }
   const live = liveInterval > 0;
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
       <select
+        value={clientId}
+        onChange={(e) => chooseClient(e.target.value)}
+        aria-label="Cliente"
+        title={selectedClient?.name}
+        disabled={accountsLoading || clients.length === 0}
+        className={`${selectClass} min-w-0 max-w-[200px] truncate`}
+      >
+        {clients.length === 0 && <option value="">{accountsLoading ? "Carregando…" : "Nenhum cliente"}</option>}
+        {clients.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name} ({accounts.filter((a) => clientOf(a) === c.id).length})
+          </option>
+        ))}
+      </select>
+
+      <select
         value={accountId}
         onChange={(e) => setAccountId(e.target.value)}
         aria-label="Conta de anúncios"
         title={selectedAccount?.name}
-        disabled={accountsLoading || accounts.length === 0}
-        className={`${selectClass} min-w-0 max-w-[260px] truncate`}
+        disabled={accountsLoading || clientAccounts.length === 0}
+        className={`${selectClass} min-w-0 max-w-[240px] truncate`}
       >
-        {accounts.length === 0 && <option value="">{accountsLoading ? "Carregando contas…" : "Nenhuma conta"}</option>}
-        {accounts.map((acc) => (
+        {clientAccounts.length === 0 && <option value="">{accountsLoading ? "Carregando contas…" : "Nenhuma conta"}</option>}
+        {clientAccounts.map((acc) => (
           <option key={acc.id} value={acc.id}>
+            {acc.isActive ? "" : "○ "}
             {acc.name}
           </option>
         ))}

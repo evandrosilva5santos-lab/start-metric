@@ -5,10 +5,14 @@ export type MetaAccount = {
   name: string;
   currency: string;
   isActive: boolean;
+  clientId: string | null;
 };
+
+export type ClientRef = { id: string; name: string };
 
 export type ContasResponse = {
   contas?: MetaAccount[];
+  clientes?: ClientRef[];
   error?: string;
 };
 

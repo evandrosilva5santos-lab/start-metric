@@ -37,6 +37,7 @@ export async function GET(
         email,
         phone,
         whatsapp,
+        niche,
         logo_url,
         notes,
         archived_at,
@@ -147,6 +148,13 @@ export async function DELETE(
     if (error || !client) {
       return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
     }
+
+    // Contas de cliente arquivado voltam para "Sem cliente" no seletor.
+    await supabase
+      .from("ad_accounts")
+      .update({ client_id: null })
+      .eq("org_id", profile.org_id)
+      .eq("client_id", id);
 
     return NextResponse.json({ data: { id, archived: true } });
   } catch (error) {
