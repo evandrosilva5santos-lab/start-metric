@@ -39,8 +39,6 @@ const nextConfig: NextConfig = {
     root: path.resolve(__dirname, "../.."),
   },
 
-  transpilePackages: ["@start-metric/reports"],
-
   experimental: {
     // Voltar a uma tela visitada há menos de 30s abre na hora, sem nova
     // ida ao servidor. As telas do menu (prefetch={true}) seguem o padrão de 5 min.

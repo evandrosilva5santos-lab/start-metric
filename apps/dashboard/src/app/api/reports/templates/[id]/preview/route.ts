@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { buildVariables, renderTemplate } from "@start-metric/reports";
+import { buildVariables, renderTemplate } from "@/lib/reports/preview-engine";
 
 // Schema para preview
 const PreviewSchema = z.object({
