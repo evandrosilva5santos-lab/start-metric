@@ -32,6 +32,11 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Em `next dev`, o Next bloqueia os próprios scripts quando a página é aberta
+  // por outro endereço (ex.: túnel do Cloudflare). Sem script a página não
+  // hidrata e o login (que começa com opacity:0) fica em branco. Só vale em dev.
+  allowedDevOrigins: ["*.trycloudflare.com", "127.0.0.1"],
+
   // Turbopack tries to infer a workspace root by walking up for lockfiles.
   // In the Codex sandbox this can hit restricted folders (e.g. Desktop root),
   // so we pin the root to this app directory.
