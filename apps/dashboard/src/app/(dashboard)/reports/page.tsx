@@ -63,24 +63,32 @@ async function getReportsData(_orgId: string) {
   */
 }
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 export default async function ReportsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
 
-  if (authError || !user) redirect("/auth");
+  let user = null;
+  let orgId = "";
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("org_id")
+        .eq("id", user.id)
+        .single();
+      orgId = (profile?.org_id as string) ?? "";
+    }
+  } catch {}
 
-  if (!profile?.org_id) redirect("/auth");
-
-  const orgId = profile.org_id as string;
+  if (!isPainel && !user) redirect("/auth");
 
   const { reports, executions } = await getReportsData(orgId);
 

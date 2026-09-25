@@ -29,7 +29,7 @@ const SUPABASE_ANON_KEY =
 
 function sanitizeNextPath(next: string) {
   if (!next.startsWith("/") || next.startsWith("//") || next.startsWith("/auth")) {
-    return "/performance";
+    return "/";
   }
 
   return next;
@@ -42,7 +42,7 @@ export async function middleware(request: NextRequest) {
   const isAdminProtectedPath = isAdminPath && !isAdminAuthPath;
   const isRootPath = pathname === "/";
   const isAuthPath = pathname === "/auth";
-  const authedLandingPath = "/performance";
+  const authedLandingPath = "/";
 
   const response = NextResponse.next({
     request: {
@@ -80,11 +80,12 @@ export async function middleware(request: NextRequest) {
   const isPainelAuthed = await isPainelAuthorized(painelCookie);
 
   if (isPainelAuthed) {
-    if (isRootPath) {
+    if (isAuthPath) {
       const url = request.nextUrl.clone();
       url.pathname = authedLandingPath;
       return NextResponse.redirect(url);
     }
+    // Deixa acessar a raiz "/" e demais rotas diretamente sem loop
     return response;
   }
 

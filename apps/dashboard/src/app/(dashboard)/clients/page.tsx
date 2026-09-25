@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 import { ClientsPageClient } from "./ClientsPageClient";
 
 export const metadata: Metadata = {
@@ -9,12 +11,21 @@ export const metadata: Metadata = {
 };
 
 export default async function ClientsPage() {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
 
-  if (authError || !user) {
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {}
+
+  if (!isPainel && !user) {
     redirect("/auth");
   }
 
   return <ClientsPageClient />;
 }
+

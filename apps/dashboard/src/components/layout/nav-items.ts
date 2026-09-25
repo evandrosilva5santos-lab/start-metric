@@ -28,7 +28,6 @@ export const META_NAV: NavItem[] = [
 export const DISCOVER_NAV: NavItem[] = [{ icon: Pickaxe, label: "Garimpo", href: "/garimpo" }];
 
 export const MANAGE_NAV: NavItem[] = [
-  { icon: TrendingUp, label: "Performance", href: "/performance" },
   { icon: Users, label: "Clientes", href: "/clients" },
   { icon: FileText, label: "Relatórios", href: "/reports" },
   { icon: Settings, label: "Configurações", href: "/settings" },

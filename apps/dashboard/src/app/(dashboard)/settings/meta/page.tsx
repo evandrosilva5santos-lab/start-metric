@@ -12,24 +12,38 @@ export const metadata = {
   description: "Conecte sua conta Meta Ads para sincronizar campanhas e métricas.",
 };
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 export default async function MetaSettingsPage({
   searchParams,
 }: {
   searchParams?: Promise<{ connected?: string; error?: string }> | { connected?: string; error?: string };
 }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
 
-  if (!user) redirect("/auth");
+  let user = null;
+  let accounts: any[] = [];
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+    if (user) {
+      const { data: accs } = await supabase
+        .from("ad_accounts")
+        .select("id, name, external_id, status, currency, connected_at, token_expires_at")
+        .eq("platform", "meta")
+        .order("connected_at", { ascending: false });
+      accounts = accs ?? [];
+    }
+  } catch {}
+
+  if (!isPainel && !user) redirect("/auth");
 
   const params = (await searchParams) ?? {};
-
-  // Busca contas conectadas (RLS: apenas da org do user)
-  const { data: accounts } = await supabase
-    .from("ad_accounts")
-    .select("id, name, external_id, status, currency, connected_at, token_expires_at")
-    .eq("platform", "meta")
-    .order("connected_at", { ascending: false });
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-300">

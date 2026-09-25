@@ -6,44 +6,58 @@ import { redirect } from "next/navigation";
 
 import ProfileSettingsClient from "./ProfileSettingsClient";
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 export const metadata = {
   title: "Meu Perfil | Start Metric",
   description: "Gerencie suas informações pessoais e preferências.",
 };
 
 export default async function ProfileSettingsPage() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
 
-  if (!user) {
+  let user = null;
+  let profile = null;
+
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+    if (user) {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select(`
+          id,
+          name,
+          phone,
+          cpf,
+          country,
+          language,
+          timezone,
+          avatar_url,
+          role,
+          org_id,
+          created_at,
+          updated_at
+        `)
+        .eq("id", user.id)
+        .single();
+      profile = prof;
+    }
+  } catch {}
+
+  if (!isPainel && !user) {
     redirect("/auth");
   }
-
-  // Buscar perfil do usuário
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select(`
-      id,
-      name,
-      phone,
-      cpf,
-      country,
-      language,
-      timezone,
-      avatar_url,
-      role,
-      org_id,
-      created_at,
-      updated_at
-    `)
-    .eq("id", user.id)
-    .single();
 
   const profileForClient = profile
     ? {
         id: profile.id,
         name: profile.name,
-        email: user.email ?? "",
+        email: user?.email ?? "",
         phone: profile.phone,
         cpf: profile.cpf,
         country: profile.country,
@@ -56,6 +70,7 @@ export default async function ProfileSettingsPage() {
         updated_at: profile.updated_at,
       }
     : null;
+
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-300">

@@ -17,12 +17,22 @@ export const metadata = {
   description: "Gerencie integrações e configurações da sua conta.",
 };
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 export default async function SettingsPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) redirect("/auth");
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
+
+  let user = null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.auth.getUser();
+    user = data.user;
+  } catch {}
+
+  if (!isPainel && !user) redirect("/auth");
 
   return (
     <div className="w-full space-y-8 animate-in fade-in duration-300">

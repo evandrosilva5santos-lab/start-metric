@@ -225,11 +225,26 @@ function HeaderFallback() {
   );
 }
 
+import { cookies } from "next/headers";
+import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
+
 export default async function PerformancePage({
   searchParams,
 }: {
   searchParams: Promise<SearchParams> | SearchParams;
 }) {
+  const cookieStore = await cookies();
+  const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
+  const isPainel = await isPainelAuthorized(painelCookie);
+  if (isPainel) {
+    redirect("/");
+  }
+
+  const userId = await getSessionSubject();
+  if (!userId) {
+    redirect("/");
+  }
+
   const resolvedParams = await searchParams;
   const campaignStatusParam = getParam(resolvedParams, "campaignStatus");
 
@@ -240,9 +255,6 @@ export default async function PerformancePage({
     campaignStatuses: campaignStatusParam ? [campaignStatusParam] : undefined,
   };
 
-  // Só identifica de quem é a cópia local; lido do cookie, sem ida à rede.
-  // A autenticação de verdade acontece no middleware e em getDashboardContext.
-  const userId = await getSessionSubject();
   const storageKey = userId ? snapshotStorageKey(userId) : null;
 
   return (

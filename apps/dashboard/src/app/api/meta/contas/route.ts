@@ -17,6 +17,10 @@ type GraphAccountItem = {
   currency?: string;
   timezone_name?: string;
   account_status?: number;
+  business?: {
+    id: string;
+    name: string;
+  };
 };
 
 // Contas de anúncio disponíveis via META_TOKEN ou associadas no Supabase
@@ -50,30 +54,48 @@ export async function GET(): Promise<NextResponse> {
     try {
       const graphVersion = process.env.META_GRAPH_API_VERSION || "v21.0";
       const graphRes = await fetch(
-        `https://graph.facebook.com/${graphVersion}/me/adaccounts?fields=id,name,currency,timezone_name,account_status&limit=100&access_token=${encodeURIComponent(envToken)}`,
+        `https://graph.facebook.com/${graphVersion}/me/adaccounts?fields=id,name,currency,timezone_name,account_status,business{id,name}&limit=100&access_token=${encodeURIComponent(envToken)}`,
         { next: { revalidate: 60 } },
       );
       const graphData = await graphRes.json();
 
       if (graphData?.data && Array.isArray(graphData.data)) {
+        const bmMap = new Map<string, { id: string; name: string }>();
+
         const contas = (graphData.data as GraphAccountItem[])
-          .map((acc) => ({
-            id: acc.id.startsWith("act_") ? acc.id : `act_${acc.id}`,
-            name: acc.name || acc.id,
-            currency: acc.currency || "BRL",
-            timezone_name: acc.timezone_name || "America/Sao_Paulo",
-            statusText: acc.account_status === 1 ? "Ativa" : "Desativada",
-            isActive: acc.account_status === 1,
-            clientId: null,
-          }))
+          .map((acc) => {
+            let clientId: string | null = null;
+            if (acc.business?.id) {
+              clientId = acc.business.id;
+              if (!bmMap.has(acc.business.id)) {
+                bmMap.set(acc.business.id, {
+                  id: acc.business.id,
+                  name: acc.business.name || `BM ${acc.business.id}`,
+                });
+              }
+            }
+            return {
+              id: acc.id.startsWith("act_") ? acc.id : `act_${acc.id}`,
+              name: acc.name || acc.id,
+              currency: acc.currency || "BRL",
+              timezone_name: acc.timezone_name || "America/Sao_Paulo",
+              statusText: acc.account_status === 1 ? "Ativa" : "Desativada",
+              isActive: acc.account_status === 1,
+              clientId,
+            };
+          })
           .sort((a, b) => {
             if (a.isActive !== b.isActive) return a.isActive ? -1 : 1;
             return a.name.localeCompare(b.name, "pt-BR");
           });
 
+        const clientes = Array.from(bmMap.values()).sort((a, b) =>
+          a.name.localeCompare(b.name, "pt-BR"),
+        );
+
         return NextResponse.json({
           contas,
-          clientes: [],
+          clientes,
           total: contas.length,
           timestamp: new Date().toISOString(),
         });
