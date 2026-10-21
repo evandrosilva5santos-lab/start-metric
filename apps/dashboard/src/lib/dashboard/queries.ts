@@ -32,6 +32,7 @@ type AccountRow = {
   external_id: string;
   timezone: string | null;
   client_id: string | null;
+  last_synced_at: string | null;
 };
 
 function safeDivide(numerator: number, denominator: number): number {
@@ -162,6 +163,7 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
     external_id: account.external_id,
     timezone: account.timezone,
     client_id: account.client_id,
+    last_synced_at: account.last_synced_at,
   })) as AccountRow[];
   const clientId = allAccounts.some((account) => account.client_id === inputFilters.clientId)
     ? inputFilters.clientId
@@ -223,7 +225,7 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
         name: account.name ?? account.external_id,
         externalId: account.external_id,
         timezone: account.timezone,
-        lastSyncedAt: null,
+        lastSyncedAt: account.last_synced_at,
       })),
       statuses: uniqueSorted(campaigns.map((c) => c.status), (s) => s.toUpperCase()),
       objectives: uniqueSorted(campaigns.map((c) => c.objective)),

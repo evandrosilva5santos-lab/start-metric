@@ -1,18 +1,30 @@
-// app/api/cron/meta-sync/route.ts
-// Job de polling para sincronizar todas as contas Meta ativas.
-// Protegido por Authorization: Bearer {CRON_SECRET}.
-// Configurar via Vercel Cron ou chamada manual a cada 15 min.
+// Sincroniza as contas Meta ativas em lotes: cada chamada atualiza as mais desatualizadas
+// que cabem no tempo da função e devolve quantas ficaram para a próxima rodada.
+// Chamado a cada 30 min pelo pg_cron (migration 20261021000100) e uma vez por dia pela Vercel.
 
 import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { fetchCampaigns, fetchCampaignInsights, MetaApiError } from "@/lib/meta/client";
-import { decryptToken } from "@/lib/meta/token";
-import { toDailyMetricRow, upsertDailyMetrics } from "@/lib/meta/daily-metrics";
 import type { Database } from "@/lib/supabase/types";
+import { orderSyncQueue, runWithinBudget, syncPresetsFor, type SyncOutcome } from "@/lib/meta/sync-plan";
+import {
+  createTokenResolver,
+  markAccountExpired,
+  metaFailureKind,
+  syncAccountMetrics,
+  type SyncTarget,
+} from "@/lib/meta/sync-account";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const maxDuration = 60;
 
 const CRON_SECRET = process.env.CRON_SECRET;
+const BUDGET_MS = 45_000;
+const CONCURRENCY = 3;
+const QUEUE_LIMIT = 1000;
 
-// Supabase client com service role para contornar RLS no cron server-side
+type QueuedAccount = SyncTarget & { status: string; last_synced_at: string | null };
+
 function createServiceClient() {
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,107 +42,63 @@ function isCronAuthorized(request: Request): boolean {
 }
 
 export async function POST(request: Request) {
-  // Validação de segurança do cron
   if (!isCronAuthorized(request)) {
     return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
   }
 
-  const supabase = createServiceClient();
-
-  // Busca todas as contas ativas (sem RLS por usar service role)
-  const { data: accounts, error } = await supabase
+  const db = createServiceClient();
+  const { data, error } = await db
     .from("ad_accounts")
-    .select("id, org_id, external_id, token_encrypted, name")
+    .select("id, org_id, external_id, token_encrypted, status, last_synced_at")
     .eq("status", "active")
-    .eq("platform", "meta");
+    .eq("platform", "meta")
+    .order("last_synced_at", { ascending: true, nullsFirst: true })
+    .limit(QUEUE_LIMIT);
 
   if (error) {
-    console.error("[cron/meta-sync] Erro ao buscar ad_accounts:", error);
+    console.error("[cron/meta-sync] Erro ao buscar ad_accounts:", error.message);
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const results = { synced: 0, expired: 0, errors: 0, synced_campaigns: 0 };
+  const queue = orderSyncQueue<QueuedAccount>(data ?? []);
+  const resolveToken = createTokenResolver(db);
+  const expiredTokens = new Set<string>();
 
-  for (const account of accounts ?? []) {
+  async function syncOne(account: QueuedAccount): Promise<SyncOutcome> {
+    const resolved = await resolveToken(account);
+    if (!resolved) {
+      console.warn(`[cron/meta-sync] Conta ${account.external_id} sem token utilizável.`);
+      return "error";
+    }
+    if (expiredTokens.has(resolved.tokenEncrypted)) {
+      await markAccountExpired(db, account, null);
+      return "expired";
+    }
     try {
-      if (!account.token_encrypted) {
-        console.warn(`[cron/meta-sync] Conta ${account.external_id} sem token criptografado. Skip.`);
-        continue;
-      }
-
-      const rawToken = await decryptToken(account.token_encrypted, supabase);
-
-      // ── Buscar campanhas ────────────────────────────────────
-      const campaigns = await fetchCampaigns(account.external_id, rawToken);
-
-      if (campaigns.length > 0) {
-        const campaignRows = campaigns.map((c) => ({
-          ad_account_id: account.id,
-          org_id: account.org_id,
-          meta_id: c.id,
-          name: c.name,
-          status: c.status,
-          objective: c.objective,
-          daily_budget: c.daily_budget ? parseFloat(c.daily_budget) / 100 : null,
-        }));
-
-        await supabase
-          .from("campaigns")
-          .upsert(campaignRows, { onConflict: "ad_account_id,meta_id" });
-      }
-
-      // ── Buscar insights com revenue real (últimos 30 dias) ────────
-      const insights = await fetchCampaignInsights(account.external_id, rawToken, "last_30d");
-
-      // ── Buscar IDs internos das campanhas ──────────────────────────
-      const { data: campaignRows } = await supabase
-        .from("campaigns")
-        .select("id, meta_id")
-        .eq("ad_account_id", account.id);
-
-      const idMap = new Map((campaignRows ?? []).map((r) => [r.meta_id, r.id]));
-
-      // ── Upsert das métricas com revenue real ────────────────────────
-      const metricRows = insights
-        .filter((ins) => idMap.has(ins.campaign_id))
-        .map((ins) => toDailyMetricRow(ins, idMap.get(ins.campaign_id)!, account.org_id));
-
-      if (metricRows.length > 0) {
-        const { error: metricsError, legacy } = await upsertDailyMetrics(supabase, metricRows);
-        if (legacy) {
-          console.warn("[cron/meta-sync] daily_metrics sem colunas actions/action_values; gravado sem conversões por tipo.");
-        }
-        if (metricsError) {
-          console.error(`[cron/meta-sync] Erro upsert daily_metrics (${account.external_id}):`, metricsError);
-        }
-
-        results.synced_campaigns += metricRows.length;
-      }
-
-      // ── Atualizar last_synced_at ───────────────────────────────
-      await supabase
-        .from("ad_accounts")
-        .update({ last_synced_at: new Date().toISOString() })
-        .eq("id", account.id);
-
-      results.synced++;
+      await syncAccountMetrics(db, account, resolved.token, syncPresetsFor(account.last_synced_at, new Date()));
+      return "synced";
     } catch (err) {
-      if (err instanceof MetaApiError && err.isTokenExpired()) {
-        await supabase
-          .from("ad_accounts")
-          .update({ status: "expired" })
-          .eq("id", account.id);
-        results.expired++;
+      const kind = metaFailureKind(err);
+      if (kind === "expired") {
+        expiredTokens.add(resolved.tokenEncrypted);
+        await markAccountExpired(db, account, resolved.tokenEncrypted);
       } else {
-        console.error(`[cron/meta-sync] Erro na conta ${account.external_id}:`, err);
-        results.errors++;
+        console.error(`[cron/meta-sync] Erro na conta ${account.external_id} (${kind}):`, err instanceof Error ? err.message : err);
       }
+      return kind;
     }
   }
 
-  console.log(`[cron/meta-sync] Concluído: ${JSON.stringify(results)}`);
-  return NextResponse.json({ ok: true, results, processedAt: new Date().toISOString() });
+  const result = await runWithinBudget(queue, {
+    budgetMs: BUDGET_MS,
+    concurrency: CONCURRENCY,
+    now: Date.now,
+    worker: syncOne,
+  });
+
+  console.log(`[cron/meta-sync] ${JSON.stringify(result)}`);
+  return NextResponse.json(result);
 }
 
-// Suporte GET para Vercel Cron (que usa GET por padrão)
+// A Vercel Cron chama com GET.
 export { POST as GET };

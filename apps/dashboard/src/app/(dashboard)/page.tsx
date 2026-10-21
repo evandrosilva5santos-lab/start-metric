@@ -11,6 +11,7 @@ import { buildOverviewModel } from "@/lib/dashboard/overview";
 import { RANGE_PRESETS, isIsoDate, previousRange, shortDate, todayInTimezone } from "@/lib/dashboard/overview-range";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
 import { OverviewStamp } from "@/components/dashboard/OverviewStamp";
+import { SyncNowButton, type SyncScopeAccount } from "@/components/dashboard/SyncNowButton";
 import { MetaSkeleton } from "@/components/meta/MetaUi";
 
 export const metadata: Metadata = {
@@ -90,6 +91,17 @@ function Notice({
       </div>
     </div>
   );
+}
+
+function syncScope(context: DashboardContext): SyncScopeAccount[] {
+  const selected = context.filters.adAccountId;
+  return context.accounts
+    .filter((account) => selected === "all" || account.id === selected)
+    .map((account) => ({
+      externalId: account.external_id,
+      name: account.name ?? account.external_id,
+      lastSyncedAt: account.last_synced_at,
+    }));
 }
 
 type Loaded = {
@@ -180,11 +192,12 @@ async function OverviewSection({ filters }: { filters: DashboardFilters }) {
 
   const today = todayInTimezone(data.timezone);
   const model = buildOverviewModel(data, previous, today, { current: actions, previous: previousActions });
+  const scope = syncScope(context);
 
   return (
     <div className="space-y-6">
       <OverviewStamp generatedAt={data.generatedAt} />
-      <div className="space-y-2">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
         <p className="text-xs tabular-nums text-text-secondary">
           De {shortDate(model.range.from)} a {shortDate(model.range.to)}
           {model.previousRange && (
@@ -194,6 +207,7 @@ async function OverviewSection({ filters }: { filters: DashboardFilters }) {
             </>
           )}
         </p>
+        {model.hasData && <SyncNowButton accounts={scope} />}
       </div>
 
       {!model.hasData && (
@@ -202,9 +216,15 @@ async function OverviewSection({ filters }: { filters: DashboardFilters }) {
           title="Sem métricas no banco para este período"
           description={`Conferido às ${noticeTime()} (horário de Brasília). Os números aparecem depois que a sincronização com a Meta grava os dias do período.`}
         >
-          <Link href="/settings/meta" className={primaryLink}>
-            Sincronizar em Integrações
-          </Link>
+          <SyncNowButton
+            accounts={scope}
+            variant="primary"
+            secondary={
+              <Link href="/settings/meta" className={secondaryLink}>
+                Integrações → Meta Ads
+              </Link>
+            }
+          />
         </Notice>
       )}
 
