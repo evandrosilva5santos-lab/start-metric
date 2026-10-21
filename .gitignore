@@ -38,6 +38,10 @@ supabase/.temp/
 supabase/functions/.env
 supabase/functions/.env.*
 # If there are local keys or secrets, ignore them
+.google-ads-service-account.json
+*.pem
+*.key
+
 .supabase/
 
 # Monorepo specific

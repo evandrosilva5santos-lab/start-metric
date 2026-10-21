@@ -12,6 +12,7 @@ import {
   FileText,
   Plug,
   Settings,
+  Search,
   Menu,
   type LucideIcon,
 } from "lucide-react";
@@ -39,6 +40,10 @@ export const NAV_GROUPS: NavGroup[] = [
       { icon: Clock, label: "Horário", href: "/horario" },
       { icon: Stethoscope, label: "Diagnóstico", href: DIAGNOSTIC_HREF },
     ],
+  },
+  {
+    label: "Google Ads",
+    items: [{ icon: Search, label: "Visão Google", href: "/google-ads" }],
   },
   {
     label: "Descoberta",
@@ -71,6 +76,7 @@ const LIVE_META_PATHS = ["/campaigns", "/criativos", "/tracking", "/horario", DI
 const EXTRA_TITLES: Array<{ prefix: string; title: string }> = [
   { prefix: "/clients/", title: "Cliente 360°" },
   { prefix: "/settings/profile", title: "Meu perfil" },
+  { prefix: "/settings/google", title: "Integrações" },
   { prefix: "/accounts", title: "Contas de anúncio" },
   { prefix: "/garimpo/", title: "Garimpo" },
 ];

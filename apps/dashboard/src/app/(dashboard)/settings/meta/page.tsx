@@ -7,6 +7,7 @@ import MetaAccountsClient from "./MetaAccountsClient";
 import type { MetaConnectionSummary, PanelMetaAccount } from "./types";
 import { getDashboardSession } from "@/lib/auth/session";
 import { HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
+import { IntegrationTabs } from "@/components/integrations/IntegrationTabs";
 
 export const metadata = {
   title: "Conectar Meta Ads | Start Metric",
@@ -79,6 +80,8 @@ export default async function MetaSettingsPage({
           </div>
         </div>
       </div>
+
+      <IntegrationTabs active="meta" />
 
       <MetaAccountsClient
         accounts={accounts}

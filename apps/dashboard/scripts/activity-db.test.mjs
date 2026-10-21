@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 
-const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql"].map((file) =>
+const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql"].map((file) =>
   readFileSync(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"),
 );
 
@@ -346,4 +346,44 @@ test("cobertura do dia nunca regride de completo para parcial", async () => {
   const row = (await db.query("SELECT status, events FROM public.activity_sync_coverage WHERE ad_account_id = $1 AND day = '2026-10-13'", [ACC_A])).rows[0];
   assert.deepEqual(row, { status: "complete", events: 120 });
   await assert.rejects(() => db.query("SELECT public.record_activity_coverage($1, $2, '2026-10-13', 'complete', 1)", [ORG_A, ACC_B]), /ACCOUNT_NOT_IN_ORG/);
+});
+
+// ── Google Ads: conexões, campanhas e métricas ──────────────────────────────
+const GOOGLE_ACC = "00000000-0000-0000-0000-00000000900a";
+
+test("conta Google entra em ad_accounts e métricas fazem upsert idempotente", async () => {
+  await db.query("INSERT INTO public.ad_accounts (id, org_id, client_id, platform, external_id, name) VALUES ($1, $2, $3, 'google', '3418489444', 'Arroba')", [GOOGLE_ACC, ORG_A, CLIENT_A1]);
+  const up = `INSERT INTO public.google_ads_daily_metrics (org_id, ad_account_id, campaign_id, date, cost_micros, impressions, clicks, conversions, conversions_value)
+    VALUES ($1, $2, '22001', '2026-10-13', $3, 1000, 40, 2.5, 100)
+    ON CONFLICT (ad_account_id, campaign_id, date) DO UPDATE SET cost_micros = EXCLUDED.cost_micros`;
+  await db.query(up, [ORG_A, GOOGLE_ACC, 12_340_000]);
+  await db.query(up, [ORG_A, GOOGLE_ACC, 15_000_000]);
+  const rows = (await db.query("SELECT cost_micros::text AS c FROM public.google_ads_daily_metrics WHERE ad_account_id = $1", [GOOGLE_ACC])).rows;
+  assert.deepEqual(rows, [{ c: "15000000" }]);
+});
+
+test("métrica do Google com conta de outra org é recusada", async () => {
+  await assert.rejects(
+    () => db.query("INSERT INTO public.google_ads_daily_metrics (org_id, ad_account_id, campaign_id, date) VALUES ($1, $2, '1', '2026-10-13')", [ORG_B, GOOGLE_ACC]),
+    /violates foreign key/,
+  );
+});
+
+test("conexão OAuth exige refresh token; uma conexão por modo por org", async () => {
+  await assert.rejects(() => db.query("INSERT INTO public.google_ads_connections (org_id, mode) VALUES ($1, 'oauth')", [ORG_A]), /violates check/);
+  await db.query("INSERT INTO public.google_ads_connections (org_id, mode, login_customer_id) VALUES ($1, 'service_account', '7205749286')", [ORG_A]);
+  await assert.rejects(() => db.query("INSERT INTO public.google_ads_connections (org_id, mode) VALUES ($1, 'service_account')", [ORG_A]), /duplicate key/);
+});
+
+test("usuário autenticado lê métricas só da própria org e nunca lê as conexões", async () => {
+  await db.exec("BEGIN");
+  try {
+    await db.query("SELECT set_config('request.jwt.claim.sub', $1, true)", [USER_A]);
+    await db.exec("SET LOCAL ROLE authenticated");
+    const r = await db.query("SELECT DISTINCT org_id FROM public.google_ads_daily_metrics");
+    assert.deepEqual(r.rows.map((x) => x.org_id), [ORG_A]);
+    await assert.rejects(() => db.query("SELECT * FROM public.google_ads_connections"), /permission denied/);
+  } finally {
+    await db.exec("ROLLBACK");
+  }
 });

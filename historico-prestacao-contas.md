@@ -3,6 +3,12 @@
 ## Goal
 Registrar tudo o que foi feito para cada cliente (Meta + painel + manual) e gerar, com um clique, uma prestação de contas confiável. Desenho, decisões (D1–D36) e revisões: `docs/PLANO_HISTORICO_PRESTACAO_CONTAS.md`.
 
+## No ar em 21/10/2026 (commits `fc80b6d7`, `f46d4d74`)
+- [x] T3b aplicada (execuções, trava, cobertura) + pg_cron `start-metric-meta-activities` (minuto :07, URL no Vault).
+- [x] Sincronização do histórico da Meta (motor por janelas, rota de cron, botão Atualizar) — 51 testes de unidade + 29 de banco.
+- [x] Aba **Histórico** no Cliente 360° (`/clients/[id]?tab=historico`), só leitura, itens agrupados em rajadas. Testada no Chrome com o Moving.
+- [ ] Falta: captura das ações do painel (T5), registrar/anotar motivo e detalhe (T6/T7), relatório (T8), aba Prestação de contas (T9).
+
 ## Tasks
 **Fase A — base sem tocar no banco** (pode começar já)
 - [ ] **T0 Infra** — `lib/activity/flags.ts` (D31); `lib/http/route.ts` extraído de `reports/http.ts`; PGlite como devDependency; scripts `test:activity` e `test` agregador. → Verify: `npm run test --workspace=start-metric` roda as suítes antigas e novas.

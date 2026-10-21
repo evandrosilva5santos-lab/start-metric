@@ -80,6 +80,27 @@ export default async function SettingsPage() {
               </p>
             </Link>
 
+            <Link
+              href="/settings/google"
+              className="glass rounded-2xl p-5 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-primary-tint border border-primary/20 flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-fg group-hover:text-primary transition-colors">Google Ads (API v26)</div>
+                    <span className="text-[12px] text-fg-muted font-medium">MCC · conta de serviço ou login Google</span>
+                  </div>
+                </div>
+                <ComingSoonBadge variant="new" label="Novo" />
+              </div>
+              <p className="text-xs text-fg-muted">
+                Contas do MCC, campanhas e métricas diárias (investimento, cliques, conversões e ROAS) por cliente.
+              </p>
+            </Link>
+
             <div className="glass rounded-2xl p-5 border-success/20 bg-success-tint relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
@@ -139,14 +160,14 @@ export default async function SettingsPage() {
               </p>
             </div>
 
-            {/* Google Ads & TikTok */}
+            {/* TikTok */}
             <div className="glass rounded-2xl p-5 border-border opacity-75">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 rounded-xl bg-warning-tint border border-warning/20 flex items-center justify-center">
                     <Globe className="w-4 h-4 text-warning" />
                   </div>
-                  <span className="font-semibold text-fg">Google Ads & TikTok Ads</span>
+                  <span className="font-semibold text-fg">TikTok Ads</span>
                 </div>
                 <ComingSoonBadge variant="soon" label="Em breve" />
               </div>
