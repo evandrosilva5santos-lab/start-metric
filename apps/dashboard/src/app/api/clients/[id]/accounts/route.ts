@@ -129,7 +129,7 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
     });
 
     const { error } = await session.supabase.from("ad_accounts").upsert(discoveredRows, {
-      onConflict: "org_id,platform,external_id",
+      onConflict: "org_id,external_id",
       ignoreDuplicates: true,
     });
     if (error) {
