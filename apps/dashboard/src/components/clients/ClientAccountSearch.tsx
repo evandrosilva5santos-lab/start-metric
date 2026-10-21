@@ -163,7 +163,11 @@ export function ClientAccountSearch({ clientId, linkedIds, onClose, onSaved }: P
           <>
             <p className="mb-2 text-xs text-text-muted">
               <span className="tabular-nums">{shownCount}</span> de <span className="tabular-nums">{accounts.length}</span> contas
-              da sua conexão Meta. Ligar uma conta ao cliente também a coloca no painel.
+              do painel. Para liberar outra conta,{" "}
+              <Link href="/settings/meta?adicionar=1" className="font-semibold text-primary hover:underline">
+                adicione em Integrações → Meta Ads
+              </Link>
+              .
             </p>
             <div className="max-h-[420px] overflow-y-auto">
               <AccountGroupList
@@ -174,7 +178,7 @@ export function ClientAccountSearch({ clientId, linkedIds, onClose, onSaved }: P
                 onSetMany={setMany}
                 renderBadges={(account, checked) => renderBadges(account.externalId, checked)}
                 expandAll={search.trim().length > 0}
-                emptyText="Nenhuma conta com esse nome."
+                emptyText={accounts.length === 0 ? "Nenhuma conta no painel ainda." : "Nenhuma conta com esse nome."}
               />
             </div>
           </>

@@ -27,7 +27,7 @@ export default async function MetaSettingsPage({
   const [accountsResult, clientsResult, connectionResult] = await Promise.all([
     supabase
       .from("ad_accounts")
-      .select("id, name, external_id, status, currency, connected_at, token_expires_at, client_id")
+      .select("id, name, external_id, status, currency, connected_at, token_expires_at, last_synced_at, client_id")
       .eq("org_id", session.orgId)
       .eq("platform", "meta")
       .neq("status", HIDDEN_ACCOUNT_STATUS)

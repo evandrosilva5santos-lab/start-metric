@@ -6,6 +6,7 @@ export type PanelMetaAccount = {
   currency: string | null;
   connected_at: string | null;
   token_expires_at: string | null;
+  last_synced_at: string | null;
   client_name: string | null;
 };
 

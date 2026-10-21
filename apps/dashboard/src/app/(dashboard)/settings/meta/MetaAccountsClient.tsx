@@ -10,6 +10,7 @@ import { MetaAccountPicker, DISCOVER_QUERY_KEY } from "./MetaAccountPicker";
 import { MetaFlashMessages } from "./MetaFlashMessages";
 import { PanelSelectionBar } from "./PanelSelectionBar";
 import { useMetaAccountActions } from "./useMetaAccountActions";
+import { SyncNowButton, type SyncScopeAccount } from "@/components/dashboard/SyncNowButton";
 import type { MetaConnectionSummary, PanelMetaAccount } from "./types";
 
 type Props = {
@@ -64,6 +65,13 @@ export default function MetaAccountsClient({ accounts, connection, flashConnecte
   const expiredCount = localAccounts.filter((account) => account.status === "expired").length;
   const connectionExpired = connection?.status === "expired";
   const selectedIds = localAccounts.filter((account) => selected.has(account.id)).map((account) => account.id);
+  const syncScope: SyncScopeAccount[] = localAccounts
+    .filter((account) => account.status === "active")
+    .map((account) => ({
+      externalId: account.external_id,
+      name: account.name ?? account.external_id,
+      lastSyncedAt: account.last_synced_at,
+    }));
 
   function handlePickerOpenChange(open: boolean) {
     setPickerOpen(open);
@@ -157,13 +165,20 @@ export default function MetaAccountsClient({ accounts, connection, flashConnecte
       )}
 
       <section aria-labelledby="meta-panel-accounts" className="space-y-4">
-        <div className="flex items-center justify-between px-1">
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
           <h2 id="meta-panel-accounts" className="flex items-center gap-2 text-sm font-semibold text-fg">
             <Facebook size={14} className="text-primary" aria-hidden="true" />
             Contas no painel (<span className="tabular-nums">{localAccounts.length}</span>)
           </h2>
-          <div className="mx-4 h-px flex-1 bg-subtle" />
-          <span className="text-xs text-fg-muted">Sincronização diária</span>
+          <div className="hidden h-px flex-1 bg-subtle sm:block" />
+          {syncScope.length > 0 && (
+            <SyncNowButton
+              accounts={syncScope}
+              variant="primary"
+              label={syncScope.length === 1 ? "Sincronizar conta" : `Sincronizar todas (${syncScope.length})`}
+              secondary={<span className="text-xs text-fg-muted">Automática a cada 30 min</span>}
+            />
+          )}
         </div>
 
         <PanelSelectionBar

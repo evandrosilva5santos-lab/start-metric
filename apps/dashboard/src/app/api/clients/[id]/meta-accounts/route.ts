@@ -10,7 +10,7 @@ type Params = Promise<{ id: string }>;
 
 const DISCOVER_LIMIT = { limit: 30, windowMs: 5 * 60 * 1000 };
 
-// Contas que a conexão Meta da organização enxerga, agrupadas por gerenciador e marcando a quem cada uma pertence.
+// Contas do painel (escolhidas em Integrações) que a conexão Meta enxerga, agrupadas por gerenciador e marcando a quem cada uma pertence.
 export async function GET(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
   const session = await getDashboardSession();
@@ -51,8 +51,13 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     return NextResponse.json({ error: "Erro ao carregar as contas." }, { status: 500 });
   }
   const panelById = new Map(panel.map((row) => [row.externalId, row]));
+  // Só as contas escolhidas em Integrações → Meta Ads (e as já ligadas a este cliente).
+  const allowed = discovery.accounts.filter((acc) => {
+    const row = panelById.get(acc.id);
+    return row !== undefined && (row.status !== HIDDEN_ACCOUNT_STATUS || row.clientId === id);
+  });
 
-  const contas = discovery.accounts
+  const contas = allowed
     .map((acc) => {
       const row = panelById.get(acc.id);
       return {
@@ -67,6 +72,6 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     })
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-  const grupos = buildAccountGroups(discovery.accounts, toPanelStates(panel));
+  const grupos = buildAccountGroups(allowed, toPanelStates(panel));
   return NextResponse.json({ contas, grupos, total: contas.length });
 }

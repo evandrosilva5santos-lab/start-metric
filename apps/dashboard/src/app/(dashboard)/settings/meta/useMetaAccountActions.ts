@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { syncFailureMessage } from "@/lib/meta/sync-feedback";
+import { requestAccountSync } from "@/lib/meta/sync-request";
 import type { Feedback, LinkedAccountConflict, PanelMetaAccount } from "./types";
 
 type HideResponse = { error?: string; code?: string; linked?: LinkedAccountConflict[] };
@@ -20,31 +22,17 @@ export function useMetaAccountActions({ setAccounts, onChanged }: Options) {
   async function sync(account: PanelMetaAccount) {
     setSyncingId(account.id);
     setFeedback(null);
-    try {
-      const res = await fetch("/api/meta/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adAccountId: account.external_id }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        if (data.code === "TOKEN_EXPIRED") {
-          setAccounts((prev) => prev.map((a) => (a.id === account.id ? { ...a, status: "expired" } : a)));
-          setFeedback({ type: "error", message: "Token expirado. Reconecte sua conta." });
-        } else {
-          setFeedback({ type: "error", message: data.error ?? "Erro ao sincronizar." });
-        }
-      } else {
-        setFeedback({
-          type: "success",
-          message: `Sincronizado! ${data.synced.campaigns} campanhas · ${data.synced.metrics} métricas.`,
-        });
-      }
-    } catch {
-      setFeedback({ type: "error", message: "Erro de rede. Tente novamente." });
-    } finally {
-      setSyncingId(null);
+    const failure = await requestAccountSync(account.external_id);
+    setSyncingId(null);
+    if (!failure) {
+      setFeedback({ type: "success", message: `${account.name ?? account.external_id} sincronizada com a Meta.` });
+      onChanged();
+      return;
     }
+    if (failure.code === "expired") {
+      setAccounts((prev) => prev.map((a) => (a.id === account.id ? { ...a, status: "expired" } : a)));
+    }
+    setFeedback({ type: "error", message: syncFailureMessage(failure) });
   }
 
   async function remove(account: PanelMetaAccount) {
