@@ -1,13 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrgMetaToken, listOrgMetaAccounts } from "@/lib/meta/org-token";
-import { MetaApiError } from "@/lib/meta/client";
 import { getDashboardSession } from "@/lib/auth/session";
+import { rateLimit } from "@/lib/rate-limit";
+import { buildAccountGroups, HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
+import { discoverOrgAccounts, discoveryFailureResponse, loadPanelAccounts, toPanelStates } from "@/lib/meta/discovery";
 
 export const dynamic = "force-dynamic";
 
 type Params = Promise<{ id: string }>;
 
-// Contas que a conexão Meta da organização enxerga, marcando a quem cada uma já pertence.
+const DISCOVER_LIMIT = { limit: 30, windowMs: 5 * 60 * 1000 };
+
+// Contas que a conexão Meta da organização enxerga, agrupadas por gerenciador e marcando a quem cada uma pertence.
 export async function GET(req: NextRequest, { params }: { params: Params }) {
   const { id } = await params;
   const session = await getDashboardSession();
@@ -29,50 +32,41 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
   }
 
-  const orgToken = await getOrgMetaToken(supabase, orgId);
-  if (!orgToken) {
+  const limited = rateLimit(`meta-discover:${orgId}`, DISCOVER_LIMIT);
+  if (!limited.allowed) {
     return NextResponse.json(
-      { error: "Conecte a Meta da sua organização em Configurações > Meta para buscar as contas.", code: "meta_not_connected" },
-      { status: 409 },
+      { error: "Muitas buscas seguidas. Aguarde um pouco e tente de novo.", code: "rate_limited" },
+      { status: 429, headers: { "Retry-After": String(limited.retryAfterSeconds) } },
     );
   }
 
-  let metaAccounts;
+  const discovery = await discoverOrgAccounts(supabase, orgId, req.nextUrl.searchParams.get("fresh") === "true");
+  if (!discovery.ok) return discoveryFailureResponse(discovery.code);
+
+  let panel;
   try {
-    metaAccounts = await listOrgMetaAccounts(orgId, orgToken.token, req.nextUrl.searchParams.get("fresh") === "true");
+    panel = await loadPanelAccounts(supabase, orgId);
   } catch (err) {
-    const expired = err instanceof MetaApiError && err.code === 190;
-    return NextResponse.json(
-      {
-        error: expired
-          ? "A conexão com a Meta expirou. Conecte de novo em Configurações > Meta."
-          : "A Meta não respondeu agora. Tente de novo em alguns minutos.",
-        code: expired ? "meta_token_expired" : "meta_unavailable",
-      },
-      { status: 502 },
-    );
+    console.error("[clients/meta-accounts] Falha ao ler contas do painel:", err instanceof Error ? err.message : err);
+    return NextResponse.json({ error: "Erro ao carregar as contas." }, { status: 500 });
   }
+  const panelById = new Map(panel.map((row) => [row.externalId, row]));
 
-  const [linkedRes, clientsRes] = await Promise.all([
-    supabase.from("ad_accounts").select("external_id, client_id").eq("org_id", orgId).eq("platform", "meta"),
-    supabase.from("clients").select("id, name").eq("org_id", orgId).is("archived_at", null),
-  ]);
-  const clientName = new Map((clientsRes.data ?? []).map((clientRow) => [clientRow.id, clientRow.name]));
-  const owner = new Map((linkedRes.data ?? []).map((accountRow) => [accountRow.external_id, accountRow.client_id]));
-
-  const contas = metaAccounts
+  const contas = discovery.accounts
     .map((acc) => {
-      const ownerId = owner.get(acc.id) ?? null;
+      const row = panelById.get(acc.id);
       return {
         id: acc.id,
         name: acc.name || acc.id,
         currency: acc.currency || "BRL",
         isActive: acc.account_status === undefined || acc.account_status === 1,
-        clientId: ownerId,
-        clientName: ownerId ? (clientName.get(ownerId) ?? null) : null,
+        clientId: row?.clientId ?? null,
+        clientName: row?.clientName ?? null,
+        hidden: row?.status === HIDDEN_ACCOUNT_STATUS,
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 
-  return NextResponse.json({ contas, total: contas.length });
+  const grupos = buildAccountGroups(discovery.accounts, toPanelStates(panel));
+  return NextResponse.json({ contas, grupos, total: contas.length });
 }

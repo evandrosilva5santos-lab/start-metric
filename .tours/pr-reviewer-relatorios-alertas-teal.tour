@@ -1,0 +1,95 @@
+{
+  "$schema": "https://aka.ms/codetour-schema",
+  "title": "Entrega: relatórios, alertas, Visão geral do banco e visual Teal",
+  "description": "Roteiro de revisão do que entrou em produção em 21/10/2026 (commits 3fb3488e a 7b9dacc8): motor de relatórios, geração agendada, triagem de alertas, Visão geral lida do banco, WhatsApp Evolution v2 e as correções de segurança.",
+  "ref": "main",
+  "steps": [
+    {
+      "directory": "apps/dashboard/src/lib/reports/engine",
+      "title": "Motor de relatórios",
+      "description": "Tudo que transforma um modelo com {{variáveis}} em texto mora aqui: catálogo, renderização, coletor de métricas e busca na Meta. Os módulos puros (sem `@/` nem `server-only`) são testados direto pelo Node em `scripts/reports-engine.test.mjs`."
+    },
+    {
+      "file": "apps/dashboard/src/lib/reports/engine/catalog.ts",
+      "line": 156,
+      "title": "Catálogo de 174 variáveis",
+      "description": "As variáveis de conversão e custo por `action_type` são geradas a partir do dicionário de tradução, não escritas à mão. **Atenção:** um slug novo usado em preset precisa existir aqui; o teste 'todo slug usado nos presets existe no catálogo' quebra se não existir."
+    },
+    {
+      "file": "apps/dashboard/src/lib/reports/engine/render.ts",
+      "line": 162,
+      "title": "Renderização: preview × live",
+      "description": "Em `preview` a variável sem dado usa o valor de exemplo; em `live` vira `—` e entra em `missing`. **É a regra mais importante da entrega:** relatório real nunca mostra número inventado. Datas e saudação são calculadas no fuso do relatório (padrão America/Sao_Paulo), não no do servidor."
+    },
+    {
+      "file": "apps/dashboard/src/lib/reports/engine/metrics.ts",
+      "line": 108,
+      "title": "Coletor de métricas do banco",
+      "description": "Soma as linhas de `daily_metrics` e calcula CTR/CPC/CPM/ROAS a partir dos totais, nunca pela média por linha. ROAS = receita ÷ investimento (o motor antigo ponderava pelo tamanho do nome da campanha). Divisão por zero não emite slug, para o renderizador mostrar `—`."
+    },
+    {
+      "file": "apps/dashboard/src/lib/reports/generate.ts",
+      "line": 19,
+      "title": "Geração de um relatório",
+      "description": "Insere o `report_run` ANTES de qualquer trabalho: a constraint `unique (report_id, scheduled_for)` é o que impede gerar duas vezes o mesmo horário. A geração manual usa o segundo 30 do minuto e o cron o segundo 0, para nunca colidirem."
+    },
+    {
+      "file": "apps/dashboard/src/app/api/cron/reports-dispatch/route.ts",
+      "line": 73,
+      "title": "Geração agendada",
+      "description": "Chamada a cada 5 min pelo `pg_cron` do Supabase (o plano Hobby da Vercel só aceita cron diário). Recupera runs presos em `queued`, processa até 25 relatórios com orçamento de tempo e avança `next_run_at` de forma condicional, para duas chamadas simultâneas avançarem uma vez só."
+    },
+    {
+      "file": "apps/dashboard/supabase/migrations/20261016000200_reports_dispatch_schedule.sql",
+      "line": 16,
+      "title": "Agendador no banco",
+      "description": "O job lê URL e segredo do Vault (`reports_dispatch_url`, `cron_secret`); nada sensível fica no repositório. **Se o CRON_SECRET mudar na Vercel, atualize o segredo no Vault**, senão o job passa a receber 401."
+    },
+    {
+      "file": "apps/dashboard/supabase/migrations/20261016000100_reports_notifications.sql",
+      "line": 193,
+      "title": "Esteira de entrega",
+      "description": "Usuário não pode dar UPDATE em `report_runs`; o avanço gerado → enviado → recebido → aprovado passa por esta função SECURITY DEFINER, que confere a organização, a ordem dos passos e grava quem enviou com o relógio do servidor."
+    },
+    {
+      "file": "apps/dashboard/src/lib/alerts/triage.ts",
+      "line": 12,
+      "title": "Triagem de alertas",
+      "description": "O estado (aberto, reconhecido, resolvido) é derivado de `acknowledged_at`/`resolved_at`; `alerts.status` continua `unread`/`read` para não quebrar o sino do topo. O avaliador em `evaluator.ts` deduplica por regra + alvo + período e não dispara sobre valor sem base (ex.: ROAS sem gasto)."
+    },
+    {
+      "file": "apps/dashboard/src/app/(dashboard)/page.tsx",
+      "line": 108,
+      "title": "Visão geral a partir do banco",
+      "description": "Renderizada no servidor com `getDashboardData`, o mesmo caminho da Performance. Antes ela chamava a Meta ao vivo a cada visita, com cache em memória inútil na Vercel. **Consequência:** se a sincronização parar (token vencido), a tela mostra `—` em vez de esconder o problema."
+    },
+    {
+      "file": "apps/dashboard/src/lib/meta/org-token.ts",
+      "line": 23,
+      "title": "Token da Meta por organização",
+      "description": "Não cai mais no token global do servidor: isso deixava uma organização ler contas de outra. Também ignora o marcador `env_token` que versões antigas gravaram no banco. Sem token próprio, as rotas respondem `meta_not_connected`."
+    },
+    {
+      "file": "apps/dashboard/src/lib/meta/client.ts",
+      "line": 306,
+      "title": "Reconexão com a Meta",
+      "description": "Tokens curtos (< 24 h) são trocados pelo de longa duração (`fb_exchange_token`); quando a Meta não informa prazo, `expiresIn` é `null` (antes isso gerava `RangeError` e derrubava a reconexão). O callback grava o token em TODAS as contas que o usuário enxerga, por isso existe um único botão 'Reconectar todas'."
+    },
+    {
+      "file": "apps/dashboard/src/app/api/cron/meta-sync/route.ts",
+      "line": 25,
+      "title": "Crons só com segredo",
+      "description": "O cabeçalho `x-vercel-cron` pode ser forjado por qualquer um; os crons aceitam apenas `Authorization: Bearer CRON_SECRET`, que a Vercel envia sozinha."
+    },
+    {
+      "file": "apps/dashboard/src/lib/whatsapp/evolution.ts",
+      "line": 225,
+      "title": "WhatsApp: Evolution v2",
+      "description": "Aceita os nomes de variáveis já configurados na Vercel (`EVOLUTION_API_BASE_URL`, `EVOLUTION_API_GLOBAL_TOKEN`). Criar instância exige `integration: WHATSAPP-BAILEYS` e o webhook leva o segredo no cabeçalho `x-webhook-secret`, nunca na URL."
+    },
+    {
+      "title": "Próximo passo",
+      "description": "Com isso você consegue seguir um relatório do modelo até o texto entregue, e um alerta da regra até a triagem. Pendências conhecidas: confirmar o tablet/celular logado no navegador, a busca de grupos do WhatsApp (`/api/whatsapp/instances/[id]/groups` não existe) e `balance_below` (a Meta não expõe saldo no cliente atual)."
+    }
+  ]
+}

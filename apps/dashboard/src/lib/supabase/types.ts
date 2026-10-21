@@ -130,6 +130,50 @@ export type Database = {
           },
         ]
       }
+      meta_connections: {
+        Row: {
+          connected_at: string
+          connected_by: string | null
+          fb_user_id: string | null
+          id: string
+          org_id: string
+          status: string
+          token_encrypted: string
+          token_expires_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          connected_at?: string
+          connected_by?: string | null
+          fb_user_id?: string | null
+          id?: string
+          org_id: string
+          status?: string
+          token_encrypted: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          connected_at?: string
+          connected_by?: string | null
+          fb_user_id?: string | null
+          id?: string
+          org_id?: string
+          status?: string
+          token_encrypted?: string
+          token_expires_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meta_connections_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ad_accounts: {
         Row: {
           client_id: string | null

@@ -1,41 +1,24 @@
 "use client";
 
-// app/settings/meta/MetaAccountsClient.tsx
-// Componente client: exibe contas conectadas, feedback de OAuth e ações.
-// Estilo Premium: Glassmorphism, Framer Motion e Lucide Icons.
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
-import { 
-  RefreshCw, 
-  Trash2, 
-  Plus, 
-  CheckCircle2, 
-  AlertCircle, 
-  Clock, 
-  ExternalLink, 
-  Info,
-  Database,
-  Facebook
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { motion } from "framer-motion";
+import { AlertCircle, Facebook, Link2, ListPlus, Plus, RefreshCw } from "lucide-react";
+import { MetaAccountCard } from "./MetaAccountCard";
+import { MetaAccountPicker, DISCOVER_QUERY_KEY } from "./MetaAccountPicker";
+import { MetaFlashMessages } from "./MetaFlashMessages";
+import { PanelSelectionBar } from "./PanelSelectionBar";
+import { useMetaAccountActions } from "./useMetaAccountActions";
+import type { MetaConnectionSummary, PanelMetaAccount } from "./types";
 
-interface AdAccount {
-  id: string;
-  name: string | null;
-  external_id: string;
-  status: string;
-  currency: string | null;
-  connected_at: string | null;
-  token_expires_at: string | null;
-}
-
-interface Props {
-  accounts: AdAccount[];
+type Props = {
+  accounts: PanelMetaAccount[];
+  connection: MetaConnectionSummary | null;
   flashConnected?: boolean;
   flashError?: string;
-}
+  openPicker?: boolean;
+};
 
 const ERROR_MESSAGES: Record<string, string> = {
   oauth_denied: "Você cancelou a conexão com a Meta.",
@@ -48,33 +31,28 @@ const ERROR_MESSAGES: Record<string, string> = {
   unexpected: "Erro inesperado. Tente novamente em instantes.",
 };
 
-const STATUS_CONFIG: Record<string, { label: string; className: string; icon: LucideIcon }> = {
-  active: { 
-    label: "Ativo", 
-    className: "bg-success-tint text-success border-success/20",
-    icon: CheckCircle2
-  },
-  expired: { 
-    label: "Expirado", 
-    className: "bg-warning-tint text-warning border-warning/20",
-    icon: Clock
-  },
-  disconnected: { 
-    label: "Desconectado", 
-    className: "bg-subtle text-fg-muted border-border-strong",
-    icon: AlertCircle
-  },
-};
-
-export default function MetaAccountsClient({ accounts, flashConnected, flashError }: Props) {
+export default function MetaAccountsClient({ accounts, connection, flashConnected = false, flashError, openPicker = false }: Props) {
   const router = useRouter();
-  const [syncingId, setSyncingId] = useState<string | null>(null);
-  const [disconnectingId, setDisconnectingId] = useState<string | null>(null);
-  const [localAccounts, setLocalAccounts] = useState<AdAccount[]>(accounts);
-  const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const queryClient = useQueryClient();
+  const [sourceAccounts, setSourceAccounts] = useState(accounts);
+  const [localAccounts, setLocalAccounts] = useState<PanelMetaAccount[]>(accounts);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
+  const [pickerOpen, setPickerOpen] = useState(openPicker);
 
-  // Após OAuth bem-sucedido, o upsert pode ainda não ter propagado quando o
-  // Server Component renderizou. Aguarda 1.5s e força um re-fetch dos dados.
+  if (accounts !== sourceAccounts) {
+    setSourceAccounts(accounts);
+    setLocalAccounts(accounts);
+  }
+
+  const actions = useMetaAccountActions({
+    setAccounts: setLocalAccounts,
+    onChanged: () => {
+      setSelected(new Set());
+      void queryClient.invalidateQueries({ queryKey: DISCOVER_QUERY_KEY });
+      router.refresh();
+    },
+  });
+
   useEffect(() => {
     if (!flashConnected) return;
     const timer = setTimeout(() => router.refresh(), 1500);
@@ -82,118 +60,45 @@ export default function MetaAccountsClient({ accounts, flashConnected, flashErro
   }, [flashConnected, router]);
 
   const errorMessage = flashError ? ERROR_MESSAGES[flashError] ?? "Erro ao conectar. Tente novamente." : null;
-
-  async function handleSync(account: AdAccount) {
-    setSyncingId(account.id);
-    setFeedback(null);
-    try {
-      const res = await fetch("/api/meta/sync", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ adAccountId: account.external_id }),
-      });
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (data.code === "TOKEN_EXPIRED") {
-          setLocalAccounts((prev) =>
-            prev.map((a) => (a.id === account.id ? { ...a, status: "expired" } : a))
-          );
-          setFeedback({ type: "error", message: "Token expirado. Reconecte sua conta." });
-        } else {
-          setFeedback({ type: "error", message: data.error ?? "Erro ao sincronizar." });
-        }
-      } else {
-        setFeedback({
-          type: "success",
-          message: `Sincronizado! ${data.synced.campaigns} campanhas · ${data.synced.metrics} métricas.`,
-        });
-      }
-    } catch {
-      setFeedback({ type: "error", message: "Erro de rede. Tente novamente." });
-    } finally {
-      setSyncingId(null);
-    }
-  }
-
-  async function handleDisconnect(account: AdAccount) {
-    if (!confirm(`Desconectar "${account.name ?? account.external_id}"? Esta ação removerá o acesso.`)) return;
-    setDisconnectingId(account.id);
-    setFeedback(null);
-    try {
-      const res = await fetch(`/api/meta/disconnect?adAccountId=${account.external_id}`, {
-        method: "DELETE",
-      });
-      if (res.ok) {
-        setLocalAccounts((prev) => prev.filter((a) => a.id !== account.id));
-        setFeedback({ type: "success", message: "Conta desconectada com sucesso." });
-      } else {
-        setFeedback({ type: "error", message: "Erro ao desconectar. Tente novamente." });
-      }
-    } catch {
-      setFeedback({ type: "error", message: "Erro de rede. Tente novamente." });
-    } finally {
-      setDisconnectingId(null);
-    }
-  }
-
+  const isConnected = connection !== null || localAccounts.length > 0;
   const expiredCount = localAccounts.filter((account) => account.status === "expired").length;
+  const connectionExpired = connection?.status === "expired";
+  const selectedIds = localAccounts.filter((account) => selected.has(account.id)).map((account) => account.id);
+
+  function handlePickerOpenChange(open: boolean) {
+    setPickerOpen(open);
+    if (!open && openPicker) router.replace("/settings/meta", { scroll: false });
+  }
+
+  function handlePickerSaved(count: number) {
+    handlePickerOpenChange(false);
+    actions.setFeedback({
+      type: "success",
+      message: count === 1 ? "1 conta adicionada ao painel." : `${count} contas adicionadas ao painel.`,
+    });
+    void queryClient.invalidateQueries({ queryKey: DISCOVER_QUERY_KEY });
+    router.refresh();
+  }
+
+  function toggleSelected(id: string, checked: boolean) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+  }
 
   return (
     <div className="space-y-8">
-      <AnimatePresence mode="wait">
-        {/* Flash de sucesso OAuth */}
-        {flashConnected && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -20, height: 0 }}
-            className="bg-success-tint border border-success/20 rounded-2xl p-4 text-success text-sm flex items-center gap-3 overflow-hidden"
-          >
-            <CheckCircle2 size={18} className="shrink-0" />
-            <span className="font-bold">Conta Meta conectada com sucesso!</span>
-            <span className="text-success">Suas campanhas já estão sendo sincronizadas.</span>
-          </motion.div>
-        )}
+      <MetaFlashMessages
+        flashConnected={flashConnected}
+        errorMessage={errorMessage}
+        feedback={actions.feedback}
+        onDismiss={() => actions.setFeedback(null)}
+      />
 
-        {/* Flash de erro OAuth */}
-        {errorMessage && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20, height: 0 }}
-            animate={{ opacity: 1, y: 0, height: "auto" }}
-            exit={{ opacity: 0, y: -20, height: 0 }}
-            className="bg-danger-tint border border-danger/20 rounded-2xl p-4 text-danger text-sm flex items-center gap-3 overflow-hidden"
-          >
-            <AlertCircle size={18} className="shrink-0" />
-            <span className="font-bold">Erro de Conexão:</span>
-            <span>{errorMessage}</span>
-          </motion.div>
-        )}
-
-        {/* Feedback de ações (Sync/Disconnect) */}
-        {feedback && (
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className={`rounded-2xl p-4 text-sm flex items-center gap-3 shadow-2xl ${
-              feedback.type === "success"
-                ? "bg-success-tint border border-success/20 text-success"
-                : "bg-danger-tint border border-danger/20 text-danger"
-            }`}
-          >
-            {feedback.type === "success" ? <Info size={18} /> : <AlertCircle size={18} />}
-            <span className="font-semibold">{feedback.message}</span>
-            <button 
-              onClick={() => setFeedback(null)}
-              className="ml-auto text-xs opacity-50 hover:opacity-100 transition-opacity uppercase tracking-tighter font-black"
-            >
-              Fechar
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {expiredCount > 0 && (
+      {(expiredCount > 0 || connectionExpired) && (
         <div
           role="status"
           className="flex flex-col gap-3 rounded-panel border border-warning/30 bg-warning-tint p-4 md:flex-row md:items-center md:justify-between"
@@ -202,10 +107,14 @@ export default function MetaAccountsClient({ accounts, flashConnected, flashErro
             <AlertCircle size={18} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
             <p className="text-fg">
               <span className="font-semibold">
-                {expiredCount === 1 ? "1 conta está" : `${expiredCount} contas estão`} com a conexão da Meta vencida.
+                {expiredCount === 0
+                  ? "A conexão da organização com a Meta venceu."
+                  : expiredCount === 1
+                    ? "1 conta está com a conexão da Meta vencida."
+                    : `${expiredCount} contas estão com a conexão da Meta vencida.`}
               </span>{" "}
               <span className="text-fg-muted">
-                Uma única reconexão renova o acesso de todas as contas que o seu usuário da Meta enxerga.
+                Uma única reconexão renova a conexão da organização e o acesso de todas as contas do painel.
               </span>
             </p>
           </div>
@@ -219,183 +128,103 @@ export default function MetaAccountsClient({ accounts, flashConnected, flashErro
         </div>
       )}
 
-      {/* Action Area */}
-      <div className="relative group">
-        <div className="absolute -inset-1 bg-gradient-to-r from-primary to-primary rounded-[22px] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" />
+      {isConnected ? (
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={() => setPickerOpen(true)}
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-primary px-6 text-sm font-semibold text-primary-fg shadow-sm transition-colors hover:bg-primary-hover"
+          >
+            <ListPlus size={18} aria-hidden="true" />
+            Adicionar contas
+          </button>
+          <a
+            href="/api/meta/oauth"
+            className="flex h-12 items-center justify-center gap-2 rounded-xl border border-border-strong bg-surface px-6 text-sm font-semibold text-fg transition-colors hover:bg-subtle"
+          >
+            <Link2 size={16} aria-hidden="true" />
+            Atualizar conexão com a Meta
+          </a>
+        </div>
+      ) : (
         <a
           href="/api/meta/oauth"
-          className="relative flex items-center justify-center gap-3 w-full py-4 px-8 rounded-2xl bg-gradient-to-r from-primary to-primary text-primary-fg font-black text-sm uppercase tracking-widest hover:translate-y-[-2px] transition-all duration-300 shadow-xl"
+          className="flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-8 text-sm font-semibold text-primary-fg shadow-sm transition-colors hover:bg-primary-hover"
         >
-          <Plus size={18} strokeWidth={3} />
-          {localAccounts.length > 0 ? "Adicionar Novo Gerenciador" : "Vincular Conta Meta Ads"}
+          <Plus size={18} aria-hidden="true" />
+          Conectar Meta Ads
         </a>
-      </div>
+      )}
 
-      {/* Accounts Pipeline */}
-      <div className="space-y-4">
+      <section aria-labelledby="meta-panel-accounts" className="space-y-4">
         <div className="flex items-center justify-between px-1">
-          <h2 className="text-[12px] font-black text-fg-muted uppercase tracking-[0.2em] flex items-center gap-2">
-            <Facebook size={12} className="text-primary" />
-            Connections ({localAccounts.length})
+          <h2 id="meta-panel-accounts" className="flex items-center gap-2 text-sm font-semibold text-fg">
+            <Facebook size={14} className="text-primary" aria-hidden="true" />
+            Contas no painel (<span className="tabular-nums">{localAccounts.length}</span>)
           </h2>
-          <div className="h-[1px] flex-1 mx-4 bg-subtle" />
-          <span className="text-[12px] font-bold text-fg-muted uppercase tracking-tighter">Live Monitor</span>
+          <div className="mx-4 h-px flex-1 bg-subtle" />
+          <span className="text-xs text-fg-muted">Sincronização diária</span>
         </div>
 
-        <div className="grid gap-4">
-          {localAccounts.length > 0 ? (
-            localAccounts.map((account, index) => {
-              const config = STATUS_CONFIG[account.status] ?? STATUS_CONFIG.disconnected;
-              const StatusIcon = config.icon;
-              const expiresAt = account.token_expires_at ? new Date(account.token_expires_at) : null;
-              const isExpired = expiresAt ? expiresAt < new Date() : false;
-              const isSyncing = syncingId === account.id;
+        <PanelSelectionBar
+          total={localAccounts.length}
+          selectedCount={selectedIds.length}
+          hiding={actions.hiding}
+          conflict={actions.linkedConflict?.linked ?? null}
+          onToggleAll={(checked) => setSelected(checked ? new Set(localAccounts.map((account) => account.id)) : new Set())}
+          onHide={() => void actions.hide(selectedIds)}
+          onConfirmForce={() => void actions.hide(actions.linkedConflict?.ids ?? [], true)}
+          onCancelConflict={actions.dismissConflict}
+        />
 
-              return (
-                <motion.div
+        <div className="grid gap-3">
+          {localAccounts.length > 0
+            ? localAccounts.map((account, index) => (
+                <MetaAccountCard
                   key={account.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.01 }}
-                  className="group/card relative overflow-hidden p-[1px] rounded-[24px] bg-gradient-to-br from-surface to-surface hover:from-primary-tint hover:to-primary-tint transition-all duration-500"
+                  account={account}
+                  index={index}
+                  isSelected={selected.has(account.id)}
+                  isSyncing={actions.syncingId === account.id}
+                  isDeleting={actions.deletingId === account.id}
+                  onSelect={(checked) => toggleSelected(account.id, checked)}
+                  onSync={() => void actions.sync(account)}
+                  onDelete={() => void actions.remove(account)}
+                />
+              ))
+            : !errorMessage && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="flex flex-col items-center rounded-[16px] border border-dashed border-border bg-subtle px-6 py-16 text-center"
                 >
-                  <div className="bg-surface p-6 rounded-[23px] flex flex-col md:flex-row md:items-center justify-between gap-6 relative z-10">
-                    <div className="flex items-center gap-5">
-                      <div className="relative shrink-0">
-                        <div className="w-14 h-14 rounded-2xl bg-subtle border border-border flex items-center justify-center text-fg-muted group-hover/card:text-primary group-hover/card:border-primary/30 transition-all duration-500">
-                          <Database size={24} />
-                        </div>
-                        {isSyncing && (
-                          <div className="absolute inset-0 rounded-2xl border-2 border-primary animate-ping opacity-20" />
-                        )}
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-3">
-                          <h3 className="font-black text-fg text-base tracking-tight">
-                            {account.name ?? account.external_id}
-                          </h3>
-                          <div className={`px-2 py-0.5 rounded-lg border flex items-center gap-1.5 text-[12px] font-black uppercase tracking-wider ${config.className}`}>
-                            <StatusIcon size={10} strokeWidth={3} />
-                            {config.label}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-bold text-fg-muted tracking-tighter">
-                          <span className="flex items-center gap-1">
-                            <Info size={12} className="text-fg-muted" />
-                            {account.external_id}
-                          </span>
-                          {account.currency && (
-                            <span className="flex items-center gap-1">
-                              <span className="w-1 h-1 rounded-full bg-subtle" />
-                              {account.currency}
-                            </span>
-                          )}
-                          {expiresAt && (
-                            <span className={`flex items-center gap-1 ${isExpired ? "text-warning" : "text-fg-muted"}`}>
-                              <span className="w-1 h-1 rounded-full bg-subtle" />
-                              <Clock size={12} />
-                              {isExpired ? "Expirou em " : "Expira em "}
-                              {expiresAt.toLocaleDateString("pt-BR")}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <div className="flex items-center gap-2 bg-surface p-1 rounded-xl border border-border">
-                        {account.status === "expired" ? (
-                          <a
-                            href="/api/meta/oauth"
-                            className="flex items-center gap-2 h-10 px-5 rounded-lg bg-warning-tint hover:bg-warning/90 text-warning hover:text-primary-fg transition-all duration-300 text-[12px] font-black uppercase tracking-widest border border-warning/20"
-                          >
-                            <RefreshCw size={14} strokeWidth={3} />
-                            Revalidar
-                          </a>
-                        ) : (
-                          <button
-                            onClick={() => handleSync(account)}
-                            disabled={isSyncing}
-                            className={`flex items-center gap-2 h-10 px-5 rounded-lg transition-all duration-300 text-[12px] font-black uppercase tracking-widest overflow-hidden relative group/btn ${
-                              isSyncing
-                                ? "bg-primary-tint text-primary cursor-not-allowed"
-                                : "bg-subtle hover:bg-primary-hover hover:text-primary-fg text-primary-fg border border-border"
-                            }`}
-                          >
-                            <RefreshCw size={14} strokeWidth={3} className={isSyncing ? "animate-spin" : "group-hover/btn:rotate-180 transition-transform duration-700"} />
-                            {isSyncing ? "Syncing..." : "Sincronizar"}
-                            
-                            {/* Shimmer overlay only when syncing */}
-                            {isSyncing && (
-                              <motion.div 
-                                className="absolute inset-0 bg-gradient-to-r from-transparent via-surface to-transparent"
-                                animate={{ x: ["-100%", "100%"] }}
-                                transition={{ repeat: Infinity, duration: 1.5 }}
-                              />
-                            )}
-                          </button>
-                        )}
-                        
-                        <button
-                          onClick={() => handleDisconnect(account)}
-                          disabled={disconnectingId === account.id}
-                          className="flex items-center justify-center w-10 h-10 rounded-lg hover:bg-danger-tint text-fg-muted hover:text-danger transition-all duration-300 group/trash disabled:opacity-50"
-                          title="Remover conexão"
-                        >
-                          {disconnectingId === account.id ? (
-                            <RefreshCw size={14} className="animate-spin text-danger" />
-                          ) : (
-                            <Trash2 size={16} className="group-hover/trash:scale-110 transition-transform" />
-                          )}
-                        </button>
-                      </div>
-                      
-                      <div className="w-[1px] h-8 bg-subtle mx-2 hidden md:block" />
-                      
-                      <a 
-                        href={`https://adsmanager.facebook.com/adsmanager/manage/campaigns?act=${account.external_id}`}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="flex items-center justify-center w-10 h-10 rounded-xl bg-surface border border-border text-fg-muted hover:text-fg hover:border-border transition-all"
-                        title="Abrir Ads Manager"
-                      >
-                        <ExternalLink size={16} />
-                      </a>
-                    </div>
+                  <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-tint text-primary">
+                    <Facebook size={28} aria-hidden="true" />
                   </div>
-                  
-                  {/* Background flare on hover */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-primary-tint blur-[60px] opacity-0 group-hover/card:opacity-100 transition-opacity pointer-events-none" />
-                </motion.div>
-              );
-            })
-          ) : (
-            !flashConnected && !errorMessage && (
-              <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="text-center py-20 px-6 rounded-[32px] border border-dashed border-border bg-subtle relative overflow-hidden group"
-              >
-                <div className="relative z-10 flex flex-col items-center">
-                  <div className="w-16 h-16 rounded-3xl bg-subtle flex items-center justify-center text-fg-muted mb-6 group-hover:scale-110 group-hover:bg-primary-tint group-hover:text-primary transition-all duration-700">
-                    <Facebook size={32} />
-                  </div>
-                  <h3 className="text-sm font-black text-fg-muted uppercase tracking-widest mb-2">Sem Conexões Ativas</h3>
-                  <p className="text-fg-muted text-xs font-bold max-w-xs mx-auto leading-relaxed">
-                    Vincule seu Gerenciador de Anúncios da Meta para começar a monitorar ROI e performance em tempo real.
+                  <h3 className="mb-2 text-sm font-semibold text-fg">
+                    {isConnected ? "Nenhuma conta no painel" : "Nenhuma conexão ativa"}
+                  </h3>
+                  <p className="mx-auto max-w-xs text-sm leading-relaxed text-fg-muted">
+                    {isConnected
+                      ? "Escolha as contas que você quer acompanhar. Só elas aparecem no painel e são sincronizadas."
+                      : "Conecte seu Gerenciador de Anúncios da Meta e depois escolha quais contas acompanhar."}
                   </p>
-                </div>
-                
-                {/* Decorative particles */}
-                <div className="absolute top-4 left-4 w-1 h-1 rounded-full bg-subtle" />
-                <div className="absolute bottom-10 right-10 w-2 h-2 rounded-full bg-subtle opacity-20" />
-              </motion.div>
-            )
-          )}
+                  {isConnected && (
+                    <button
+                      type="button"
+                      onClick={() => setPickerOpen(true)}
+                      className="mt-4 inline-flex h-11 items-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-fg hover:bg-primary-hover"
+                    >
+                      <ListPlus size={16} aria-hidden="true" />
+                      Adicionar contas
+                    </button>
+                  )}
+                </motion.div>
+              )}
         </div>
-      </div>
+      </section>
+
+      <MetaAccountPicker open={pickerOpen} onOpenChange={handlePickerOpenChange} onSaved={handlePickerSaved} />
     </div>
   );
 }

@@ -1,43 +1,58 @@
 // app/settings/meta/page.tsx
-// Página "Conectar Conta Meta Ads" — Server Component com Client Components inline.
-// Exibe contas conectadas, status e botões de ação.
+// Página "Conectar Conta Meta Ads": conexão da organização e contas escolhidas para o painel.
 
 import { redirect } from "next/navigation";
-import type { Database } from "@/lib/supabase/types";
 
 import MetaAccountsClient from "./MetaAccountsClient";
+import type { MetaConnectionSummary, PanelMetaAccount } from "./types";
+import { getDashboardSession } from "@/lib/auth/session";
+import { HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
 
 export const metadata = {
   title: "Conectar Meta Ads | Start Metric",
-  description: "Conecte sua conta Meta Ads para sincronizar campanhas e métricas.",
+  description: "Conecte sua conta Meta Ads e escolha quais contas aparecem no painel.",
 };
 
-import { getDashboardSession } from "@/lib/auth/session";
-
-type MetaAccountSummary = Pick<
-  Database["public"]["Tables"]["ad_accounts"]["Row"],
-  "id" | "name" | "external_id" | "status" | "currency" | "connected_at" | "token_expires_at"
->;
+type SearchParams = { connected?: string; error?: string; adicionar?: string };
 
 export default async function MetaSettingsPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ connected?: string; error?: string }> | { connected?: string; error?: string };
+  searchParams?: Promise<SearchParams> | SearchParams;
 }) {
   const session = await getDashboardSession();
   if (!session.isAuthorized) redirect("/auth");
 
-  let accounts: MetaAccountSummary[] = [];
-  try {
-    const supabase = session.supabase;
-    const { data: accs } = await supabase
+  const supabase = session.supabase;
+  const [accountsResult, clientsResult, connectionResult] = await Promise.all([
+    supabase
       .from("ad_accounts")
-      .select("id, name, external_id, status, currency, connected_at, token_expires_at")
+      .select("id, name, external_id, status, currency, connected_at, token_expires_at, client_id")
       .eq("org_id", session.orgId)
       .eq("platform", "meta")
-      .order("connected_at", { ascending: false });
-    accounts = accs ?? [];
-  } catch {}
+      .neq("status", HIDDEN_ACCOUNT_STATUS)
+      .order("connected_at", { ascending: false }),
+    supabase.from("clients").select("id, name").eq("org_id", session.orgId).is("archived_at", null),
+    supabase
+      .from("meta_connections")
+      .select("status, connected_at, token_expires_at")
+      .eq("org_id", session.orgId)
+      .maybeSingle(),
+  ]);
+
+  if (accountsResult.error) console.error("[settings/meta] Falha ao ler contas:", accountsResult.error.message);
+  const clientNames = new Map((clientsResult.data ?? []).map((client) => [client.id, client.name]));
+  const accounts: PanelMetaAccount[] = (accountsResult.data ?? []).map(({ client_id, ...account }) => ({
+    ...account,
+    client_name: client_id ? (clientNames.get(client_id) ?? null) : null,
+  }));
+  const connection: MetaConnectionSummary | null = connectionResult.data
+    ? {
+        status: connectionResult.data.status,
+        connectedAt: connectionResult.data.connected_at,
+        tokenExpiresAt: connectionResult.data.token_expires_at,
+      }
+    : null;
 
   const params = (await searchParams) ?? {};
 
@@ -66,9 +81,11 @@ export default async function MetaSettingsPage({
       </div>
 
       <MetaAccountsClient
-        accounts={accounts ?? []}
+        accounts={accounts}
+        connection={connection}
         flashConnected={params.connected === "true"}
         flashError={params.error}
+        openPicker={params.adicionar === "1"}
       />
     </div>
   );

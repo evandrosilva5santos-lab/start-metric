@@ -12,7 +12,8 @@
     "test:garimpo": "node --test scripts/garimpo.test.mjs",
     "test:reports": "node --test scripts/reports-engine.test.mjs scripts/reports-generation.test.mjs",
     "test:alerts": "node --test scripts/alerts.test.mjs",
-    "test:accounts": "node --test scripts/account-authorization.test.mjs"
+    "test:accounts": "node --test scripts/account-authorization.test.mjs",
+    "test:meta-accounts": "node --test scripts/meta-accounts.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.3.1",

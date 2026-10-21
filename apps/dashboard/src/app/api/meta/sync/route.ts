@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fetchCampaigns, fetchCampaignInsights, MetaApiError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/token";
 import { toDailyMetricRow, upsertDailyMetrics } from "@/lib/meta/daily-metrics";
+import { HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
 
 // Date preset padrão: últimos 30 dias
 const DEFAULT_DATE_PRESET = "last_30d";
@@ -57,6 +58,10 @@ export async function POST(request: Request) {
 
     if (account.status === "disconnected") {
       return NextResponse.json({ error: "Conta desconectada. Reconecte para sincronizar." }, { status: 400 });
+    }
+
+    if (account.status === HIDDEN_ACCOUNT_STATUS) {
+      return NextResponse.json({ error: "Conta fora do painel. Adicione-a de novo para sincronizar." }, { status: 400 });
     }
 
     accounts = [account];

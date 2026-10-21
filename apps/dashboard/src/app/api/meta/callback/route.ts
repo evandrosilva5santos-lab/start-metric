@@ -1,11 +1,13 @@
 // app/api/meta/callback/route.ts
 // Recebe o code OAuth da Meta, valida CSRF, troca por access_token,
-// criptografa e salva em ad_accounts. Redireciona para /settings/meta.
+// salva a conexão da organização e abre a escolha de contas em /settings/meta.
 
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { exchangeCodeForToken, fetchAdAccounts } from "@/lib/meta/client";
+import { exchangeCodeForToken, fetchMetaUserId } from "@/lib/meta/client";
 import { encryptToken } from "@/lib/meta/token";
+import { clearOrgMetaAccountsCache } from "@/lib/meta/org-token";
+import { HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
 import { cookies } from "next/headers";
 
 function getRedirectUri(url: URL): string {
@@ -68,44 +70,44 @@ export async function GET(request: Request) {
       return NextResponse.redirect(metaSettingsUrl.toString());
     }
 
-    // ── Buscar contas de anúncios vinculadas ao token ───────
-    const adAccounts = await fetchAdAccounts(accessToken);
-
-    if (adAccounts.length === 0) {
-      metaSettingsUrl.searchParams.set("error", "no_ad_accounts");
-      return NextResponse.redirect(metaSettingsUrl.toString());
-    }
-
-    // ── Criptografar token ──────────────────────────────────
     const tokenEncrypted = await encryptToken(accessToken, supabase);
     const tokenExpiresAt = expiresIn === null ? null : new Date(Date.now() + expiresIn * 1000).toISOString();
+    const fbUserId = await fetchMetaUserId(accessToken);
 
-    // ── Salvar cada conta de anúncios ───────────────────────
-    // Upsert seguro: se já existir (org_id + external_id), atualiza o token.
-    const upserts = adAccounts.map((acc) => ({
-      org_id: orgId,
-      platform: "meta",
-      external_id: acc.id,
-      name: acc.name,
-      currency: acc.currency,
-      timezone: acc.timezone_name,
-      token_encrypted: tokenEncrypted,
-      token_expires_at: tokenExpiresAt,
-      status: "active",
-    }));
-
-    const { error: upsertError } = await supabase
-      .from("ad_accounts")
-      .upsert(upserts, { onConflict: "org_id,external_id" });
-
-    if (upsertError) {
-      console.error("[meta/callback] Erro ao salvar ad_accounts:", upsertError);
+    const { error: connectionError } = await supabase.from("meta_connections").upsert(
+      {
+        org_id: orgId,
+        token_encrypted: tokenEncrypted,
+        token_expires_at: tokenExpiresAt,
+        fb_user_id: fbUserId,
+        connected_by: user.id,
+        status: "active",
+        connected_at: new Date().toISOString(),
+      },
+      { onConflict: "org_id" },
+    );
+    if (connectionError) {
+      console.error("[meta/callback] Erro ao salvar meta_connections:", connectionError);
       metaSettingsUrl.searchParams.set("error", "save_failed");
       return NextResponse.redirect(metaSettingsUrl.toString());
     }
 
+    const { error: refreshError } = await supabase
+      .from("ad_accounts")
+      .update({ token_encrypted: tokenEncrypted, token_expires_at: tokenExpiresAt, status: "active" })
+      .eq("org_id", orgId)
+      .eq("platform", "meta")
+      .neq("status", HIDDEN_ACCOUNT_STATUS);
+    if (refreshError) {
+      console.error("[meta/callback] Erro ao renovar o token das contas do painel:", refreshError);
+      metaSettingsUrl.searchParams.set("error", "save_failed");
+      return NextResponse.redirect(metaSettingsUrl.toString());
+    }
+    clearOrgMetaAccountsCache(orgId);
+
     // ── Limpar cookie CSRF e redirecionar para settings/meta ─
     metaSettingsUrl.searchParams.set("connected", "true");
+    metaSettingsUrl.searchParams.set("adicionar", "1");
     const response = NextResponse.redirect(metaSettingsUrl.toString());
     response.cookies.set("meta_oauth_state", "", { maxAge: 0, path: "/" });
 

@@ -332,6 +332,7 @@ export type MetaAdAccountSummary = {
   currency: string;
   timezone_name: string;
   account_status?: number;
+  business?: { id: string; name?: string } | null;
 };
 
 /**
@@ -342,7 +343,7 @@ export async function fetchAdAccounts(token: string, maxPages = 20): Promise<Met
   const all: MetaAdAccountSummary[] = [];
   let after: string | undefined;
   for (let page = 0; page < maxPages; page++) {
-    const params: Record<string, string> = { fields: "id,name,currency,timezone_name,account_status", limit: "100" };
+    const params: Record<string, string> = { fields: "id,name,currency,timezone_name,account_status,business{id,name}", limit: "100" };
     if (after) params.after = after;
     const data = await graphFetch<{ data?: MetaAdAccountSummary[]; paging?: { cursors?: { after?: string }; next?: string } }>(
       "/me/adaccounts",
@@ -354,4 +355,14 @@ export async function fetchAdAccounts(token: string, maxPages = 20): Promise<Met
     if (!after) break;
   }
   return all;
+}
+
+export async function fetchMetaUserId(token: string): Promise<string | null> {
+  try {
+    const data = await graphFetch<{ id?: string }>("/me", token, { fields: "id" });
+    return data.id ?? null;
+  } catch (err) {
+    console.warn("[meta/client] Não foi possível identificar o usuário da Meta:", err instanceof Error ? err.message : err);
+    return null;
+  }
 }

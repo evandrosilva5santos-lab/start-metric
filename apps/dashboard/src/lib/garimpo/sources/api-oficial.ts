@@ -1,7 +1,7 @@
 import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { decryptToken } from "@/lib/meta/token";
+import { getOrgMetaToken } from "@/lib/meta/org-token";
 import type { Database } from "@/lib/supabase/types";
 import { COMMERCIAL_COUNTRIES } from "../countries";
 import type { Ad, AdSource, SearchParams, SourceResult } from "./types";
@@ -40,21 +40,7 @@ type ArchiveResponse = {
 };
 
 async function orgMetaToken(supabase: SupabaseClient<Database>, orgId: string): Promise<string | null> {
-  const { data } = await supabase
-    .from("ad_accounts")
-    .select("token_encrypted")
-    .eq("org_id", orgId)
-    .eq("platform", "meta")
-    .not("token_encrypted", "is", null)
-    .order("connected_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (!data?.token_encrypted) return null;
-  try {
-    return await decryptToken(data.token_encrypted, supabase);
-  } catch {
-    return null;
-  }
+  return (await getOrgMetaToken(supabase, orgId))?.token ?? null;
 }
 
 function toAd(row: ArchiveRow): Ad | null {

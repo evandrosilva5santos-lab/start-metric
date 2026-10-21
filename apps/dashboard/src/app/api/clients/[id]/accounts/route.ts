@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { getOrgMetaToken, listOrgMetaAccounts } from "@/lib/meta/org-token";
+import type { OrgMetaToken } from "@/lib/meta/org-token";
+import { HIDDEN_ACCOUNT_STATUS } from "@/lib/meta/account-groups";
+import { discoverOrgAccounts, discoveryFailureResponse } from "@/lib/meta/discovery";
 import { getDashboardSession, type DashboardSession } from "@/lib/auth/session";
 
 const associateAccountSchema = z.object({
@@ -46,6 +48,31 @@ function assignmentError(error: { message: string }): NextResponse {
   return NextResponse.json({ error: "Não foi possível atualizar os vínculos." }, { status: 500 });
 }
 
+async function newlyLinkedIds(session: AuthorizedSession, clientId: string, externalIds: string[]): Promise<string[]> {
+  const { data, error } = await session.supabase
+    .from("ad_accounts")
+    .select("external_id")
+    .eq("org_id", session.orgId)
+    .eq("platform", "meta")
+    .eq("client_id", clientId);
+  if (error) throw new Error(error.message);
+  const alreadyLinked = new Set((data ?? []).map((row) => row.external_id));
+  return externalIds.filter((externalId) => !alreadyLinked.has(externalId));
+}
+
+// Ligar uma conta ao cliente também a coloca no painel; contas já ligadas mantêm o estado atual.
+async function addToPanel(session: AuthorizedSession, externalIds: string[], token: OrgMetaToken): Promise<string | null> {
+  if (externalIds.length === 0) return null;
+  const { error } = await session.supabase
+    .from("ad_accounts")
+    .update({ status: "active", token_encrypted: token.tokenEncrypted, token_expires_at: token.tokenExpiresAt })
+    .eq("org_id", session.orgId)
+    .eq("platform", "meta")
+    .eq("status", HIDDEN_ACCOUNT_STATUS)
+    .in("external_id", externalIds);
+  return error?.message ?? null;
+}
+
 async function assignSet(
   session: AuthorizedSession,
   clientId: string,
@@ -89,22 +116,10 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
   const externalIds = [...new Set(parsed.data.external_ids)];
 
   if (externalIds.length > 0) {
-    const orgToken = await getOrgMetaToken(session.supabase, session.orgId);
-    if (!orgToken) {
-      return NextResponse.json(
-        { error: "Conecte a Meta da sua organização em Configurações > Meta.", code: "meta_not_connected" },
-        { status: 409 },
-      );
-    }
+    const discovery = await discoverOrgAccounts(session.supabase, session.orgId);
+    if (!discovery.ok) return discoveryFailureResponse(discovery.code);
 
-    let visible;
-    try {
-      visible = await listOrgMetaAccounts(session.orgId, orgToken.token);
-    } catch {
-      return NextResponse.json({ error: "A Meta não respondeu agora. Tente de novo." }, { status: 502 });
-    }
-
-    const byId = new Map(visible.map((account) => [account.id, account]));
+    const byId = new Map(discovery.accounts.map((account) => [account.id, account]));
     const unknown = externalIds.filter((externalId) => !byId.has(externalId));
     if (unknown.length > 0) {
       return NextResponse.json(
@@ -122,8 +137,8 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
         name: account.name || externalId,
         currency: account.currency || "BRL",
         timezone: account.timezone_name || "America/Sao_Paulo",
-        token_encrypted: orgToken.tokenEncrypted,
-        token_expires_at: orgToken.tokenExpiresAt,
+        token_encrypted: discovery.token.tokenEncrypted,
+        token_expires_at: discovery.token.tokenExpiresAt,
         status: "active",
       };
     });
@@ -136,6 +151,24 @@ export async function PUT(request: NextRequest, { params }: { params: Params }) 
       console.error("[clients/accounts] Falha ao registrar contas descobertas:", error.message);
       return NextResponse.json({ error: "Erro ao registrar contas descobertas." }, { status: 500 });
     }
+
+    let newlyLinked: string[];
+    try {
+      newlyLinked = await newlyLinkedIds(session, id, externalIds);
+    } catch (err) {
+      console.error("[clients/accounts] Falha ao ler vínculos atuais:", err instanceof Error ? err.message : err);
+      return NextResponse.json({ error: "Erro ao ler as contas do cliente." }, { status: 500 });
+    }
+
+    const response = await assignSet(session, id, externalIds, parsed.data.confirm_reassignment);
+    if (!response.ok) return response;
+
+    const panelError = await addToPanel(session, newlyLinked, discovery.token);
+    if (panelError) {
+      console.error("[clients/accounts] Falha ao devolver contas ao painel:", panelError);
+      return NextResponse.json({ error: "Contas ligadas, mas não foi possível colocá-las no painel." }, { status: 500 });
+    }
+    return response;
   }
 
   return assignSet(session, id, externalIds, parsed.data.confirm_reassignment);
@@ -160,7 +193,7 @@ export async function POST(request: NextRequest, { params }: { params: Params })
   const [{ data: account }, { data: current }] = await Promise.all([
     session.supabase
       .from("ad_accounts")
-      .select("external_id")
+      .select("external_id, status")
       .eq("id", parsed.data.account_id)
       .eq("org_id", session.orgId)
       .eq("platform", "meta")
@@ -177,7 +210,19 @@ export async function POST(request: NextRequest, { params }: { params: Params })
   }
 
   const ids = [...new Set([...(current ?? []).map((row) => row.external_id), account.external_id])];
-  return assignSet(session, id, ids, parsed.data.confirm_reassignment);
+  const response = await assignSet(session, id, ids, parsed.data.confirm_reassignment);
+  if (!response.ok || account.status !== HIDDEN_ACCOUNT_STATUS) return response;
+
+  const { error } = await session.supabase
+    .from("ad_accounts")
+    .update({ status: "active" })
+    .eq("id", parsed.data.account_id)
+    .eq("org_id", session.orgId);
+  if (error) {
+    console.error("[clients/accounts] Falha ao devolver a conta ao painel:", error.message);
+    return NextResponse.json({ error: "Conta ligada, mas não foi possível colocá-la no painel." }, { status: 500 });
+  }
+  return response;
 }
 
 // Desvincula imediatamente uma conta específica ou todo o conjunto do cliente.
