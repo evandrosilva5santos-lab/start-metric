@@ -78,7 +78,7 @@ export async function GET(request: Request) {
 
     // ── Criptografar token ──────────────────────────────────
     const tokenEncrypted = await encryptToken(accessToken, supabase);
-    const tokenExpiresAt = new Date(Date.now() + expiresIn * 1000).toISOString();
+    const tokenExpiresAt = expiresIn === null ? null : new Date(Date.now() + expiresIn * 1000).toISOString();
 
     // ── Salvar cada conta de anúncios ───────────────────────
     // Upsert seguro: se já existir (org_id + external_id), atualiza o token.

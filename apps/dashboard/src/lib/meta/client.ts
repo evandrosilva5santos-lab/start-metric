@@ -280,29 +280,50 @@ export async function validateToken(token: string): Promise<{ isValid: boolean; 
  * Troca um code de autorização OAuth por um access_token de longa duração.
  * Chamado apenas no callback server-side.
  */
+type OAuthTokenResponse = { access_token: string; expires_in?: number };
+
+const LONG_LIVED_THRESHOLD_SECONDS = 24 * 60 * 60;
+
+async function requestOAuthToken(params: Record<string, string>, failure: string): Promise<OAuthTokenResponse> {
+  const url = new URL(`${GRAPH_API_BASE}/oauth/access_token`);
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+
+  const res = await fetchWithRetry(url.toString());
+  const data = await res.json() as OAuthTokenResponse | GraphApiError;
+
+  if (!res.ok || "error" in (data as object)) {
+    const err = (data as GraphApiError).error;
+    throw new MetaApiError(err?.message ?? failure, err?.code ?? res.status);
+  }
+  return data as OAuthTokenResponse;
+}
+
+function validExpiresIn(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+}
+
+// expiresIn null = a Meta não informou prazo (token sem expiração definida).
 export async function exchangeCodeForToken(code: string, redirectUri: string): Promise<{
   accessToken: string;
-  expiresIn: number;
+  expiresIn: number | null;
 }> {
   const appId = process.env.META_APP_ID!;
   const appSecret = process.env.META_APP_SECRET!;
 
-  const url = new URL(`${GRAPH_API_BASE}/oauth/access_token`);
-  url.searchParams.set("client_id", appId);
-  url.searchParams.set("client_secret", appSecret);
-  url.searchParams.set("redirect_uri", redirectUri);
-  url.searchParams.set("code", code);
-
-  const res = await fetchWithRetry(url.toString());
-  const data = await res.json() as { access_token: string; expires_in: number } | GraphApiError;
-
-  if (!res.ok || "error" in (data as object)) {
-    const err = (data as GraphApiError).error;
-    throw new MetaApiError(err?.message ?? "Failed to exchange code", err?.code ?? res.status);
+  const short = await requestOAuthToken(
+    { client_id: appId, client_secret: appSecret, redirect_uri: redirectUri, code },
+    "Failed to exchange code",
+  );
+  const shortExpiresIn = validExpiresIn(short.expires_in);
+  if (shortExpiresIn === null || shortExpiresIn > LONG_LIVED_THRESHOLD_SECONDS) {
+    return { accessToken: short.access_token, expiresIn: shortExpiresIn };
   }
 
-  const token = data as { access_token: string; expires_in: number };
-  return { accessToken: token.access_token, expiresIn: token.expires_in };
+  const long = await requestOAuthToken(
+    { grant_type: "fb_exchange_token", client_id: appId, client_secret: appSecret, fb_exchange_token: short.access_token },
+    "Failed to exchange for long-lived token",
+  );
+  return { accessToken: long.access_token, expiresIn: validExpiresIn(long.expires_in) };
 }
 
 export type MetaAdAccountSummary = {
