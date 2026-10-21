@@ -203,6 +203,79 @@ test("estratégia de lance aparece em português", () => {
   assert.equal(desc("update_ad_set_bid_strategy").detail, "Público frio POA · Menor custo");
 });
 
+// Eventos avulsos no formato bruto, para os ramos menos comuns.
+const one = (event_type, object_type, extra, extraFields = {}) =>
+  normalizeMetaActivity(
+    {
+      event_type,
+      event_time: "2026-10-14T13:00:00+0000",
+      actor_id: "100000000000001",
+      actor_name: "Pessoa A",
+      application_id: "119211728144504",
+      object_id: "120252399320470555",
+      object_name: "Objeto X",
+      object_type,
+      extra_data: extra === undefined ? undefined : JSON.stringify(extra),
+      ...extraFields,
+    },
+    CTX,
+  );
+
+test("renomear mostra nome antigo e novo", () => {
+  const n = one("update_ad_set_name", "CAMPAIGN", { old_value: "A — Cópia", new_value: "A", type: "name" });
+  assert.deepEqual(describeActivity(n), { title: "Nome alterado", detail: "de A — Cópia para A" });
+  assert.equal(classifyActivity(n).category, "structure");
+});
+
+test("campanha criada mostra o orçamento inicial", () => {
+  const n = one("create_campaign_group", "CAMPAIGN_GROUP", {
+    new_value: { type: "payment_amount", currency: "BRL", new_value: 5000, additional_type: "status_string", additional_value: "Por dia" },
+    type: "composite_data",
+  });
+  assert.equal(plain(describeActivity(n).detail), "Objeto X · orçamento R$ 50,00 por dia");
+  assert.equal(describeActivity(n).title, "Campanha criada");
+});
+
+test("orçamento total não diz 'por dia'", () => {
+  const n = one("update_campaign_budget", "CAMPAIGN_GROUP", {
+    old_value: { type: "payment_amount", currency: "BRL", old_value: 100000, additional_value: "Vitalício" },
+    new_value: { type: "payment_amount", currency: "BRL", new_value: 150000, additional_value: "Vitalício" },
+    type: "payment_amount",
+  });
+  const d = describeActivity(n);
+  assert.equal(d.title, "Orçamento total alterado");
+  assert.equal(plain(d.detail), "Objeto X · de R$ 1.000,00 para R$ 1.500,00");
+});
+
+test("ativar conjunto vira 'Conjunto ativado' e conta", () => {
+  const n = one("update_ad_set_run_status", "CAMPAIGN", { run_status: { old_value: 15, new_value: 1 }, old_value: "Inativo", new_value: "Ativo", type: "run_status" });
+  assert.equal(describeActivity(n).title, "Conjunto ativado");
+  assert.equal(classifyActivity(n).countsAsWork, true);
+});
+
+test("transição de revisão é descrita sem atribuir decisão ao gestor", () => {
+  const n = one("update_ad_run_status", "ADGROUP", { run_status: { old_value: 17, new_value: 9 }, old_value: "Processo pendente", new_value: "Análise pendente", type: "run_status" });
+  assert.equal(describeActivity(n).title, "Anúncio em análise pela Meta");
+});
+
+test("meta de desempenho e programação aparecem com o valor", () => {
+  const goal = one("update_ad_set_optimization_goal", "CAMPAIGN", { new_value: "Conversões", old_value: null, type: "optimization_goal" });
+  assert.equal(describeActivity(goal).detail, "Objeto X · Conversões");
+  const sched = one("update_ad_set_duration", "CAMPAIGN", { old_value: { time_start: "set 30", time_stop: "0" }, new_value: { time_start: "set 30", time_stop: "out 17" }, type: "duration" });
+  assert.equal(sched.valueKind, "schedule");
+  assert.equal(describeActivity(sched).title, "Programação alterada");
+});
+
+test("evento sem extra_data e sem app continua legível", () => {
+  const n = one("create_ad", "ADGROUP", undefined, { application_id: undefined });
+  assert.equal(n.valueKind, "none");
+  assert.equal(describeActivity(n).title, "Anúncio criado");
+});
+
+test("event_time inválido é recusado, nunca inventado", () => {
+  assert.throws(() => one("create_ad", "ADGROUP", {}, { event_time: "ontem" }), /event_time inválido/);
+});
+
 test("direcionamento mostra só o que mudou", () => {
   assert.equal(desc("update_ad_set_target_spec").detail, "Público frio POA · Localização: Cidade Exemplo (+40 km) → Cidade Exemplo (+80 km)");
 });
