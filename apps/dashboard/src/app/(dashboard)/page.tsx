@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { AlertTriangle, Link2 } from "lucide-react";
 import { getDashboardContext, getDashboardData, type DashboardContext } from "@/lib/dashboard/queries";
 import { getDashboardActions } from "@/lib/dashboard/actions";
+import { getClientCards, type ClientCardsModel } from "@/lib/dashboard/cards/load";
 import type { ActionTotals } from "@/lib/dashboard/funnel";
 import type { DashboardData, DashboardFilters } from "@/lib/dashboard/types";
 import { buildOverviewModel } from "@/lib/dashboard/overview";
@@ -110,19 +111,26 @@ type Loaded = {
   previous: DashboardData | null;
   actions: ActionTotals | null;
   previousActions: ActionTotals | null;
+  clientCards: ClientCardsModel | null;
 };
+
+function clientCardsFailure(error: unknown): null {
+  console.warn(`[dashboard] Cards do cliente indisponíveis: ${error instanceof Error ? error.message : String(error)}`);
+  return null;
+}
 
 async function loadOverview(filters: DashboardFilters): Promise<Loaded> {
   const context = await getDashboardContext(filters);
   const prev = previousRange(context.range);
   const previousFilters = { ...filters, rangePreset: undefined, from: prev.from, to: prev.to };
-  const [data, previous, actions, previousActions] = await Promise.all([
+  const [data, previous, actions, previousActions, clientCards] = await Promise.all([
     getDashboardData(filters),
     getDashboardData(previousFilters).catch(() => null),
     getDashboardActions(filters).catch(() => null),
     getDashboardActions(previousFilters).catch(() => null),
+    context.filters.clientId ? getClientCards(filters).catch(clientCardsFailure) : null,
   ]);
-  return { context, data, previous, actions, previousActions };
+  return { context, data, previous, actions, previousActions, clientCards };
 }
 
 function errorMessage(error: unknown): string {
@@ -171,7 +179,7 @@ async function OverviewSection({ filters }: { filters: DashboardFilters }) {
     );
   }
 
-  const { context, data, previous, actions, previousActions } = loaded;
+  const { context, data, previous, actions, previousActions, clientCards } = loaded;
 
   if (context.accounts.length === 0) {
     return (
@@ -228,7 +236,7 @@ async function OverviewSection({ filters }: { filters: DashboardFilters }) {
         </Notice>
       )}
 
-      <DashboardClient model={model} />
+      <DashboardClient model={model} clientCards={clientCards} />
     </div>
   );
 }

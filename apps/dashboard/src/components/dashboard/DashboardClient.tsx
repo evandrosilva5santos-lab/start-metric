@@ -8,6 +8,8 @@ import { useDashboardFilters } from "@/store/dashboard-filters";
 import { formatInteger, formatMoney, formatRate, formatRatio } from "@/lib/format";
 import { KpiTile, SectionCard } from "@/components/meta/MetaUi";
 import { AvisoList } from "@/components/meta/AvisoList";
+import { ClientCards } from "@/components/dashboard/ClientCards";
+import type { ClientCardsModel } from "@/lib/dashboard/cards/layout";
 import type { OverviewDailyPoint, OverviewModel } from "@/lib/dashboard/overview";
 import type { FunnelModel } from "@/lib/dashboard/funnel";
 import { AXIS_COLOR, CHART_COLOR, GRID_COLOR, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart-theme";
@@ -27,46 +29,13 @@ function orDash(value: number | null, format: (v: number) => string): string {
   return value === null ? DASH : format(value);
 }
 
-export function DashboardClient({ model }: { model: OverviewModel }) {
+export function DashboardClient({ model, clientCards = null }: { model: OverviewModel; clientCards?: ClientCardsModel | null }) {
   const hide = useDashboardFilters((s) => s.hideValues);
-  const { kpis, variations } = model;
   const money = (v: number | null) => orDash(v, (n) => formatMoney(n, CURRENCY, hide));
-  const integer = (v: number | null) => orDash(v, (n) => formatInteger(n, hide));
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <KpiTile label="Gasto" value={money(kpis.spend)} hint="Investido no período" variation={variations.spend} />
-        <KpiTile
-          label={model.primaryType ? `Resultados · ${model.primaryType}` : "Resultados"}
-          value={integer(kpis.conversions)}
-          hint={model.primaryType ? "Conversões principais, sem duplicar" : "Conversões registradas no período"}
-          variation={variations.conversions}
-          sense="good"
-          emphasis
-        />
-        <KpiTile
-          label="Custo por resultado"
-          value={money(kpis.cpa)}
-          hint={kpis.cpa === null ? "Sem resultado para dividir o gasto" : "Gasto ÷ resultados"}
-          variation={variations.cpa}
-          sense="bad"
-        />
-        <KpiTile
-          label="ROAS"
-          value={orDash(kpis.roas, (n) => formatRatio(n, hide))}
-          hint={kpis.roas === null ? "Sem receita rastreada no pixel" : "Receita ÷ gasto"}
-          variation={variations.roas}
-          sense="good"
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <MiniStat label={model.linkClicks ? "CTR do link" : "CTR"} value={orDash(kpis.ctr, (n) => formatRate(n))} />
-        <MiniStat label="CPM" value={money(kpis.cpm)} />
-        <MiniStat label="Impressões" value={integer(kpis.impressions)} />
-        <MiniStat label={model.linkClicks ? "Cliques no link" : "Cliques"} value={integer(kpis.clicks)} />
-      </div>
+      {clientCards ? <ClientCards model={clientCards} /> : <OverviewKpis model={model} hide={hide} />}
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
         <DailyChart data={model.daily} hide={hide} className="xl:col-span-8" />
@@ -120,6 +89,49 @@ export function DashboardClient({ model }: { model: OverviewModel }) {
         </SectionCard>
       </div>
     </div>
+  );
+}
+
+function OverviewKpis({ model, hide }: { model: OverviewModel; hide: boolean }) {
+  const { kpis, variations } = model;
+  const money = (v: number | null) => orDash(v, (n) => formatMoney(n, CURRENCY, hide));
+  const integer = (v: number | null) => orDash(v, (n) => formatInteger(n, hide));
+
+  return (
+    <>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <KpiTile label="Gasto" value={money(kpis.spend)} hint="Investido no período" variation={variations.spend} />
+        <KpiTile
+          label={model.primaryType ? `Resultados · ${model.primaryType}` : "Resultados"}
+          value={integer(kpis.conversions)}
+          hint={model.primaryType ? "Conversões principais, sem duplicar" : "Conversões registradas no período"}
+          variation={variations.conversions}
+          sense="good"
+          emphasis
+        />
+        <KpiTile
+          label="Custo por resultado"
+          value={money(kpis.cpa)}
+          hint={kpis.cpa === null ? "Sem resultado para dividir o gasto" : "Gasto ÷ resultados"}
+          variation={variations.cpa}
+          sense="bad"
+        />
+        <KpiTile
+          label="ROAS"
+          value={orDash(kpis.roas, (n) => formatRatio(n, hide))}
+          hint={kpis.roas === null ? "Sem receita rastreada no pixel" : "Receita ÷ gasto"}
+          variation={variations.roas}
+          sense="good"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <MiniStat label={model.linkClicks ? "CTR do link" : "CTR"} value={orDash(kpis.ctr, (n) => formatRate(n))} />
+        <MiniStat label="CPM" value={money(kpis.cpm)} />
+        <MiniStat label="Impressões" value={integer(kpis.impressions)} />
+        <MiniStat label={model.linkClicks ? "Cliques no link" : "Cliques"} value={integer(kpis.clicks)} />
+      </div>
+    </>
   );
 }
 

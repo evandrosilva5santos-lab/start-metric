@@ -14,7 +14,8 @@
     "test:alerts": "node --test scripts/alerts.test.mjs",
     "test:accounts": "node --test scripts/account-authorization.test.mjs",
     "test:meta-accounts": "node --test scripts/meta-accounts.test.mjs",
-    "test:meta-sync": "node --test scripts/meta-sync.test.mjs"
+    "test:meta-sync": "node --test scripts/meta-sync.test.mjs",
+    "test:dashboard-cards": "node --test scripts/dashboard-cards.test.mjs"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.3.1",
