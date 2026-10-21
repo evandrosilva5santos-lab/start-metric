@@ -223,8 +223,9 @@ export class EvolutionClient {
 }
 
 export function createEvolutionClient(): EvolutionClient {
-  const apiUrl = process.env.EVOLUTION_API_URL?.trim();
-  const apiKey = process.env.EVOLUTION_API_KEY?.trim();
+  // A Vercel guarda estas variáveis com os nomes antigos (BASE_URL / GLOBAL_TOKEN).
+  const apiUrl = (process.env.EVOLUTION_API_URL ?? process.env.EVOLUTION_API_BASE_URL)?.trim();
+  const apiKey = (process.env.EVOLUTION_API_KEY ?? process.env.EVOLUTION_API_GLOBAL_TOKEN)?.trim();
 
   if (!apiUrl || !apiKey) {
     throw new Error("EVOLUTION_API_URL and EVOLUTION_API_KEY are required");

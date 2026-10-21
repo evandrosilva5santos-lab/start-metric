@@ -39,8 +39,9 @@ export async function POST(request: Request) {
     await evolutionClient.createInstance(instanceName);
 
     // Sem endereço público o Evolution não alcança o painel; o status segue pela consulta periódica.
-    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null);
-    const webhookSecret = process.env.WHATSAPP_WEBHOOK_SECRET?.trim();
+    const productionHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+    const appBaseUrl = process.env.NEXT_PUBLIC_APP_URL || (productionHost ? `https://${productionHost}` : null);
+    const webhookSecret = (process.env.WHATSAPP_WEBHOOK_SECRET ?? process.env.EVOLUTION_WEBHOOK_SECRET)?.trim();
     if (appBaseUrl?.startsWith('https://') && webhookSecret) {
       try {
         await evolutionClient.setWebhook(instanceName, `${appBaseUrl}/api/webhooks/whatsapp`, webhookSecret);

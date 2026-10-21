@@ -64,7 +64,7 @@ function timingSafeCompare(a: string, b: string): boolean {
 
 // Fail-closed: sem secret configurado, nenhum webhook é aceito.
 function requireWebhookSecret(): string {
-  const secret = process.env.WHATSAPP_WEBHOOK_SECRET?.trim();
+  const secret = (process.env.WHATSAPP_WEBHOOK_SECRET ?? process.env.EVOLUTION_WEBHOOK_SECRET)?.trim();
   if (!secret) {
     throw new Error("WHATSAPP_WEBHOOK_SECRET não configurado");
   }

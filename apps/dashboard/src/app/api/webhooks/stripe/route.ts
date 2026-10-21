@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
 import Stripe from "stripe";
-import { StripeWebhookPayloadSchema } from "@start-metric/types";
+import { StripeWebhookPayloadSchema } from "@/lib/stripe/webhook-schema";
 
 export const dynamic = "force-dynamic";
 
