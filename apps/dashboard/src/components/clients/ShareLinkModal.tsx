@@ -102,7 +102,7 @@ export default function ShareLinkModal({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-fg/40 z-40"
           />
 
           {/* Modal */}
@@ -113,17 +113,17 @@ export default function ShareLinkModal({
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center p-4"
           >
-            <div className="bg-slate-800 rounded-lg shadow-2xl border border-slate-700 max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="bg-subtle rounded-lg shadow-2xl border border-border max-w-md w-full max-h-[90vh] overflow-y-auto">
               {/* Header */}
-              <div className="flex items-center justify-between p-6 border-b border-slate-700">
-                <h2 className="text-xl font-bold text-white">
+              <div className="flex items-center justify-between p-6 border-b border-border">
+                <h2 className="text-xl font-bold text-fg">
                   Compartilhar Dashboard
                 </h2>
                 <button
                   onClick={onClose}
-                  className="p-1 hover:bg-slate-700 rounded-lg transition-colors"
+                  className="p-1 hover:bg-border-strong rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-slate-400" />
+                  <X className="w-5 h-5 text-fg-muted" />
                 </button>
               </div>
 
@@ -133,20 +133,20 @@ export default function ShareLinkModal({
                   <div className="space-y-5">
                     {/* Cliente */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1">
+                      <label className="block text-sm font-medium text-fg mb-1">
                         Cliente
                       </label>
                       <input
                         type="text"
                         value={clientName}
                         disabled
-                        className="w-full px-3 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white text-sm disabled:opacity-50"
+                        className="w-full px-3 py-2 bg-subtle border border-border-strong rounded-lg text-fg text-sm disabled:opacity-50"
                       />
                     </div>
 
                     {/* Expiração */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-1">
+                      <label className="block text-sm font-medium text-fg mb-1">
                         Expira em (dias)
                       </label>
                       <select
@@ -157,7 +157,7 @@ export default function ShareLinkModal({
                             expires_in_days: parseInt(e.target.value),
                           })
                         }
-                        className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:outline-none focus:border-blue-500"
+                        className="w-full px-3 py-2 bg-border-strong border border-border-strong rounded-lg text-fg focus:outline-none focus:border-primary"
                       >
                         <option value={7}>7 dias</option>
                         <option value={14}>14 dias</option>
@@ -180,9 +180,9 @@ export default function ShareLinkModal({
                               password: "",
                             })
                           }
-                          className="w-4 h-4 rounded border-slate-600 bg-slate-700 checked:bg-blue-600"
+                          className="w-4 h-4 rounded border-border-strong bg-border-strong checked:bg-primary"
                         />
-                        <span className="text-sm font-medium text-slate-300">
+                        <span className="text-sm font-medium text-fg">
                           Proteger com senha
                         </span>
                       </label>
@@ -195,7 +195,7 @@ export default function ShareLinkModal({
                           onChange={(e) =>
                             setForm({ ...form, password: e.target.value })
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-border-strong border border-border-strong rounded-lg text-fg text-sm placeholder-faint focus:outline-none focus:border-primary"
                         />
                       )}
                     </div>
@@ -213,9 +213,9 @@ export default function ShareLinkModal({
                               max_accesses: e.target.checked ? 1 : null,
                             })
                           }
-                          className="w-4 h-4 rounded border-slate-600 bg-slate-700 checked:bg-blue-600"
+                          className="w-4 h-4 rounded border-border-strong bg-border-strong checked:bg-primary"
                         />
-                        <span className="text-sm font-medium text-slate-300">
+                        <span className="text-sm font-medium text-fg">
                           Limitar acessos
                         </span>
                       </label>
@@ -232,15 +232,15 @@ export default function ShareLinkModal({
                               max_accesses: e.target.value ? parseInt(e.target.value) : null,
                             })
                           }
-                          className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm placeholder-slate-500 focus:outline-none focus:border-blue-500"
+                          className="w-full px-3 py-2 bg-border-strong border border-border-strong rounded-lg text-fg text-sm placeholder-faint focus:outline-none focus:border-primary"
                         />
                       )}
                     </div>
 
                     {/* Erro */}
                     {error && (
-                      <div className="p-3 bg-red-500/20 border border-red-500/50 rounded-lg">
-                        <p className="text-red-400 text-sm flex items-center gap-2">
+                      <div className="p-3 bg-danger-tint border border-danger/40 rounded-lg">
+                        <p className="text-danger text-sm flex items-center gap-2">
                           <AlertCircle className="w-4 h-4" />
                           {error}
                         </p>
@@ -251,7 +251,7 @@ export default function ShareLinkModal({
                     <button
                       onClick={handleGenerateLink}
                       disabled={loading || (form.protected && !form.password)}
-                      className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-600/50 disabled:cursor-not-allowed text-white font-medium rounded-lg transition-colors"
+                      className="w-full py-2 px-4 bg-primary hover:bg-primary-hover disabled:bg-primary-tint disabled:cursor-not-allowed text-primary-fg font-medium rounded-lg transition-colors"
                     >
                       {loading ? (
                         <>
@@ -270,15 +270,15 @@ export default function ShareLinkModal({
                     className="space-y-4 text-center"
                   >
                     {/* Sucesso */}
-                    <div className="p-3 bg-green-500/20 border border-green-500/50 rounded-lg">
-                      <p className="text-green-400 font-medium text-sm">
+                    <div className="p-3 bg-success-tint border border-success/40 rounded-lg">
+                      <p className="text-success font-medium text-sm">
                         ✓ Link gerado com sucesso!
                       </p>
                     </div>
 
                     {/* Link */}
                     <div>
-                      <label className="block text-sm font-medium text-slate-300 mb-2">
+                      <label className="block text-sm font-medium text-fg mb-2">
                         Compartilhe este link:
                       </label>
                       <div className="flex gap-2">
@@ -286,23 +286,23 @@ export default function ShareLinkModal({
                           type="text"
                           value={generatedLink || ""}
                           readOnly
-                          className="flex-1 px-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white text-sm"
+                          className="flex-1 px-3 py-2 bg-border-strong border border-border-strong rounded-lg text-fg text-sm"
                         />
                         <button
                           onClick={handleCopyLink}
-                          className="p-2 bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                          className="p-2 bg-border-strong hover:bg-border-strong rounded-lg transition-colors"
                         >
                           {copied ? (
-                            <Check className="w-4 h-4 text-green-400" />
+                            <Check className="w-4 h-4 text-success" />
                           ) : (
-                            <Copy className="w-4 h-4 text-slate-400" />
+                            <Copy className="w-4 h-4 text-fg-muted" />
                           )}
                         </button>
                       </div>
                     </div>
 
                     {/* Informações */}
-                    <div className="text-xs text-slate-400 space-y-1 text-left bg-slate-700/50 p-3 rounded">
+                    <div className="text-xs text-fg-muted space-y-1 text-left bg-subtle p-3 rounded">
                       <p>
                         <strong>Expira em:</strong> {form.expires_in_days} dias
                       </p>
@@ -318,14 +318,14 @@ export default function ShareLinkModal({
                     <div className="flex gap-2">
                       <button
                         onClick={handleCopyLink}
-                        className="flex-1 py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
+                        className="flex-1 py-2 px-4 bg-primary hover:bg-primary-hover text-primary-fg font-medium rounded-lg transition-colors flex items-center justify-center gap-2"
                       >
                         <Copy className="w-4 h-4" />
                         {copied ? "Copiado!" : "Copiar Link"}
                       </button>
                       <button
                         onClick={handleReset}
-                        className="flex-1 py-2 px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
+                        className="flex-1 py-2 px-4 bg-border-strong hover:bg-border-strong text-fg font-medium rounded-lg transition-colors"
                       >
                         Novo Link
                       </button>
@@ -335,10 +335,10 @@ export default function ShareLinkModal({
               </div>
 
               {/* Footer */}
-              <div className="p-4 border-t border-slate-700">
+              <div className="p-4 border-t border-border">
                 <button
                   onClick={onClose}
-                  className="w-full py-2 px-4 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-colors"
+                  className="w-full py-2 px-4 bg-border-strong hover:bg-border-strong text-fg font-medium rounded-lg transition-colors"
                 >
                   Fechar
                 </button>

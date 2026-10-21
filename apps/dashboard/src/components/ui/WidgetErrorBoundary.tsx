@@ -40,19 +40,19 @@ export class WidgetErrorBoundary extends Component<Props, State> {
     if (this.state.hasError) {
       return (
         <div
-          className={`glass rounded-2xl p-6 border border-red-500/20 text-center flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden ${
+          className={`glass rounded-2xl p-6 border border-danger/20 text-center flex flex-col items-center justify-center min-h-[220px] relative overflow-hidden ${
             this.props.className ?? ""
           }`}
           role="alert"
           aria-live="assertive"
         >
-          <div className="w-12 h-12 rounded-2xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 mb-3 shadow-[0_0_15px_rgba(239,68,68,0.2)]">
+          <div className="w-12 h-12 rounded-2xl bg-danger-tint border border-danger/20 flex items-center justify-center text-danger mb-3">
             <AlertTriangle size={22} />
           </div>
-          <h4 className="text-sm font-bold text-white uppercase tracking-wider mb-1">
+          <h4 className="text-sm font-bold text-fg uppercase tracking-wider mb-1">
             {this.props.fallbackTitle ?? "Falha ao carregar widget"}
           </h4>
-          <p className="text-xs text-slate-400 max-w-sm mb-4 leading-relaxed">
+          <p className="text-xs text-fg-muted max-w-sm mb-4 leading-relaxed">
             {this.state.error?.message ||
               this.props.fallbackMessage ||
               "Ocorreu um erro inesperado ao renderizar este bloco de dados."}

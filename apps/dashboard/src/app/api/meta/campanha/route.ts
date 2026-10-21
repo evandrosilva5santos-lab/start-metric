@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { getDashboardSession, type DashboardSession } from "@/lib/auth/session";
+import {
+  OperationalAccountError,
+  resolveOperationalAccount,
+} from "@/lib/accounts/operational";
 import { decryptToken } from "@/lib/meta/token";
 import { logCampaignActionInBackground } from "@/lib/meta/supabase-sync";
 
@@ -15,47 +19,49 @@ const updateSchema = z.object({
 
 // Resolve o access token da org do usuário para o objeto informado
 async function resolveOrgScopedToken(
-  supabase: Awaited<ReturnType<typeof createClient>>,
+  session: Extract<DashboardSession, { isAuthorized: true }>,
   objectId: string,
 ): Promise<{ token: string } | { error: NextResponse }> {
-  const { data: accountByExternalId } = await supabase
-    .from("ad_accounts")
-    .select("id, token_encrypted")
-    .eq("platform", "meta")
-    .eq("external_id", `act_${objectId}`)
+  const { data: campaignRow, error: campaignError } = await session.supabase
+    .from("campaigns")
+    .select("ad_account_id")
+    .eq("org_id", session.orgId)
+    .eq("meta_id", objectId)
+    .limit(1)
     .maybeSingle();
 
-  let accountId = accountByExternalId?.id;
-  let tokenEncrypted = accountByExternalId?.token_encrypted;
-
-  if (!accountId) {
-    const { data: campaignRow } = await supabase
-      .from("campaigns")
-      .select("ad_account_id, ad_accounts(id, token_encrypted)")
-      .eq("meta_id", objectId)
-      .limit(1)
-      .maybeSingle();
-
-    const joined = campaignRow?.ad_accounts as { id: string; token_encrypted: string | null } | null;
-    if (joined?.id) {
-      accountId = joined.id;
-      tokenEncrypted = joined.token_encrypted;
-    }
+  if (campaignError) {
+    return { error: NextResponse.json({ error: "Falha ao validar a campanha." }, { status: 500 }) };
   }
-
-  if (!accountId || !tokenEncrypted) {
+  if (!campaignRow?.ad_account_id) {
     return {
       error: NextResponse.json(
-        { error: "Objeto não encontrado ou sem permissão nesta organização." },
-        { status: 403 },
+        { error: "Campanha não encontrada nesta organização." },
+        { status: 404 },
       ),
     };
   }
 
   try {
-    const token = await decryptToken(tokenEncrypted, supabase);
+    const account = await resolveOperationalAccount(session.supabase, {
+      orgId: session.orgId,
+      accountId: campaignRow.ad_account_id,
+      platform: "meta",
+    });
+    if (!account.token_encrypted) {
+      return {
+        error: NextResponse.json(
+          { error: "A conexão Meta desta conta não possui credencial válida." },
+          { status: 403 },
+        ),
+      };
+    }
+    const token = await decryptToken(account.token_encrypted, session.supabase);
     return { token };
   } catch (err) {
+    if (err instanceof OperationalAccountError) {
+      return { error: NextResponse.json({ error: err.message, code: err.code }, { status: err.status }) };
+    }
     console.error("[meta/campanha] Falha ao descriptografar token:", err);
     return {
       error: NextResponse.json({ error: "Falha ao autenticar com a Meta." }, { status: 500 }),
@@ -64,13 +70,8 @@ async function resolveOrgScopedToken(
 }
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
+  const session = await getDashboardSession();
+  if (!session.isAuthorized) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
@@ -90,7 +91,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ error: "Informe status ou daily_budget." }, { status: 400 });
   }
 
-  const scoped = await resolveOrgScopedToken(supabase, id);
+  const scoped = await resolveOrgScopedToken(session, id);
   if ("error" in scoped) return scoped.error;
   const token = scoped.token;
 

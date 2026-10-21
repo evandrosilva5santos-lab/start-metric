@@ -262,8 +262,8 @@ export default function ProfileSettingsClient({ profile }: Props) {
             exit={{ opacity: 0, y: -20, height: 0 }}
             className={`rounded-2xl p-4 text-sm flex items-center gap-3 shadow-2xl ${
               feedback.type === "success"
-                ? "bg-emerald-500/10 border border-emerald-500/20 text-emerald-400"
-                : "bg-red-500/10 border border-red-500/20 text-red-400"
+                ? "bg-success-tint border border-success/20 text-success"
+                : "bg-danger-tint border border-danger/20 text-danger"
             }`}
           >
             {feedback.type === "success" ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
@@ -282,9 +282,9 @@ export default function ProfileSettingsClient({ profile }: Props) {
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+        className="bg-surface border border-border rounded-2xl p-6"
       >
-        <h2 className="text-sm font-semibold text-slate-300 mb-4">Avatar</h2>
+        <h2 className="text-sm font-semibold text-fg mb-4">Avatar</h2>
         <div className="flex items-center gap-6">
           {/* Avatar preview */}
           <div className="relative">
@@ -294,25 +294,25 @@ export default function ProfileSettingsClient({ profile }: Props) {
                 alt="Avatar"
                 width={96}
                 height={96}
-                className="w-24 h-24 rounded-full object-cover border-2 border-slate-700"
+                className="w-24 h-24 rounded-full object-cover border-2 border-border"
               />
             ) : (
-              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-400/20 to-blue-500/20 border-2 border-slate-700 flex items-center justify-center">
-                <span className="text-2xl font-black text-cyan-400">
+              <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary-tint to-primary-tint border-2 border-border flex items-center justify-center">
+                <span className="text-2xl font-black text-primary">
                   {getInitials(formData.name || "User")}
                 </span>
               </div>
             )}
             {isUploadingAvatar && (
-              <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
-                <Loader2 size={24} className="animate-spin text-white" />
+              <div className="absolute inset-0 rounded-full bg-fg/40 flex items-center justify-center">
+                <Loader2 size={24} className="animate-spin text-fg" />
               </div>
             )}
           </div>
 
           {/* Upload button */}
           <div className="flex-1">
-            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium transition-colors cursor-pointer border border-slate-700">
+            <label className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-subtle hover:bg-border-strong text-fg text-sm font-medium transition-colors cursor-pointer border border-border">
               <Camera size={16} />
               {avatarUrl ? "Alterar foto" : "Enviar foto"}
               <input
@@ -323,7 +323,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
                 disabled={isUploadingAvatar}
               />
             </label>
-            <p className="text-xs text-slate-500 mt-2">JPG, PNG ou WebP. Máximo 2MB</p>
+            <p className="text-xs text-fg-muted mt-2">JPG, PNG ou WebP. Máximo 2MB</p>
           </div>
         </div>
       </motion.div>
@@ -333,13 +333,13 @@ export default function ProfileSettingsClient({ profile }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+        className="bg-surface border border-border rounded-2xl p-6"
       >
-        <h2 className="text-sm font-semibold text-slate-300 mb-4">Dados Pessoais</h2>
+        <h2 className="text-sm font-semibold text-fg mb-4">Dados Pessoais</h2>
         <div className="space-y-4">
           {/* Nome */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5">
               Nome Completo *
             </label>
             <input
@@ -347,29 +347,29 @@ export default function ProfileSettingsClient({ profile }: Props) {
               value={formData.name}
               onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Seu nome completo"
-              className={`w-full px-4 py-3 rounded-xl bg-slate-900 border text-slate-200 text-sm focus:outline-none focus:ring-1 transition-all duration-200 ${
+              className={`w-full px-4 py-3 rounded-xl bg-surface border text-fg text-sm focus:outline-none focus:ring-1 transition-all duration-200 ${
                 errors.some((e) => e.field === "name")
-                  ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/30"
-                  : "border-slate-700 focus:border-cyan-400/50 focus:ring-cyan-400/30"
+                  ? "border-danger/40 focus:border-danger/40 focus:ring-danger/30"
+                  : "border-border focus:border-primary/40 focus:ring-primary/30"
               }`}
             />
             {errors.some((e) => e.field === "name") && (
-              <p className="text-xs text-red-400 mt-1">{errors.find((e) => e.field === "name")?.message}</p>
+              <p className="text-xs text-danger mt-1">{errors.find((e) => e.field === "name")?.message}</p>
             )}
           </div>
 
           {/* Email (read-only) */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5">
               E-mail
             </label>
             <input
               type="email"
               value={profile?.email ?? ""}
               readOnly
-              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm opacity-50 cursor-not-allowed"
+              className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-fg text-sm opacity-50 cursor-not-allowed"
             />
-            <p className="text-xs text-slate-500 mt-1 flex items-center gap-1">
+            <p className="text-xs text-fg-muted mt-1 flex items-center gap-1">
               <Info size={12} />
               O e-mail não pode ser alterado aqui
             </p>
@@ -377,7 +377,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
 
           {/* CPF */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5">
               CPF
             </label>
             <input
@@ -386,20 +386,20 @@ export default function ProfileSettingsClient({ profile }: Props) {
               onChange={(e) => handleInputChange("cpf", e.target.value)}
               placeholder="000.000.000-00"
               maxLength={14}
-              className={`w-full px-4 py-3 rounded-xl bg-slate-900 border text-slate-200 text-sm focus:outline-none focus:ring-1 transition-all duration-200 ${
+              className={`w-full px-4 py-3 rounded-xl bg-surface border text-fg text-sm focus:outline-none focus:ring-1 transition-all duration-200 ${
                 errors.some((e) => e.field === "cpf")
-                  ? "border-red-500/50 focus:border-red-500/50 focus:ring-red-500/30"
-                  : "border-slate-700 focus:border-cyan-400/50 focus:ring-cyan-400/30"
+                  ? "border-danger/40 focus:border-danger/40 focus:ring-danger/30"
+                  : "border-border focus:border-primary/40 focus:ring-primary/30"
               }`}
             />
             {errors.some((e) => e.field === "cpf") && (
-              <p className="text-xs text-red-400 mt-1">{errors.find((e) => e.field === "cpf")?.message}</p>
+              <p className="text-xs text-danger mt-1">{errors.find((e) => e.field === "cpf")?.message}</p>
             )}
           </div>
 
           {/* Telefone */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5">
               Telefone
             </label>
             <input
@@ -408,7 +408,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
               onChange={(e) => handleInputChange("phone", e.target.value)}
               placeholder="(11) 99999-9999"
               maxLength={15}
-              className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+              className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-fg text-sm focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all duration-200"
             />
           </div>
         </div>
@@ -419,23 +419,23 @@ export default function ProfileSettingsClient({ profile }: Props) {
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
-        className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6"
+        className="bg-surface border border-border rounded-2xl p-6"
       >
-        <h2 className="text-sm font-semibold text-slate-300 mb-4 flex items-center gap-2">
+        <h2 className="text-sm font-semibold text-fg mb-4 flex items-center gap-2">
           <Globe size={16} />
           Localização e Idioma
         </h2>
         <div className="space-y-4">
           {/* País */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5">
               País
             </label>
             <div className="relative">
               <select
                 value={formData.country}
                 onChange={(e) => handleInputChange("country", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-fg text-sm focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all duration-200 appearance-none cursor-pointer"
               >
                 {COUNTRIES.map((country) => (
                   <option key={country.value} value={country.value}>
@@ -443,7 +443,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
                   </option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-fg-muted">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -453,7 +453,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
 
           {/* Idioma */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5 flex items-center gap-2">
               <Languages size={12} />
               Idioma
             </label>
@@ -461,7 +461,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
               <select
                 value={formData.language}
                 onChange={(e) => handleInputChange("language", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-fg text-sm focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all duration-200 appearance-none cursor-pointer"
               >
                 {LANGUAGES.map((lang) => (
                   <option key={lang.value} value={lang.value}>
@@ -469,7 +469,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
                   </option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-fg-muted">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -479,7 +479,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
 
           {/* Fuso Horário */}
           <div>
-            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+            <label className="block text-xs font-semibold text-fg-muted uppercase tracking-widest mb-1.5 flex items-center gap-2">
               <Clock size={12} />
               Fuso Horário
             </label>
@@ -487,7 +487,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
               <select
                 value={formData.timezone}
                 onChange={(e) => handleInputChange("timezone", e.target.value)}
-                className="w-full px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-slate-200 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200 appearance-none cursor-pointer"
+                className="w-full px-4 py-3 rounded-xl bg-surface border border-border text-fg text-sm focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all duration-200 appearance-none cursor-pointer"
               >
                 {TIMEZONES.map((tz) => (
                   <option key={tz.value} value={tz.value}>
@@ -495,7 +495,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
                   </option>
                 ))}
               </select>
-              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-fg-muted">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -514,7 +514,7 @@ export default function ProfileSettingsClient({ profile }: Props) {
         <button
           onClick={handleSave}
           disabled={isSaving || isUploadingAvatar}
-          className="w-full py-3.5 rounded-xl bg-cyan-400 text-slate-950 font-bold text-sm hover:bg-cyan-300 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
+          className="w-full py-3.5 rounded-xl bg-primary text-primary-fg font-bold text-sm hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center gap-2"
         >
           {isSaving ? (
             <>

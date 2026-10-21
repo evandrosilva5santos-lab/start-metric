@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { fetchCampaigns, fetchCampaignInsights, MetaApiError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/token";
+import { toDailyMetricRow, upsertDailyMetrics } from "@/lib/meta/daily-metrics";
 
 // Date preset padrão: últimos 30 dias
 const DEFAULT_DATE_PRESET = "last_30d";
@@ -133,23 +134,13 @@ export async function POST(request: Request) {
       if (insights.length > 0) {
         const metricRows = insights
           .filter((ins) => campaignIdMap.has(ins.campaign_id))
-          .map((ins) => ({
-            campaign_id: campaignIdMap.get(ins.campaign_id)!,
-            org_id: account.org_id,
-            date: ins.date,
-            spend: ins.spend,
-            impressions: ins.impressions,
-            clicks: ins.clicks,
-            conversions: ins.conversions,
-            revenue_attributed: ins.revenue_attributed,
-            roas: ins.roas,
-            cpa: ins.cpa,
-          }));
+          .map((ins) => toDailyMetricRow(ins, campaignIdMap.get(ins.campaign_id)!, account.org_id));
 
         if (metricRows.length > 0) {
-          const { error: metricsError } = await supabase
-            .from("daily_metrics")
-            .upsert(metricRows, { onConflict: "campaign_id,date" });
+          const { error: metricsError, legacy } = await upsertDailyMetrics(supabase, metricRows);
+          if (legacy) {
+            console.warn("[meta/sync] daily_metrics sem colunas actions/action_values; gravado sem conversões por tipo.");
+          }
 
           if (metricsError) {
             console.error("[meta/sync] Erro upsert metrics:", metricsError);

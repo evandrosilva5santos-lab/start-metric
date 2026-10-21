@@ -46,16 +46,16 @@ function SortableHeader({
   return (
     <th
       scope="col"
-      className="px-6 pb-2 cursor-pointer hover:text-cyan-400 transition-colors group select-none"
+      className="px-6 pb-2 cursor-pointer hover:text-primary transition-colors group select-none"
       onClick={() => onSort(field)}
     >
       <div className="flex items-center gap-2">
         {children}
         <span className="opacity-0 group-hover:opacity-60 transition-opacity">
           {isActive && sortDirection === 'asc' ? (
-            <ArrowUp size={12} className="text-cyan-400" />
+            <ArrowUp size={12} className="text-primary" />
           ) : isActive && sortDirection === 'desc' ? (
-            <ArrowDown size={12} className="text-cyan-400" />
+            <ArrowDown size={12} className="text-primary" />
           ) : (
             <ArrowUpDown size={12} />
           )}
@@ -134,51 +134,51 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
 
   const getRoasColor = (roas: number) => {
     if (roas >= 3) {
-      return "text-emerald-400 drop-shadow-[0_0_10px_rgba(52,211,153,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(52,211,153,0.6)]";
+      return "text-success";
     } else if (roas >= 1.5) {
-      return "text-cyan-400 drop-shadow-[0_0_10px_rgba(6,189,212,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(6,189,212,0.6)]";
+      return "text-primary";
     } else if (roas >= 1) {
-      return "text-amber-400 drop-shadow-[0_0_10px_rgba(251,191,36,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(251,191,36,0.6)]";
+      return "text-warning";
     } else {
-      return "text-red-400 drop-shadow-[0_0_10px_rgba(248,113,113,0.3)] group-hover/row:drop-shadow-[0_0_15px_rgba(248,113,113,0.6)]";
+      return "text-danger";
     }
   };
 
   return (
-    <section className="glass glass-2 rounded-[2rem] p-6 lg:p-8 min-h-[500px] relative overflow-hidden group/table noise-overlay border-white/5">
+    <section className="glass glass-2 rounded-[2rem] p-6 lg:p-8 min-h-[500px] relative overflow-hidden group/table noise-overlay border-border">
       {/* Decorative background elements */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-500/[0.04] rounded-full blur-[120px] transition-all duration-1000 group-hover/table:-translate-y-1/4 translate-x-1/4 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-500/[0.04] rounded-full blur-[100px] translate-y-1/4 -translate-x-1/4 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-primary-tint rounded-full blur-[120px] transition-all duration-1000 group-hover/table:-translate-y-1/4 translate-x-1/4 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-primary-tint rounded-full blur-[100px] translate-y-1/4 -translate-x-1/4 pointer-events-none" />
 
       {/* Cybernetic Scan Line */}
       <div className="absolute inset-0 pointer-events-none opacity-[0.02]">
-        <div className="w-full h-[150px] bg-gradient-to-b from-transparent via-cyan-400 to-transparent absolute top-0 animate-scan-slow" />
+        <div className="w-full h-[150px] bg-gradient-to-b from-transparent via-primary to-transparent absolute top-0 animate-scan-slow" />
       </div>
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8 lg:mb-12 relative z-10">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <span className="w-1.5 h-6 bg-cyan-500 rounded-full animate-pulse-fast shadow-[0_0_15px_rgba(6,189,212,0.8)]" />
-            <h2 className="text-xl font-black text-white uppercase tracking-[0.25em]">
+            <span className="w-1.5 h-6 bg-primary rounded-full animate-pulse-fast" />
+            <h2 className="text-xl font-black text-fg uppercase tracking-[0.25em]">
               Operações Estratégicas
             </h2>
           </div>
-          <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.4em] flex items-center gap-2">
-            <span className="w-6 h-[1px] bg-slate-800" />
+          <p className="text-[10px] font-bold text-fg-muted uppercase tracking-[0.4em] flex items-center gap-2">
+            <span className="w-6 h-[1px] bg-subtle" />
             Telemetria de Fluxo de Caixa
           </p>
         </div>
 
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-3 glass px-5 py-3 rounded-2xl border-white/10 shadow-2xl backdrop-blur-xl shrink-0 group/stat hover:border-cyan-500/30 transition-colors">
+          <div className="flex items-center gap-3 glass px-5 py-3 rounded-2xl border-border shadow-2xl backdrop-blur-xl shrink-0 group/stat hover:border-primary/30 transition-colors">
             <div className="relative flex h-3 w-3">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cyan-400 opacity-40"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-cyan-500 shadow-[0_0_10px_#22d3ee]"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-40"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
             </div>
             <div className="flex flex-col">
-              <span className="text-[9px] font-black uppercase text-slate-500 tracking-widest leading-none">Status da Rede</span>
-              <span className="text-[11px] font-black uppercase text-slate-200 tracking-widest mt-1">
-                <span className="text-cyan-400 mr-1">{campaigns.length}</span> Campanhas Listadas
+              <span className="text-[9px] font-black uppercase text-fg-muted tracking-widest leading-none">Status da Rede</span>
+              <span className="text-[11px] font-black uppercase text-fg tracking-widest mt-1">
+                <span className="text-primary mr-1">{campaigns.length}</span> Campanhas Listadas
               </span>
             </div>
           </div>
@@ -190,7 +190,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               size="icon"
               title="Exportar CSV"
               aria-label="Exportar campanhas em CSV"
-              className="w-10 h-10 rounded-2xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400"
+              className="w-10 h-10 rounded-2xl border border-border hover:border-primary/30 hover:bg-primary-tint text-fg-muted hover:text-primary"
             >
               <Download size={18} />
             </Button>
@@ -200,11 +200,11 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
 
       <div className="md:hidden relative z-10 space-y-3">
         {campaigns.length === 0 ? (
-          <div className="rounded-3xl border border-white/[0.05] bg-white/[0.02] p-8 text-center">
-            <p className="text-xs font-black uppercase tracking-[0.3em] text-slate-600">
+          <div className="rounded-3xl border border-border bg-subtle p-8 text-center">
+            <p className="text-xs font-black uppercase tracking-[0.3em] text-fg-muted">
               Nenhuma campanha encontrada
             </p>
-            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-slate-700">
+            <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-fg-muted">
               Ajuste o periodo ou sincronize uma conta Meta para ver dados aqui.
             </p>
           </div>
@@ -215,14 +215,14 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.04, duration: 0.4 }}
               key={campaign.campaignId}
-              className="rounded-3xl border border-white/[0.06] bg-white/[0.02] p-4"
+              className="rounded-3xl border border-border bg-subtle p-4"
             >
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-xs font-black uppercase tracking-wide text-slate-100">
+                  <p className="text-xs font-black uppercase tracking-wide text-fg">
                     {campaign.campaignName}
                   </p>
-                  <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-slate-600">
+                  <p className="mt-1 text-[9px] font-bold uppercase tracking-widest text-fg-muted">
                     {campaign.accountName}
                   </p>
                 </div>
@@ -230,8 +230,8 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                   className={cn(
                     "px-3 py-1 rounded-xl text-[9px] font-black uppercase tracking-widest border",
                     campaign.status === "ACTIVE"
-                      ? "bg-emerald-500/10 text-emerald-300 border-emerald-500/30"
-                      : "bg-slate-800/40 text-slate-500 border-slate-700/60",
+                      ? "bg-success-tint text-success border-success/30"
+                      : "bg-subtle text-fg-muted border-border",
                   )}
                 >
                   {statusLabel(campaign.status)}
@@ -239,20 +239,20 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               </div>
               <div className="mt-4 grid grid-cols-2 gap-3 text-[10px]">
                 <div>
-                  <p className="text-slate-500 uppercase tracking-widest">Gasto</p>
-                  <p className="mt-1 font-black text-slate-200">{formatCurrency(campaign.spend)}</p>
+                  <p className="text-fg-muted uppercase tracking-widest">Gasto</p>
+                  <p className="mt-1 font-black text-fg">{formatCurrency(campaign.spend)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 uppercase tracking-widest">Receita</p>
-                  <p className="mt-1 font-black text-slate-100">{formatCurrency(campaign.revenue)}</p>
+                  <p className="text-fg-muted uppercase tracking-widest">Receita</p>
+                  <p className="mt-1 font-black text-fg">{formatCurrency(campaign.revenue)}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 uppercase tracking-widest">ROAS</p>
+                  <p className="text-fg-muted uppercase tracking-widest">ROAS</p>
                   <p className={cn("mt-1 font-black", getRoasColor(campaign.roas))}>{campaign.roas.toFixed(2)}x</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 uppercase tracking-widest">Lucro</p>
-                  <p className={cn("mt-1 font-black", campaign.grossProfit >= 0 ? "text-emerald-300" : "text-red-300")}>
+                  <p className="text-fg-muted uppercase tracking-widest">Lucro</p>
+                  <p className={cn("mt-1 font-black", campaign.grossProfit >= 0 ? "text-success" : "text-danger")}>
                     {formatCurrency(campaign.grossProfit)}
                   </p>
                 </div>
@@ -266,7 +266,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
         <table className="w-full text-left border-separate border-spacing-y-3 min-w-[900px]">
           <caption className="sr-only">Desempenho de Campanhas por Vetor</caption>
           <thead>
-            <tr className="text-[10px] uppercase tracking-[0.3em] text-slate-500 font-black">
+            <tr className="text-[10px] uppercase tracking-[0.3em] text-fg-muted font-black">
               <SortableHeader
                 field="campaignName"
                 sortField={sortField}
@@ -328,16 +328,16 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
           <tbody>
             {campaigns.length === 0 ? (
               <tr>
-                <td colSpan={7} className="py-40 text-center relative overflow-hidden rounded-[2.5rem] bg-white/[0.01] border border-white/[0.03]">
+                <td colSpan={7} className="py-40 text-center relative overflow-hidden rounded-[2.5rem] bg-subtle border border-border">
                   <div className="flex flex-col items-center gap-6">
-                    <div className="glass w-20 h-20 rounded-full flex items-center justify-center border-white/5 animate-float shadow-2xl">
-                      <div className="w-10 h-10 border-2 border-slate-700/50 border-t-cyan-500 rounded-full" />
+                    <div className="glass w-20 h-20 rounded-full flex items-center justify-center border-border animate-float shadow-2xl">
+                      <div className="w-10 h-10 border-2 border-border border-t-primary rounded-full" />
                     </div>
                     <div className="space-y-2">
-                        <p className="text-xs font-black uppercase tracking-[0.5em] text-slate-600 animate-pulse">
+                        <p className="text-xs font-black uppercase tracking-[0.5em] text-fg-muted animate-pulse">
                             Nenhuma campanha com dados no periodo
                         </p>
-                        <p className="text-[10px] font-bold text-slate-700 uppercase tracking-widest italic">
+                        <p className="text-[10px] font-bold text-fg-muted uppercase tracking-widest italic">
                             Conecte uma conta Meta ou altere os filtros para visualizar resultados.
                         </p>
                     </div>
@@ -353,38 +353,38 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                   key={campaign.campaignId}
                   className="group/row transition-all duration-500"
                 >
-                  <td className="px-6 py-5 rounded-l-3xl border-white/[0.04] border-y border-l bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all relative overflow-hidden shadow-sm group-hover/row:shadow-cyan-500/5">
-                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-cyan-500 opacity-0 group-hover/row:opacity-100 transition-all duration-500 shadow-[0_0_15px_#06b6d4]" />
+                  <td className="px-6 py-5 rounded-l-3xl border-border border-y border-l bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all relative overflow-hidden shadow-sm group-hover/">
+                    <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-primary opacity-0 group-hover/row:opacity-100 transition-all duration-500" />
                     <div className="group-hover/row:translate-x-3 transition-transform duration-500">
-                      <p className="text-[13px] font-black text-slate-100 group-hover/row:text-white group-hover/row:drop-shadow-[0_0_8px_rgba(255,255,255,0.2)] transition-all uppercase tracking-wide truncate max-w-[250px]">
+                      <p className="text-[13px] font-black text-fg group-hover/row:text-fg transition-all uppercase tracking-wide truncate max-w-[250px]">
                         {campaign.campaignName}
                       </p>
-                      <p className="text-[9px] font-bold text-slate-600 mt-1 uppercase tracking-widest font-mono flex items-center gap-2 group-hover/row:text-slate-500">
-                        <span className="w-1 h-1 bg-slate-700 rounded-full" />
+                      <p className="text-[9px] font-bold text-fg-muted mt-1 uppercase tracking-widest font-mono flex items-center gap-2 group-hover/row:text-fg-muted">
+                        <span className="w-1 h-1 bg-border-strong rounded-full" />
                         ID: {campaign.campaignId.substring(0, 14)}
                       </p>
                     </div>
                   </td>
 
-                  <td className="px-6 py-5 border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
-                    <span className="px-3 py-1.5 rounded-xl bg-slate-900/60 border border-white/[0.03] text-[9px] font-black uppercase text-slate-400 tracking-[0.15em] transition-colors group-hover/row:text-slate-300 inline-block overflow-hidden max-w-[140px] truncate shadow-inner">
+                  <td className="px-6 py-5 border-border border-y bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all">
+                    <span className="px-3 py-1.5 rounded-xl bg-surface border border-border text-[9px] font-black uppercase text-fg-muted tracking-[0.15em] transition-colors group-hover/row:text-fg inline-block overflow-hidden max-w-[140px] truncate shadow-inner">
                       {campaign.accountName}
                     </span>
                   </td>
 
-                  <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
-                    <span className="text-xs font-black text-slate-400 tracking-tight font-mono group-hover/row:text-slate-200 transition-colors">
+                  <td className="px-6 py-5 text-right border-border border-y bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all">
+                    <span className="text-xs font-black text-fg-muted tracking-tight font-mono group-hover/row:text-fg transition-colors">
                       {formatCurrency(campaign.spend)}
                     </span>
                   </td>
 
-                  <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
-                    <span className="text-sm font-black text-white tracking-tighter font-mono group-hover/row:drop-shadow-[0_0_10px_rgba(255,255,255,0.4)] transition-all">
+                  <td className="px-6 py-5 text-right border-border border-y bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all">
+                    <span className="text-sm font-black text-fg tracking-tighter font-mono transition-all">
                       {formatCurrency(campaign.revenue)}
                     </span>
                   </td>
 
-                  <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
+                  <td className="px-6 py-5 text-right border-border border-y bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all">
                     <div className="flex flex-col items-end">
                       <span className={cn("text-base font-black font-mono transition-all duration-500", getRoasColor(campaign.roas))}>
                         {campaign.roas.toFixed(2)}<span className="text-[10px] ml-0.5 opacity-60">x</span>
@@ -392,20 +392,20 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                     </div>
                   </td>
 
-                  <td className="px-6 py-5 text-right border-white/[0.04] border-y bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all">
+                  <td className="px-6 py-5 text-right border-border border-y bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all">
                     <span
                       className={cn(
                         "text-xs font-black font-mono transition-all duration-500",
                         campaign.grossProfit >= 0
-                          ? "text-emerald-400 group-hover/row:text-emerald-300"
-                          : "text-red-400 group-hover/row:text-red-300",
+                          ? "text-success group-hover/row:text-success"
+                          : "text-danger group-hover/row:text-danger",
                       )}
                     >
                       {formatCurrency(campaign.grossProfit)}
                     </span>
                   </td>
 
-                  <td className="px-6 py-5 text-right rounded-r-3xl border-white/[0.04] border-y border-r bg-white/[0.01] group-hover/row:bg-white/[0.07] group-hover/row:border-cyan-500/20 transition-all w-36">
+                  <td className="px-6 py-5 text-right rounded-r-3xl border-border border-y border-r bg-subtle group-hover/row:bg-subtle group-hover/row:border-primary/20 transition-all w-36">
                     <div className="flex justify-end">
                       <Badge
                         variant={campaign.status === "ACTIVE" ? "active" : "secondary"}
@@ -426,8 +426,8 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
       {/* Pagination */}
       {totalPages > 1 && (
         <div className="mt-8 flex items-center justify-between gap-4 relative z-10">
-          <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]">
-            Página <span className="text-cyan-400">{currentPage}</span> de {totalPages}
+          <div className="text-[9px] font-bold text-fg-muted uppercase tracking-[0.3em]">
+            Página <span className="text-primary">{currentPage}</span> de {totalPages}
             <span className="mx-2">•</span>
             {sortedCampaigns.length} campanhas
           </div>
@@ -439,7 +439,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
               disabled={currentPage === 1}
               aria-label="Página anterior"
-              className="w-9 h-9 rounded-xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400"
+              className="w-9 h-9 rounded-xl border border-border hover:border-primary/30 hover:bg-primary-tint text-fg-muted"
             >
               <ChevronLeft size={16} aria-hidden="true" />
             </Button>
@@ -467,8 +467,8 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
                   className={cn(
                     "w-9 h-9 rounded-xl text-xs font-black uppercase tracking-wider border",
                     currentPage === pageNum
-                      ? "border-cyan-500/50 bg-cyan-500/20 text-cyan-300 hover:bg-cyan-500/30"
-                      : "border-white/10 text-slate-500 hover:border-cyan-500/30 hover:bg-cyan-500/10"
+                      ? "border-primary/40 bg-primary-tint text-primary hover:bg-primary-tint"
+                      : "border-border text-fg-muted hover:border-primary/30 hover:bg-primary-tint"
                   )}
                 >
                   {pageNum}
@@ -482,7 +482,7 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
               onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
               disabled={currentPage === totalPages}
               aria-label="Próxima página"
-              className="w-9 h-9 rounded-xl border border-white/10 hover:border-cyan-500/30 hover:bg-cyan-500/10 text-slate-400"
+              className="w-9 h-9 rounded-xl border border-border hover:border-primary/30 hover:bg-primary-tint text-fg-muted"
             >
               <ChevronRight size={16} aria-hidden="true" />
             </Button>
@@ -493,12 +493,12 @@ export function CampaignsTable({ campaigns }: CampaignsTableProps) {
       {/* Table Footer / Visual Finish */}
       {campaigns.length > 0 && totalPages <= 1 && (
         <div className="mt-8 flex items-center justify-between px-2 relative z-10 opacity-60 hover:opacity-100 transition-opacity">
-          <div className="text-[9px] font-bold text-slate-600 uppercase tracking-[0.3em]" suppressHydrationWarning>
+          <div className="text-[9px] font-bold text-fg-muted uppercase tracking-[0.3em]" suppressHydrationWarning>
             {isMounted ? `Atualizado em ${new Date().toLocaleTimeString("pt-BR")}` : "Sincronizado em tempo real"}
           </div>
           <div className="flex gap-1" aria-hidden="true">
             {[...Array(3)].map((_, i) => (
-              <div key={i} className="w-1 h-1 bg-slate-800 rounded-full" />
+              <div key={i} className="w-1 h-1 bg-subtle rounded-full" />
             ))}
           </div>
         </div>

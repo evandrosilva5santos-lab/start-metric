@@ -35,6 +35,7 @@ export default async function ClientDetailsPage({
     .from("clients")
     .select("id, name, email, phone, whatsapp, niche, logo_url, notes, created_at")
     .eq("id", id)
+    .eq("org_id", session.orgId)
     .is("archived_at", null)
     .maybeSingle();
 
@@ -80,7 +81,7 @@ export default async function ClientDetailsPage({
                 <div key={label} className="flex items-start gap-3">
                   <Icon size={15} className="mt-0.5 shrink-0 text-text-muted" />
                   <div className="min-w-0">
-                    <dt className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">{label}</dt>
+                    <dt className="text-[12px] font-medium text-fg-muted">{label}</dt>
                     <dd className="truncate text-sm tabular-nums text-text-primary">{value || "—"}</dd>
                   </div>
                 </div>
@@ -88,7 +89,7 @@ export default async function ClientDetailsPage({
             </dl>
             {client.notes && (
               <div className="mt-5 border-t border-border pt-4">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Informações</p>
+                <p className="text-[12px] font-medium text-fg-muted">Informações</p>
                 <p className="mt-1 whitespace-pre-wrap text-sm text-text-secondary">{client.notes}</p>
               </div>
             )}

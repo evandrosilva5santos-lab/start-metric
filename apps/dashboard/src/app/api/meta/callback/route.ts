@@ -96,7 +96,7 @@ export async function GET(request: Request) {
 
     const { error: upsertError } = await supabase
       .from("ad_accounts")
-      .upsert(upserts, { onConflict: "org_id,external_id" });
+      .upsert(upserts, { onConflict: "org_id,platform,external_id" });
 
     if (upsertError) {
       console.error("[meta/callback] Erro ao salvar ad_accounts:", upsertError);

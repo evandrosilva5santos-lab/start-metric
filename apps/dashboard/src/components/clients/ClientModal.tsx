@@ -151,7 +151,7 @@ export function ClientModal({ isOpen, onClose, client, onSaved }: Props) {
       onClose={onClose}
       onCancel={onClose}
       aria-labelledby={`${baseId}-title`}
-      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-popover p-0 text-foreground backdrop:bg-black/70"
+      className="m-auto w-[calc(100%-2rem)] max-w-lg rounded-lg border border-border bg-popover p-0 text-foreground backdrop:bg-fg/40"
     >
       <form onSubmit={handleSubmit} noValidate className="flex max-h-[90vh] flex-col">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">

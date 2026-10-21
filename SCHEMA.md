@@ -1,39 +1,41 @@
-# SCHEMA.md — Start Metric Database Architecture
+# SCHEMA.md — Start Metric Database Architecture (Prefixado `startmetric_*`)
 
 > **Fonte Canônica de Banco de Dados do Start Metric (PostgreSQL / Supabase).**
-> Define todas as tabelas, tipos de dados, chaves primárias, estrangeiras, índices de alta performance e políticas de segurança RLS (Row Level Security).
+> Todas as tabelas de domínio utilizam o prefixo obrigatório **`startmetric_`** para garantir isolamento absoluto e evitar conflitos em instâncias multi-projeto do Supabase.
 
 ---
 
-## 🗄️ 1. Diagrama de Relacionamento de Entidades (ERD)
+## 🗄️ 1. Diagrama de Entidades (ERD)
 
 ```mermaid
 erDiagram
     ORGANIZATIONS ||--o{ PROFILES : has
-    ORGANIZATIONS ||--o{ CLIENTS : owns
-    ORGANIZATIONS ||--o{ AD_ACCOUNTS : connects
-    ORGANIZATIONS ||--o{ GARIMPO_OFFERS : saves
-    ORGANIZATIONS ||--o{ ALERT_RULES : defines
+    ORGANIZATIONS ||--o{ STARTMETRIC_CLIENTS : owns
+    ORGANIZATIONS ||--o{ STARTMETRIC_CONNECTIONS : connects
+    ORGANIZATIONS ||--o{ STARTMETRIC_AD_ACCOUNTS : links
+    ORGANIZATIONS ||--o{ STARTMETRIC_ORDERS : ingests
+    ORGANIZATIONS ||--o{ STARTMETRIC_CONVERSIONS : attributes
+    ORGANIZATIONS ||--o{ STARTMETRIC_GARIMPO_OFFERS : saves
 
-    CLIENTS ||--o{ AD_ACCOUNTS : assigns
-    AD_ACCOUNTS ||--o{ CAMPAIGNS : contains
-    CAMPAIGNS ||--o{ AD_METRICS_DAILY : aggregates
-    AD_ACCOUNTS ||--o{ AD_METRICS_DAILY : tracks
+    STARTMETRIC_CLIENTS ||--o{ STARTMETRIC_AD_ACCOUNTS : assigns
+    STARTMETRIC_AD_ACCOUNTS ||--o{ STARTMETRIC_CAMPAIGNS : contains
+    STARTMETRIC_CAMPAIGNS ||--o{ STARTMETRIC_AD_METRICS_DAILY : aggregates
+    STARTMETRIC_ORDERS ||--o{ STARTMETRIC_CONVERSIONS : attributes
 ```
 
 ---
 
-## 🏗️ 2. Definição das Tabelas DDL
+## 🏗️ 2. Definição das Tabelas DDL com Prefixo `startmetric_`
 
 ```sql
--- Habilitar extensões necessárias
+-- Extensões necessárias
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
 -- ============================================================================
--- 1. ORGANIZAÇÕES (Multi-Tenancy Root)
+-- 1. BASE: ORGANIZAÇÕES & PERFIS (Compartilhado/Auth)
 -- ============================================================================
-CREATE TABLE organizations (
+CREATE TABLE IF NOT EXISTS organizations (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     name VARCHAR(255) NOT NULL,
     slug VARCHAR(100) UNIQUE NOT NULL,
@@ -43,10 +45,7 @@ CREATE TABLE organizations (
     updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- ============================================================================
--- 2. USUÁRIOS & PERFIS
--- ============================================================================
-CREATE TABLE profiles (
+CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     full_name VARCHAR(255),
@@ -58,13 +57,34 @@ CREATE TABLE profiles (
 );
 
 -- ============================================================================
--- 3. CLIENTES DA AGÊNCIA (CRM de Gestão de Tráfego)
+-- 2. CONEXÕES META ADS RESILIENTES
 -- ============================================================================
-CREATE TABLE clients (
+CREATE TABLE IF NOT EXISTS startmetric_connections (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    connected_by UUID REFERENCES profiles(id),
+    meta_user_id TEXT NOT NULL,
+    meta_user_name TEXT,
+    token_kind TEXT NOT NULL CHECK (token_kind IN ('user_long', 'system_user')),
+    token_encrypted TEXT NOT NULL,
+    token_expires_at TIMESTAMPTZ,
+    scopes TEXT[] NOT NULL DEFAULT '{}',
+    status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active','expiring','expired','revoked','error')),
+    last_error_code INT,
+    last_error_sub INT,
+    last_checked_at TIMESTAMPTZ,
+    connected_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- ============================================================================
+-- 3. CLIENTES DA AGÊNCIA (CRM)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS startmetric_clients (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    niche VARCHAR(100) NOT NULL, -- 'Infoproduto', 'E-commerce', 'Negócio Local', 'SaaS', 'Saúde & Estética'
+    niche VARCHAR(100) NOT NULL,
     whatsapp_number VARCHAR(30),
     monthly_budget NUMERIC(12,2) DEFAULT 0.00,
     target_cpa NUMERIC(10,2) DEFAULT 0.00,
@@ -78,13 +98,17 @@ CREATE TABLE clients (
 -- ============================================================================
 -- 4. CONTAS DE ANÚNCIOS META ADS
 -- ============================================================================
-CREATE TABLE ad_accounts (
+CREATE TABLE IF NOT EXISTS startmetric_ad_accounts (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    client_id UUID REFERENCES clients(id) ON DELETE SET NULL,
-    meta_account_id VARCHAR(100) NOT NULL UNIQUE, -- 'act_123456789'
+    connection_id UUID REFERENCES startmetric_connections(id) ON DELETE SET NULL,
+    client_id UUID REFERENCES startmetric_clients(id) ON DELETE SET NULL,
+    meta_account_id VARCHAR(100) NOT NULL UNIQUE,
     account_name VARCHAR(255) NOT NULL,
-    access_token TEXT NOT NULL, -- Token de longa duração (AES-256 encrypted)
+    business_id TEXT,
+    business_name TEXT,
+    is_personal BOOLEAN DEFAULT false,
+    access_token TEXT NOT NULL,
     token_expires_at TIMESTAMPTZ,
     currency VARCHAR(10) DEFAULT 'BRL',
     timezone_name VARCHAR(100) DEFAULT 'America/Sao_Paulo',
@@ -96,13 +120,14 @@ CREATE TABLE ad_accounts (
 -- ============================================================================
 -- 5. CAMPANHAS
 -- ============================================================================
-CREATE TABLE campaigns (
+CREATE TABLE IF NOT EXISTS startmetric_campaigns (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ad_account_id UUID NOT NULL REFERENCES ad_accounts(id) ON DELETE CASCADE,
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    ad_account_id UUID NOT NULL REFERENCES startmetric_ad_accounts(id) ON DELETE CASCADE,
     meta_campaign_id VARCHAR(100) NOT NULL UNIQUE,
     name VARCHAR(255) NOT NULL,
     objective VARCHAR(100),
-    status VARCHAR(50) NOT NULL, -- 'ACTIVE', 'PAUSED', 'ARCHIVED'
+    status VARCHAR(50) DEFAULT 'ACTIVE',
     daily_budget NUMERIC(12,2),
     lifetime_budget NUMERIC(12,2),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
@@ -110,113 +135,106 @@ CREATE TABLE campaigns (
 );
 
 -- ============================================================================
--- 6. MÉTRICAS DIÁRIAS (Insights & Desempenho)
+-- 6. MÉTRICAS DIÁRIAS AGREGADAS
 -- ============================================================================
-CREATE TABLE ad_metrics_daily (
+CREATE TABLE IF NOT EXISTS startmetric_ad_metrics_daily (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    ad_account_id UUID NOT NULL REFERENCES ad_accounts(id) ON DELETE CASCADE,
-    campaign_id UUID REFERENCES campaigns(id) ON DELETE CASCADE,
-    ad_id VARCHAR(100),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    ad_account_id UUID NOT NULL REFERENCES startmetric_ad_accounts(id) ON DELETE CASCADE,
+    campaign_id UUID REFERENCES startmetric_campaigns(id) ON DELETE CASCADE,
     date DATE NOT NULL,
-    spend NUMERIC(12,2) DEFAULT 0.00,
-    impressions INT DEFAULT 0,
-    clicks INT DEFAULT 0,
+    spend NUMERIC(12,2) DEFAULT 0.00 NOT NULL,
+    impressions INT DEFAULT 0 NOT NULL,
+    clicks INT DEFAULT 0 NOT NULL,
     cpc NUMERIC(10,2) DEFAULT 0.00,
-    ctr NUMERIC(6,4) DEFAULT 0.00,
+    cpm NUMERIC(10,2) DEFAULT 0.00,
+    ctr NUMERIC(6,2) DEFAULT 0.00,
     conversions INT DEFAULT 0,
     conversion_value NUMERIC(12,2) DEFAULT 0.00,
-    cpa NUMERIC(10,2) DEFAULT 0.00,
     roas NUMERIC(8,2) DEFAULT 0.00,
-    leads INT DEFAULT 0,
-    cost_per_lead NUMERIC(10,2) DEFAULT 0.00,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
-    UNIQUE(ad_account_id, campaign_id, ad_id, date)
+    UNIQUE (ad_account_id, campaign_id, date)
 );
 
 -- ============================================================================
--- 7. OFERTAS DO GARIMPO & BIBLIOTECA
+-- 7. PEDIDOS & ATRIBUIÇÃO (Real Profit)
 -- ============================================================================
-CREATE TABLE garimpo_offers (
+CREATE TABLE IF NOT EXISTS startmetric_orders (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    external_order_id TEXT NOT NULL,
+    source TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'completed',
+    total_amount NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) DEFAULT 'BRL',
+    customer_email TEXT,
+    customer_name TEXT,
+    tracking_session_id TEXT,
+    attribution_fbc TEXT,
+    attribution_fbp TEXT,
+    click_id TEXT,
+    attributed_conversion_id UUID,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL,
+    UNIQUE (organization_id, external_order_id, source)
+);
+
+CREATE TABLE IF NOT EXISTS startmetric_conversions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    external_id TEXT NOT NULL UNIQUE,
+    source TEXT NOT NULL,
+    event_type TEXT NOT NULL DEFAULT 'purchase',
+    revenue NUMERIC(12,2) NOT NULL DEFAULT 0.00,
+    currency VARCHAR(10) DEFAULT 'BRL',
+    customer_id TEXT,
+    customer_email TEXT,
+    attributed_ad_id TEXT,
+    attributed_campaign_id TEXT,
+    occurred_at TIMESTAMPTZ NOT NULL,
+    attribution_window_days INT DEFAULT 30,
+    created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
+);
+
+-- ============================================================================
+-- 8. GARIMPO DE OFERTAS & ALERTAS
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS startmetric_garimpo_offers (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
+    domain VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
-    niche VARCHAR(100) NOT NULL,
-    platform VARCHAR(50) NOT NULL, -- 'Meta', 'TikTok', 'YouTube', 'Spy'
-    creative_url TEXT,
-    thumbnail_url TEXT,
-    copy_text TEXT,
-    estimated_scale VARCHAR(50) DEFAULT 'Média', -- 'Baixa', 'Média', 'Escala Máxima'
-    landing_page_url TEXT,
-    status VARCHAR(50) DEFAULT 'ideation' CHECK (status IN ('ideation', 'testing', 'validated', 'scaling')),
-    notes TEXT,
+    niche VARCHAR(100),
+    active_ads_count INT DEFAULT 1,
+    scaling_score INT DEFAULT 50,
+    estimated_monthly_spend NUMERIC(12,2),
+    screenshot_url TEXT,
+    first_seen_at TIMESTAMPTZ DEFAULT NOW(),
+    last_seen_at TIMESTAMPTZ DEFAULT NOW(),
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
 
--- ============================================================================
--- 8. REGRAS DE ALERTAS INTELIGENTES
--- ============================================================================
-CREATE TABLE alert_rules (
+CREATE TABLE IF NOT EXISTS startmetric_alert_rules (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     organization_id UUID NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
-    ad_account_id UUID REFERENCES ad_accounts(id) ON DELETE CASCADE,
+    client_id UUID REFERENCES startmetric_clients(id) ON DELETE CASCADE,
     name VARCHAR(255) NOT NULL,
-    metric VARCHAR(50) NOT NULL, -- 'cpa', 'roas', 'spend_without_conversion'
-    condition VARCHAR(10) NOT NULL, -- '>', '<', '>='
-    threshold NUMERIC(10,2) NOT NULL,
-    action VARCHAR(50) DEFAULT 'notify_whatsapp',
-    is_active BOOLEAN DEFAULT TRUE,
+    metric VARCHAR(50) NOT NULL,
+    operator VARCHAR(10) NOT NULL,
+    threshold NUMERIC(12,2) NOT NULL,
+    action_type VARCHAR(50) DEFAULT 'whatsapp_alert',
+    is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMPTZ DEFAULT NOW() NOT NULL
 );
-```
 
----
-
-## ⚡ 3. Índices de Alta Performance (Sub-5ms)
-
-```sql
--- Agregação e séries temporais de métricas
-CREATE INDEX idx_ad_metrics_account_date ON ad_metrics_daily(ad_account_id, date DESC);
-CREATE INDEX idx_ad_metrics_campaign_date ON ad_metrics_daily(campaign_id, date DESC);
-
--- Busca rápida de campanhas ativas
-CREATE INDEX idx_campaigns_account_status ON campaigns(ad_account_id, status);
-
--- Isolamento multi-tenant
-CREATE INDEX idx_clients_org_status ON clients(organization_id, status);
-CREATE INDEX idx_garimpo_org_niche ON garimpo_offers(organization_id, niche);
-CREATE INDEX idx_ad_accounts_org ON ad_accounts(organization_id);
-```
-
----
-
-## 🛡️ 4. Políticas RLS (Row Level Security)
-
-```sql
-ALTER TABLE organizations ENABLE ROW LEVEL SECURITY;
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE clients ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ad_accounts ENABLE ROW LEVEL SECURITY;
-ALTER TABLE campaigns ENABLE ROW LEVEL SECURITY;
-ALTER TABLE ad_metrics_daily ENABLE ROW LEVEL SECURITY;
-ALTER TABLE garimpo_offers ENABLE ROW LEVEL SECURITY;
-ALTER TABLE alert_rules ENABLE ROW LEVEL SECURITY;
-
--- Helper function para obter organization_id do usuário logado
-CREATE OR REPLACE FUNCTION get_current_user_org_id()
-RETURNS UUID AS $$
-  SELECT organization_id FROM profiles WHERE id = auth.uid() LIMIT 1;
-$$ LANGUAGE sql SECURITY DEFINER;
-
--- Regra padrão para leitura isolada por organização
-CREATE POLICY "Users can only access data of their organization" 
-ON clients FOR ALL 
-USING (organization_id = get_current_user_org_id());
-
-CREATE POLICY "Users can only access ad accounts of their organization" 
-ON ad_accounts FOR ALL 
-USING (organization_id = get_current_user_org_id());
-
-CREATE POLICY "Users can only access garimpo offers of their organization" 
-ON garimpo_offers FOR ALL 
-USING (organization_id = get_current_user_org_id());
-```
+-- ============================================================================
+-- 9. HABILITAR ROW LEVEL SECURITY (RLS)
+-- ============================================================================
+ALTER TABLE startmetric_connections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_clients ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_ad_accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_campaigns ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_ad_metrics_daily ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_conversions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_garimpo_offers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE startmetric_alert_rules ENABLE ROW LEVEL SECURITY;

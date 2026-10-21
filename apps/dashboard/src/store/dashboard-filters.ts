@@ -23,17 +23,19 @@ export const LIVE_OPTIONS = [
 
 export type LiveInterval = (typeof LIVE_OPTIONS)[number]["value"];
 
-/** Valor do seletor para as contas que ainda não foram ligadas a nenhum cliente. */
-export const NO_CLIENT = "none";
+export type AdsPlatform = "meta";
 
 type DashboardFiltersState = {
   clientId: string;
+  platform: AdsPlatform;
   accountId: string;
   range: RangeValue;
   liveInterval: LiveInterval;
   hideValues: boolean;
   setClientId: (clientId: string) => void;
+  setPlatform: (platform: AdsPlatform) => void;
   setAccountId: (accountId: string) => void;
+  setOperationalScope: (scope: Pick<DashboardFiltersState, "clientId" | "platform" | "accountId">) => void;
   setRange: (range: RangeValue) => void;
   setLiveInterval: (liveInterval: LiveInterval) => void;
   toggleHideValues: () => void;
@@ -43,18 +45,29 @@ export const useDashboardFilters = create<DashboardFiltersState>()(
   persist(
     (set) => ({
       clientId: "",
+      platform: "meta",
       accountId: "",
       range: "last_30d",
       liveInterval: 30,
       hideValues: false,
-      setClientId: (clientId) => set({ clientId }),
+      setClientId: (clientId) => set({ clientId, accountId: "" }),
+      setPlatform: (platform) => set({ platform, accountId: "" }),
       setAccountId: (accountId) => set({ accountId }),
+      setOperationalScope: (scope) => set(scope),
       setRange: (range) => set({ range }),
       setLiveInterval: (liveInterval) => set({ liveInterval }),
       toggleHideValues: () => set((state) => ({ hideValues: !state.hideValues })),
     }),
     // Lido do navegador só depois da hidratação (DashboardControls), para o
     // HTML do servidor e o primeiro render do cliente serem iguais.
-    { name: "sm:dashboard-filters", skipHydration: true },
+    {
+      name: "sm:dashboard-filters",
+      version: 2,
+      skipHydration: true,
+      migrate: (persisted) => {
+        const state = persisted as Partial<DashboardFiltersState> | undefined;
+        return { ...state, platform: "meta" };
+      },
+    },
   ),
 );

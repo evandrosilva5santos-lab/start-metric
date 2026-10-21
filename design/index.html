@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Telas do Start Metric</title>
+<style>
+body{margin:0;padding:48px 32px;background:#080a09;color:#eaefee;
+ font-family:"Space Grotesk",system-ui,sans-serif}
+h1{font-size:28px;letter-spacing:-.03em;margin:0 0 8px}
+p.sub{color:#9ba09e;margin:0 0 36px;font-size:14px;max-width:70ch;line-height:1.6}
+table{border-collapse:collapse;width:100%;max-width:1000px}
+th,td{text-align:left;padding:14px 12px;border-bottom:1px solid #141917;vertical-align:middle}
+thead th{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#9ba09e;font-weight:700}
+tbody th{font-weight:700;font-size:15px;color:#eaefee;width:260px}
+tbody th code{display:block;margin-top:4px;font-size:12px;font-weight:400;color:#656766}
+a{color:#44d5a4;text-decoration:none;font-weight:600;font-size:14px}
+a:hover{color:#42e6af}
+a small{display:block;font-size:11px;font-weight:400;color:#656766}
+td.onde{color:#656766;font-size:12px}
+@media (max-width:760px){tbody th{width:auto}table,thead,tbody,tr,th,td{display:block}
+ thead{display:none}tr{padding:12px 0;border-bottom:1px solid #141917}
+ th,td{border:0;padding:4px 0}td{display:inline-block;margin-right:20px}}
+</style></head><body>
+<h1>Telas do Start Metric</h1>
+<p class="sub">Uma linha por tela, nos três tamanhos. São HTML e CSS de verdade, exportados
+do canvas de design — abra no navegador e inspecione com o DevTools para ler cor, raio,
+espaçamento e tamanho de fonte exatos, em vez de estimar de um print. Os três arquivos de
+uma linha são <strong>a mesma rota</strong> em larguras diferentes, não telas separadas:
+não crie componentes <code>*Mobile</code>.</p>
+<table>
+<thead><tr><th>Tela</th><th>1440</th><th>834</th><th>390</th><th>Onde mexer</th></tr></thead>
+<tbody>
+<tr><th scope="row">Entrada<code>/auth</code></th><td><a href="Entrada.html">Notebook<small>1440</small></a></td><td><a href="Entrada-tablet.html">Tablet<small>834</small></a></td><td><a href="Entrada-celular.html">Celular<small>390</small></a></td><td class="onde">app/auth/AuthPageClient.tsx</td></tr>
+<tr><th scope="row">Visão geral<code>/</code></th><td><a href="Main.html">Notebook<small>1440</small></a></td><td><a href="Main-tablet.html">Tablet<small>834</small></a></td><td><a href="Visao-geral-celular.html">Celular<small>390</small></a></td><td class="onde">components/dashboard/DashboardClient.tsx</td></tr>
+<tr><th scope="row">Campanhas<code>/campaigns</code></th><td><a href="Campanhas.html">Notebook<small>1440</small></a></td><td><a href="Campanhas-tablet.html">Tablet<small>834</small></a></td><td><a href="Campanhas-celular.html">Celular<small>390</small></a></td><td class="onde">app/(dashboard)/campaigns/page.tsx</td></tr>
+<tr><th scope="row">Criativos<code>/criativos</code></th><td><a href="Criativos.html">Notebook<small>1440</small></a></td><td><a href="Criativos-tablet.html">Tablet<small>834</small></a></td><td><a href="Criativos-celular.html">Celular<small>390</small></a></td><td class="onde">app/(dashboard)/criativos/page.tsx</td></tr>
+<tr><th scope="row">Diagnóstico<code>/diagnostico</code></th><td><a href="Diagnostico.html">Notebook<small>1440</small></a></td><td><a href="Diagnostico-tablet.html">Tablet<small>834</small></a></td><td><a href="Diagnostico-celular.html">Celular<small>390</small></a></td><td class="onde">ainda não existe</td></tr>
+<tr><th scope="row">Horário<code>/horario</code></th><td><a href="Horario.html">Notebook<small>1440</small></a></td><td><a href="Horario-tablet.html">Tablet<small>834</small></a></td><td><a href="Horario-celular.html">Celular<small>390</small></a></td><td class="onde">ainda não existe</td></tr>
+<tr><th scope="row">Garimpo · esteira<code>/garimpo</code></th><td><a href="Garimpo.html">Notebook<small>1440</small></a></td><td><a href="Garimpo-tablet.html">Tablet<small>834</small></a></td><td><a href="Garimpo-celular.html">Celular<small>390</small></a></td><td class="onde">ainda não existe</td></tr>
+<tr><th scope="row">Garimpo · oferta aberta<code>/garimpo/[dominio]</code></th><td><a href="Garimpo-oferta.html">Notebook<small>1440</small></a></td><td><a href="Garimpo-oferta-tablet.html">Tablet<small>834</small></a></td><td><a href="Garimpo-oferta-celular.html">Celular<small>390</small></a></td><td class="onde">ainda não existe</td></tr>
+<tr><th scope="row">Relatórios · Performance<code>/performance</code></th><td><a href="Performance.html">Notebook<small>1440</small></a></td><td><a href="Performance-tablet.html">Tablet<small>834</small></a></td><td><a href="Performance-celular.html">Celular<small>390</small></a></td><td class="onde">app/(dashboard)/performance/page.tsx</td></tr>
+<tr><th scope="row">Configurações · Integrações<code>/settings</code></th><td><a href="Ajustes.html">Notebook<small>1440</small></a></td><td><a href="Ajustes-tablet.html">Tablet<small>834</small></a></td><td><a href="Ajustes-celular.html">Celular<small>390</small></a></td><td class="onde">app/(dashboard)/settings/page.tsx</td></tr>
+</tbody></table>
+</body></html>

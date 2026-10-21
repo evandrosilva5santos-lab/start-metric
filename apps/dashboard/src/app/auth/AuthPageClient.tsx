@@ -271,27 +271,16 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
   const visibleError = error ?? queryError;
 
   return (
-    <div className="min-h-screen flex overflow-hidden">
-      {/* Left panel */}
-      <div className="hidden lg:flex lg:w-[52%] relative flex-col justify-between p-14 overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950">
-        <div
-          className="absolute top-[-120px] right-[-80px] w-[480px] h-[480px] rounded-full opacity-20 blur-3xl"
-          style={{ background: "radial-gradient(circle, #22d3ee 0%, #818cf8 60%, transparent 100%)" }}
-        />
-        <div
-          className="absolute bottom-[-80px] left-[-40px] w-[320px] h-[320px] rounded-full opacity-15 blur-3xl"
-          style={{ background: "radial-gradient(circle, #34d399 0%, transparent 100%)" }}
-        />
+    <div className="flex min-h-screen bg-surface">
+      <div className="relative hidden flex-col justify-between overflow-hidden bg-sidebar p-14 text-sidebar-fg lg:flex lg:w-[52%]">
 
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 z-10"
         >
-          <div className="w-10 h-10 rounded-xl bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-sm tracking-widest">
-            SM
-          </div>
-          <span className="text-white font-bold text-xl tracking-tight">START METRIC</span>
+          <span aria-hidden="true" className="size-7 rounded-control bg-primary" />
+          <span className="font-display text-[20px] font-bold text-sidebar-strong">Start Metric</span>
         </motion.div>
 
         <motion.div
@@ -301,15 +290,15 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           className="z-10 space-y-8"
         >
           <div>
-            <p className="text-cyan-400 text-sm font-semibold uppercase tracking-[0.2em] mb-3">
+            <p className="mb-3 font-display text-[13px] font-medium text-sky">
               Para Gestores de Tráfego
             </p>
-            <h1 className="text-5xl font-extrabold text-white leading-[1.15]">
+            <h1 className="font-display text-[30px] font-semibold leading-[1.15] text-sidebar-strong">
               ROI é o que
               <br />
-              <span className="text-gradient-primary">importa.</span>
+              <span className="text-sky">importa.</span>
             </h1>
-            <p className="text-slate-400 mt-4 text-lg leading-relaxed max-w-sm">
+            <p className="mt-4 max-w-sm text-[16px] leading-relaxed text-sidebar-fg">
               Chega de planilha. Tenha inteligência de performance em tempo real para todas as suas contas de anúncios.
             </p>
           </div>
@@ -323,12 +312,12 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                 transition={{ delay: 0.35 + i * 0.1 }}
                 className="flex items-start gap-4"
               >
-                <div className="w-9 h-9 rounded-lg bg-cyan-400/10 border border-cyan-400/20 flex items-center justify-center shrink-0">
-                  <Icon size={16} className="text-cyan-400" />
+                <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-sidebar-active">
+                  <Icon size={16} className="text-sky" aria-hidden="true" />
                 </div>
                 <div>
-                  <p className="text-slate-200 font-semibold text-sm">{label}</p>
-                  <p className="text-slate-500 text-xs mt-0.5">{desc}</p>
+                  <p className="text-[14px] font-medium text-sidebar-strong">{label}</p>
+                  <p className="mt-0.5 text-[13px] text-sidebar-muted">{desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -339,22 +328,15 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.7 }}
-          className="glass border-cyan-500/10 rounded-2xl p-5 z-10"
+          className="z-10 rounded-panel border border-sidebar-active bg-sidebar-active/50 p-5"
         >
-          <p className="text-slate-500 text-xs uppercase tracking-widest mb-2">Média dos usuários</p>
-          <p className="text-3xl font-extrabold text-gradient-roi text-mono">4.7x ROAS</p>
-          <p className="text-slate-500 text-xs mt-1">nos últimos 30 dias de dados</p>
+          <p className="mb-1 text-[13px] text-sidebar-muted">Como funciona</p>
+          <p className="font-display text-[20px] font-semibold text-sidebar-strong">Lucro real por campanha</p>
+          <p className="mt-1 text-[13px] text-sidebar-muted">O gasto da Meta cruzado com as suas vendas, sem número estimado.</p>
         </motion.div>
       </div>
 
-      {/* Right panel */}
-      <div className="flex-1 flex items-center justify-center p-8 relative bg-slate-950 overflow-y-auto">
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: "radial-gradient(circle at 70% 30%, rgba(34,211,238,0.08) 0%, transparent 60%)",
-          }}
-        />
+      <div className="relative flex flex-1 items-start justify-center overflow-y-auto bg-surface px-4 py-6 md:items-center md:p-8">
 
         <motion.div
           initial={{ opacity: 0, scale: 0.97 }}
@@ -363,13 +345,10 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           className="w-full max-w-md z-10 py-8"
         >
           <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <div className="w-8 h-8 rounded-lg bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
-              SM
-            </div>
-            <span className="text-white font-bold tracking-tight">START METRIC</span>
+            <span aria-hidden="true" className="size-[22px] rounded-control bg-primary" />
+            <span className="font-display text-[16px] font-bold text-fg">Start Metric</span>
           </div>
 
-          {/* Tela de Esqueci Senha */}
           <AnimatePresence mode="wait">
             {view === "forgot" && (
               <motion.div
@@ -382,20 +361,20 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                 <button
                   type="button"
                   onClick={() => { resetFeedback(); setView("auth"); }}
-                  className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-300 transition-colors mb-8"
+                  className="mb-8 flex min-h-11 items-center gap-1.5 text-[13px] text-fg-muted transition-colors hover:text-fg"
                 >
                   <ChevronLeft size={14} />
                   Voltar para o login
                 </button>
 
-                <h2 className="text-2xl font-bold text-white mb-1">Redefinir senha</h2>
-                <p className="text-slate-500 text-sm mb-8">
+                <h2 className="mb-1 font-display text-[24px] font-semibold leading-[1.2] text-fg">Redefinir senha</h2>
+                <p className="mb-8 text-[14px] text-fg-muted">
                   Informe seu e-mail e enviaremos um link para você criar uma nova senha.
                 </p>
 
                 <form onSubmit={handleForgotPassword} className="space-y-5">
                   <div className="space-y-2">
-                    <label htmlFor="forgotEmail" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                    <label htmlFor="forgotEmail" className="text-[13px] font-medium text-fg">
                       E-mail
                     </label>
                     <input
@@ -406,7 +385,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       placeholder="gestor@agencia.com.br"
                       required
                       autoComplete="email"
-                      className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                      className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                     />
                   </div>
 
@@ -416,7 +395,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm"
+                        className="rounded-md border-l-[3px] border-danger bg-danger-tint px-4 py-3 text-[14px] text-danger"
                       >
                         {error}
                       </motion.div>
@@ -429,7 +408,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                         initial={{ opacity: 0, y: -8 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
-                        className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-400 text-sm"
+                        className="rounded-md border-l-[3px] border-success bg-success-tint px-4 py-3 text-[14px] text-success"
                       >
                         {successMessage}
                       </motion.div>
@@ -439,9 +418,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                   <motion.button
                     type="submit"
                     disabled={loading || !!successMessage}
-                    whileHover={{ scale: 1.01 }}
-                    whileTap={{ scale: 0.99 }}
-                    className="w-full py-3.5 rounded-xl bg-cyan-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 glow-primary-sm hover:bg-cyan-300 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex h-11 w-full items-center justify-center gap-2 rounded-button bg-primary text-[14px] font-medium text-primary-fg transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {loading ? <Loader2 size={18} className="animate-spin" /> : "Enviar link de redefinição"}
                   </motion.button>
@@ -451,7 +428,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           </AnimatePresence>
 
           {view === "auth" && (
-            <div className="flex gap-1 p-1 glass rounded-xl mb-8 border-none">
+            <div role="group" aria-label="Acesso" className="mb-8 flex gap-1 rounded-button border border-border bg-subtle p-1">
               {(["login", "signup"] as const).map((t) => (
                 <button
                   key={t}
@@ -460,10 +437,12 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                     resetFeedback();
                     setPasswordTouched(false);
                   }}
-                  className={`flex-1 py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                  aria-pressed={tab === t}
+                  type="button"
+                  className={`min-h-11 flex-1 rounded-control text-[14px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:min-h-9 ${
                     tab === t
-                      ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20"
-                      : "text-slate-500 hover:text-slate-300"
+                      ? "bg-surface text-fg shadow-card ring-1 ring-border"
+                      : "text-fg-muted hover:text-fg"
                   }`}
                 >
                   {t === "login" ? "Entrar" : "Criar conta"}
@@ -480,10 +459,10 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.2 }}
             >
-              <h2 className="text-2xl font-bold text-white mb-1">
+              <h2 className="mb-1 font-display text-[24px] font-semibold leading-[1.2] text-fg">
                 {tab === "login" ? "Bem-vindo de volta" : "Comece agora"}
               </h2>
-              <p className="text-slate-500 text-sm mb-8">
+              <p className="mb-8 text-[14px] text-fg-muted">
                 {tab === "login"
                   ? "Entre para ver seu painel de ROI."
                   : "Crie sua conta e confirme seu e-mail para ativar o acesso."}
@@ -492,10 +471,9 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
               <form onSubmit={handleSubmit} className="space-y-5">
                 {tab === "signup" && (
                   <>
-                    {/* Nome + Sobrenome */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="space-y-2">
-                        <label htmlFor="firstName" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        <label htmlFor="firstName" className="text-[13px] font-medium text-fg">
                           Nome
                         </label>
                         <input
@@ -507,11 +485,11 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                           placeholder="João"
                           required
                           autoComplete="given-name"
-                          className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                          className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="lastName" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                        <label htmlFor="lastName" className="text-[13px] font-medium text-fg">
                           Sobrenome
                         </label>
                         <input
@@ -523,14 +501,13 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                           placeholder="Silva"
                           required
                           autoComplete="family-name"
-                          className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                          className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                         />
                       </div>
                     </div>
 
-                    {/* Telefone */}
                     <div className="space-y-2">
-                      <label htmlFor="phone" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                      <label htmlFor="phone" className="text-[13px] font-medium text-fg">
                         Telefone
                       </label>
                       <input
@@ -542,18 +519,17 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                         placeholder="(11) 99999-9999"
                         required
                         autoComplete="tel"
-                        className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                        className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                       />
                     </div>
                   </>
                 )}
 
-                {/* E-mail */}
                 <div className="space-y-2">
-                  <label htmlFor="email" className="text-xs font-semibold text-slate-400 uppercase tracking-widest flex items-center justify-between">
+                  <label htmlFor="email" className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 text-[13px] font-medium text-fg">
                     <span>E-mail</span>
                     {tab === "login" && (
-                      <span className="text-[10px] text-slate-500 font-normal lowercase">
+                      <span className="text-[12px] font-normal text-fg-muted">
                         (opcional se entrar com a senha do painel)
                       </span>
                     )}
@@ -564,16 +540,15 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder={tab === "login" ? "gestor@agencia.com.br (ou deixe em branco)" : "gestor@agencia.com.br"}
+                    placeholder="gestor@agencia.com.br"
                     required={tab === "signup"}
                     autoComplete="email"
-                    className="w-full px-4 py-3 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                    className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                   />
                 </div>
 
-                {/* Senha */}
                 <div className="space-y-2">
-                  <label htmlFor="password" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                  <label htmlFor="password" className="text-[13px] font-medium text-fg">
                     {tab === "login" ? "Senha do Painel ou da Conta" : "Senha"}
                   </label>
                   <div className="relative">
@@ -587,19 +562,18 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       placeholder={tab === "login" ? "Digite a senha do painel" : "••••••••"}
                       required
                       autoComplete={tab === "signup" ? "new-password" : "current-password"}
-                      className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                      className="h-11 w-full rounded-control border border-border-strong bg-surface px-3 pr-12 text-[16px] text-fg placeholder:text-faint transition-colors focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/30 md:text-[14px]"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPwd(!showPwd)}
                       aria-label={showPwd ? "Ocultar senha" : "Ver senha"}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                      className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-fg-muted transition-colors hover:text-fg"
                     >
                       {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                     </button>
                   </div>
 
-                  {/* Requisitos de senha (só no signup) */}
                   {tab === "signup" && (passwordTouched || password.length > 0) && (
                     <motion.div
                       initial={{ opacity: 0, height: 0 }}
@@ -609,13 +583,13 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       {passwordRules.map((rule) => (
                         <div key={rule.label} className="flex items-center gap-1.5">
                           {rule.met ? (
-                            <Check size={11} className="text-emerald-400 shrink-0" />
+                            <Check size={11} className="text-success shrink-0" />
                           ) : (
-                            <X size={11} className="text-slate-600 shrink-0" />
+                            <X size={11} className="text-fg-muted shrink-0" />
                           )}
                           <span
-                            className={`text-[10px] transition-colors ${
-                              rule.met ? "text-emerald-400" : "text-slate-600"
+                            className={`text-[12px] transition-colors ${
+                              rule.met ? "text-success" : "text-fg-muted"
                             }`}
                           >
                             {rule.label}
@@ -626,10 +600,9 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                   )}
                 </div>
 
-                {/* Confirmar senha */}
                 {tab === "signup" && (
                   <div className="space-y-2">
-                    <label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+                    <label htmlFor="confirmPassword" className="text-[13px] font-medium text-fg">
                       Confirmar senha
                     </label>
                     <div className="relative">
@@ -642,23 +615,23 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                         placeholder="••••••••"
                         required
                         autoComplete="new-password"
-                        className={`w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none transition-all duration-200 ${
+                        className={`h-11 w-full rounded-control border border-border-strong bg-surface px-3 pr-12 text-[16px] text-fg placeholder:text-faint transition-colors focus:outline-none md:text-[14px] ${
                           confirmPassword && confirmPassword !== password
-                            ? "focus:border-red-400/50 focus:ring-1 focus:ring-red-400/30"
-                            : "focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30"
+                            ? "focus:border-danger focus:ring-2 focus:ring-danger/30"
+                            : "focus:border-primary focus:ring-2 focus:ring-ring/30"
                         }`}
                       />
                       <button
                         type="button"
                         onClick={() => setShowConfirmPwd(!showConfirmPwd)}
                         aria-label={showConfirmPwd ? "Ocultar confirmação de senha" : "Ver confirmação de senha"}
-                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                        className="absolute right-0 top-1/2 flex size-11 -translate-y-1/2 items-center justify-center text-fg-muted transition-colors hover:text-fg"
                       >
                         {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
                       </button>
                     </div>
                     {confirmPassword && confirmPassword !== password && (
-                      <p className="text-[11px] text-red-400">As senhas não conferem.</p>
+                      <p className="text-[12px] text-danger">As senhas não conferem.</p>
                     )}
                   </div>
                 )}
@@ -668,7 +641,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                     <button
                       type="button"
                       onClick={() => { resetFeedback(); setForgotEmail(email); setView("forgot"); }}
-                      className="text-xs text-cyan-400/70 hover:text-cyan-400 transition-colors"
+                      className="min-h-11 text-[13px] font-medium text-primary hover:underline lg:min-h-0"
                     >
                       Esqueci minha senha
                     </button>
@@ -681,7 +654,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm"
+                      className="rounded-md border-l-[3px] border-danger bg-danger-tint px-4 py-3 text-[14px] text-danger"
                     >
                       {visibleError}
                     </motion.div>
@@ -694,7 +667,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                       initial={{ opacity: 0, y: -8 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0 }}
-                      className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl px-4 py-3 text-emerald-400 text-sm"
+                      className="rounded-md border-l-[3px] border-success bg-success-tint px-4 py-3 text-[14px] text-success"
                     >
                       {successMessage ?? querySuccess}
                     </motion.div>
@@ -704,9 +677,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                 <motion.button
                   type="submit"
                   disabled={loading || redirecting}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  className="w-full py-3.5 rounded-xl bg-cyan-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 glow-primary-sm hover:bg-cyan-300 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-button bg-primary text-[14px] font-medium text-primary-fg transition-colors hover:bg-primary-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
                 >
                   {loading ? (
                     <Loader2 size={18} className="animate-spin" />
@@ -721,13 +692,13 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
                 </motion.button>
               </form>
 
-              <p className="text-center text-xs text-slate-600 mt-8">
+              <p className="mt-8 text-center text-[12px] text-fg-muted">
                 Ao continuar, você concorda com os{" "}
-                <button className="text-slate-400 hover:text-slate-200 underline transition-colors">
+                <button className="inline-flex min-h-11 items-center text-fg-muted underline transition-colors hover:text-fg lg:min-h-0">
                   Termos de Uso
                 </button>{" "}
                 e a{" "}
-                <button className="text-slate-400 hover:text-slate-200 underline transition-colors">
+                <button className="inline-flex min-h-11 items-center text-fg-muted underline transition-colors hover:text-fg lg:min-h-0">
                   Política de Privacidade
                 </button>
                 .

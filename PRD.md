@@ -218,3 +218,45 @@ Todas as métricas consideram timezone configurável por cliente.
 | Restrições de privacidade/cookies | Abordagem server-side CAPI + first-party tracking |
 | Divergência entre fontes e dashboard | Reconciliador diário + trilhas de auditoria + transparência de fórmula |
 | Complexidade prematura de arquitetura | Modular monolith + extração progressiva por gatilhos objetivos |
+
+---
+
+## Regra canônica de autorização de contas
+
+> **A integração descobre contas; a Carteira autoriza contas; a Visão Geral exibe somente contas autorizadas pela Carteira.**
+
+### Requisitos funcionais
+
+1. Integrações inventariam todas as contas acessíveis e mantêm contas recém-descobertas com `client_id = null`.
+2. Contas sem cliente aparecem apenas em Integrações e nos fluxos de vinculação da Carteira.
+3. Dashboard, seletores operacionais, relatórios, alertas e agregadores financeiros aceitam somente contas que:
+   - pertencem à organização autenticada;
+   - estão vinculadas a cliente da mesma organização;
+   - estão ativas;
+   - pertencem a cliente ativo e não arquivado.
+4. Um cliente pode possuir várias contas e plataformas; uma conta possui no máximo um cliente.
+5. Não existe vínculo automático por semelhança de nome.
+6. Reatribuição exige confirmação explícita; desvinculação remove imediatamente a conta das superfícies operacionais sem apagar o inventário.
+7. Arquivar cliente remove suas contas da operação, preservando dados e vínculo histórico.
+
+### Hierarquia operacional
+
+`cliente obrigatório → plataforma opcional → conta → período`
+
+“Todas as contas” só existe dentro do cliente selecionado e nunca atravessa cliente ou organização.
+
+### Seleção inicial e estados
+
+- Restaurar cliente persistido apenas se ainda estiver elegível.
+- Descartar conta persistida que não pertença ao cliente selecionado.
+- Sem seleção válida, usar o primeiro cliente ativo com conta autorizada.
+- Sem cliente: “Cadastre seu primeiro cliente para começar a acompanhar resultados.”
+- Cliente sem contas: “Este cliente ainda não possui contas de anúncio vinculadas.”
+- Contas descobertas sem cliente: informar essa condição somente em Integrações/Carteira.
+
+### Critérios de segurança e teste
+
+- Elegibilidade é validada no servidor com `organization_id`; IDs do navegador nunca são confiáveis.
+- Combinações `clientId`/`adAccountId` incompatíveis retornam 403 ou 404.
+- RLS permanece obrigatório.
+- Testar conta sem cliente, conta de outro cliente/organização, cliente arquivado, seleção persistida inválida, agregação por cliente e concorrência de vínculo.

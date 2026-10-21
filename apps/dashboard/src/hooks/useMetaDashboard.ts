@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo } from "react";
 import { skipToken, useQuery, useQueryClient, type QueryKey } from "@tanstack/react-query";
-import { NO_CLIENT, useDashboardFilters } from "@/store/dashboard-filters";
+import { useDashboardFilters } from "@/store/dashboard-filters";
+import { resolveOperationalSelection } from "@/lib/accounts/selection";
 import type { ClientRef, ContasResponse, DadosResponse, MetaAccount, MetaCampaign } from "@/lib/meta/dados-types";
 
 async function readJson<T extends { error?: string }>(res: Response): Promise<T> {
@@ -16,14 +17,14 @@ async function readJson<T extends { error?: string }>(res: Response): Promise<T>
 const ACCOUNTS_KEY = ["meta", "contas"] as const;
 
 export function clientOf(account: MetaAccount): string {
-  return account.clientId ?? NO_CLIENT;
+  return account.clientId;
 }
 
 export function useMetaAccounts() {
   const clientId = useDashboardFilters((s) => s.clientId);
+  const platform = useDashboardFilters((s) => s.platform);
   const accountId = useDashboardFilters((s) => s.accountId);
-  const setClientId = useDashboardFilters((s) => s.setClientId);
-  const setAccountId = useDashboardFilters((s) => s.setAccountId);
+  const setOperationalScope = useDashboardFilters((s) => s.setOperationalScope);
 
   const query = useQuery({
     queryKey: ACCOUNTS_KEY,
@@ -36,50 +37,55 @@ export function useMetaAccounts() {
 
   const accounts: MetaAccount[] = useMemo(() => query.data?.contas ?? [], [query.data]);
 
-  // Só clientes com pelo menos uma conta, mais "Sem cliente" quando houver contas soltas.
+  // O endpoint já devolve somente contas autorizadas; clientes sem conta não entram no seletor global.
   const clients: ClientRef[] = useMemo(() => {
-    const withAccounts = new Set(accounts.map(clientOf));
-    const list = (query.data?.clientes ?? []).filter((c) => withAccounts.has(c.id));
-    if (withAccounts.has(NO_CLIENT)) list.push({ id: NO_CLIENT, name: "Sem cliente" });
-    return list;
-  }, [accounts, query.data]);
+    const withAccounts = new Set(
+      accounts.filter((account) => account.platform === platform).map(clientOf),
+    );
+    return (query.data?.clientes ?? []).filter((client) => withAccounts.has(client.id));
+  }, [accounts, platform, query.data]);
 
   const clientAccounts = useMemo(
-    () => accounts.filter((a) => clientOf(a) === clientId),
-    [accounts, clientId],
+    () => accounts.filter((account) => account.clientId === clientId && account.platform === platform),
+    [accounts, clientId, platform],
   );
 
   // Cliente e conta sempre coerentes: conta salva manda no cliente; cliente
   // sem a conta salva cai na primeira conta ativa dele.
   useEffect(() => {
-    if (accounts.length === 0) return;
-    const saved = accounts.find((a) => a.id === accountId);
-    if (saved && clientOf(saved) === clientId) return;
-    if (saved && !clientId) {
-      setClientId(clientOf(saved));
-      return;
+    if (!query.isSuccess) return;
+    const next = resolveOperationalSelection(accounts, { clientId, platform, accountId });
+    if (
+      next.clientId !== clientId ||
+      next.platform !== platform ||
+      next.accountId !== accountId
+    ) {
+      setOperationalScope({
+        clientId: next.clientId,
+        platform: "meta",
+        accountId: next.accountId,
+      });
     }
-    const clientValid = clients.some((c) => c.id === clientId);
-    const targetClient = clientValid ? clientId : (clients[0]?.id ?? NO_CLIENT);
-    const pool = accounts.filter((a) => clientOf(a) === targetClient);
-    const next = pool.find((a) => a.isActive) ?? pool[0];
-    if (targetClient !== clientId) setClientId(targetClient);
-    if (next && next.id !== accountId) setAccountId(next.id);
-  }, [accounts, clients, accountId, clientId, setAccountId, setClientId]);
+  }, [accounts, accountId, clientId, platform, query.isSuccess, setOperationalScope]);
 
   return { ...query, accounts, clients, clientAccounts };
 }
 
-function dadosKey(accountId: string, range: string): QueryKey {
-  return ["meta", "dados", accountId, range];
+function dadosKey(clientId: string, platform: string, accountId: string, range: string): QueryKey {
+  return ["meta", "dados", clientId, platform, accountId, range];
 }
 
 export function useMetaDados() {
   const accountId = useDashboardFilters((s) => s.accountId);
+  const clientId = useDashboardFilters((s) => s.clientId);
+  const platform = useDashboardFilters((s) => s.platform);
   const range = useDashboardFilters((s) => s.range);
   const liveInterval = useDashboardFilters((s) => s.liveInterval);
   const queryClient = useQueryClient();
-  const key = useMemo(() => dadosKey(accountId, range), [accountId, range]);
+  const key = useMemo(
+    () => dadosKey(clientId, platform, accountId, range),
+    [accountId, clientId, platform, range],
+  );
 
   const query = useQuery({
     queryKey: key,
@@ -92,13 +98,18 @@ export function useMetaDados() {
       // Primeira carga pode vir do cache do servidor; toda recarga depois
       // disso (ao vivo, botão atualizar, acordar) pede dados novos à Meta.
       const fresh = (queryClient.getQueryState(queryKey)?.dataUpdatedAt ?? 0) > 0;
-      const params = new URLSearchParams({ account_id: accountId, range });
+      const params = new URLSearchParams({
+        client_id: clientId,
+        platform,
+        account_id: accountId,
+        range,
+      });
       if (fresh) params.set("fresh", "true");
       return readJson<DadosResponse & { error?: string }>(
         await fetch(`/api/meta/dados?${params}`, { signal }),
       );
     },
-    enabled: Boolean(accountId),
+    enabled: Boolean(clientId && platform && accountId),
     staleTime: 3 * 60 * 1000,
     // Atualiza sozinho enquanto aberto na frente da pessoa; para quando escondido
     refetchInterval: () => {
@@ -118,7 +129,7 @@ export function useMetaDados() {
   // Ao reabrir ou tirar do bolso, o iOS acorda o app da memória sem recarregar a página.
   // Escutamos visibilitychange, pageshow, focus e online para buscar na hora.
   useEffect(() => {
-    if (!accountId) return;
+    if (!clientId || !platform || !accountId) return;
 
     let lastWakeAttempt = 0;
 
@@ -150,7 +161,7 @@ export function useMetaDados() {
       window.removeEventListener("focus", handleWake);
       window.removeEventListener("online", handleWake);
     };
-  }, [accountId, key, queryClient]);
+  }, [accountId, clientId, key, platform, queryClient]);
 
   const refresh = useCallback(
     () => queryClient.refetchQueries({ queryKey: key, exact: true }),
@@ -171,13 +182,18 @@ export function useMetaDados() {
     [queryClient, key],
   );
 
-  return { ...query, refresh, updateCampaign, hasAccount: Boolean(accountId) };
+  return { ...query, refresh, updateCampaign, hasAccount: Boolean(clientId && platform && accountId) };
 }
 
 /** Quantos avisos pedem ação, lido do que já foi carregado (não busca nada). */
 export function useDiagnosticCount(): number {
   const accountId = useDashboardFilters((s) => s.accountId);
+  const clientId = useDashboardFilters((s) => s.clientId);
+  const platform = useDashboardFilters((s) => s.platform);
   const range = useDashboardFilters((s) => s.range);
-  const { data } = useQuery<DadosResponse>({ queryKey: dadosKey(accountId, range), queryFn: skipToken });
+  const { data } = useQuery<DadosResponse>({
+    queryKey: dadosKey(clientId, platform, accountId, range),
+    queryFn: skipToken,
+  });
   return data?.avisos.filter((a) => a.tipo === "alerta" || a.tipo === "atencao").length ?? 0;
 }

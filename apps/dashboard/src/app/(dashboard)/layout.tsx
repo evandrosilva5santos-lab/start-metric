@@ -12,28 +12,25 @@ export default function DashboardLayout({
   const identity = getSessionIdentity();
 
   return (
-    <div className="flex min-h-screen overflow-hidden bg-background text-foreground selection:bg-primary/25">
-      {/* Acessibilidade: Link de salto para o conteúdo principal (WCAG 2.1 AA) */}
+    <div className="flex min-h-screen bg-background text-foreground">
       <a
         href="#main-content"
-        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-50 focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:font-bold focus:rounded-lg focus:outline-none focus:ring-2 focus:ring-ring"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[70] focus:px-4 focus:py-2 focus:bg-primary focus:text-primary-foreground focus:font-medium focus:rounded-md focus:outline-none focus:ring-2 focus:ring-ring"
       >
         Pular para o conteúdo principal
       </a>
 
       <Sidebar identity={identity} />
 
-      <div className="flex-1 flex flex-col min-w-0 lg:ml-[240px]">
+      <div className="flex min-w-0 flex-1 flex-col md:ml-[84px] lg:ml-[232px]">
         <Header identity={identity} />
 
         <main
           id="main-content"
           tabIndex={-1}
-          className="flex-1 overflow-y-auto px-4 md:px-8 py-6 md:py-8 custom-scrollbar focus:outline-none"
+          className="flex-1 px-4 pb-[calc(76px+env(safe-area-inset-bottom))] pt-5 focus:outline-none md:px-5 md:py-6 lg:px-8"
         >
-          <div className="max-w-[1600px] mx-auto w-full">
-            {children}
-          </div>
+          <div className="w-full">{children}</div>
         </main>
       </div>
     </div>

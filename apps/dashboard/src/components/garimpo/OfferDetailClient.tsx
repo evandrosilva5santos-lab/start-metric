@@ -9,10 +9,8 @@ import type { OfferSignals } from "@/lib/garimpo/score";
 import type { OfferDetailView } from "@/lib/garimpo/view-types";
 import { DASH, fmtCount, fmtDate, fmtDateTime, fmtDayKey, fmtDays, fmtScore } from "./format";
 import { OfferActions, STATUS_LABELS, ScanStatusStrip, Thumb } from "./parts";
+import { AXIS_COLOR, CHART_COLOR, GRID_COLOR, TOOLTIP_CONTENT_STYLE, TOOLTIP_LABEL_STYLE } from "@/lib/chart-theme";
 
-const CHART_COLOR = "#44d5a4";
-const GRID_COLOR = "#1c1f1e";
-const AXIS_COLOR = "#656766";
 
 export function OfferDetailClient({ data, generatedAt }: { data: OfferDetailView; generatedAt: string }) {
   const { offer, signals } = data;
@@ -154,13 +152,13 @@ export function OfferDetailClient({ data, generatedAt }: { data: OfferDetailView
                 )}
                 {c.pageCount > 1 && (
                   <span
-                    className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background/90 px-2 py-0.5 text-[11px] font-bold tabular-nums text-primary"
+                    className="absolute left-2 top-2 inline-flex items-center gap-1 rounded-full border border-primary/40 bg-background/90 px-2 py-0.5 text-[12px] font-bold tabular-nums text-primary"
                     title={c.kind === "fingerprint" ? "Comparação por texto/arquivo: sinal mais fraco que por imagem" : "Mesma imagem (hash perceptual)"}
                   >
                     <Layers size={11} aria-hidden="true" /> {c.pageCount} páginas{c.kind === "fingerprint" ? " · texto" : ""}
                   </span>
                 )}
-                <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-[11px] text-text-muted">
+                <div className="flex items-center justify-between gap-2 px-2 py-1.5 text-[12px] text-text-muted">
                   <span className="tabular-nums">{c.adCount === 1 ? "1 anúncio" : `${formatInteger(c.adCount)} anúncios`}</span>
                   <span>{c.format ?? DASH}</span>
                 </div>
@@ -205,8 +203,8 @@ function DailyActiveChart({
               <YAxis stroke={AXIS_COLOR} fontSize={11} tickLine={false} axisLine={false} width={40} allowDecimals={false} />
               <Tooltip
                 cursor={{ stroke: AXIS_COLOR, strokeDasharray: "3 3" }}
-                contentStyle={{ backgroundColor: "#0b100e", border: "1px solid #1c1f1e", borderRadius: 8, color: "#eaefee", fontSize: 12 }}
-                labelStyle={{ color: "#9ba09e" }}
+                contentStyle={TOOLTIP_CONTENT_STYLE}
+                labelStyle={TOOLTIP_LABEL_STYLE}
                 formatter={(v) => [v === null || v === undefined ? DASH : formatInteger(Number(v)), "Anúncios no ar"]}
               />
               {newPageDays.map((day) => (

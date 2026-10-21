@@ -1,7 +1,15 @@
 import "server-only";
 
 import { cache } from "react";
-import { getServerSupabase, getSessionProfile, getSessionUser } from "@/lib/auth/session";
+import {
+  getDashboardSession,
+  getServerSupabase,
+  getSessionProfile,
+  getSessionUser,
+} from "@/lib/auth/session";
+import { listOperationalAccounts } from "@/lib/accounts/operational";
+import { resolvePreset } from "./overview-range";
+import { addTotals, emptyTotals, fetchRollup, timed, type Rollup, type Totals } from "./rollup";
 import type {
   DashboardCampaignRow,
   DashboardChartPoint,
@@ -18,31 +26,17 @@ type CampaignRow = {
   ad_account_id: string;
 };
 
-type MetricRow = {
-  date: string;
-  campaign_id: string;
-  spend: number | null;
-  revenue_attributed: number | null;
-  conversions: number | null;
-  impressions: number | null;
-  clicks: number | null;
-};
-
 type AccountRow = {
   id: string;
   name: string | null;
   external_id: string;
   timezone: string | null;
+  client_id: string | null;
 };
 
 function safeDivide(numerator: number, denominator: number): number {
   if (!denominator) return 0;
   return numerator / denominator;
-}
-
-function toNumber(value: number | null | undefined): number {
-  if (typeof value !== "number") return 0;
-  return Number.isFinite(value) ? value : 0;
 }
 
 function isValidDate(value: string | undefined): value is string {
@@ -76,19 +70,6 @@ function resolveStatusFilter(values: string[] | undefined): string[] {
   return values.map(v => v.toUpperCase());
 }
 
-type Totals = {
-  spend: number;
-  revenue: number;
-  conversions: number;
-  impressions: number;
-  clicks: number;
-};
-
-type Rollup = {
-  byCampaign: Map<string, Totals>;
-  byDay: Map<string, Totals>;
-};
-
 type SupabaseClient = Awaited<ReturnType<typeof getServerSupabase>>;
 
 export type DashboardContext = Pick<
@@ -99,30 +80,6 @@ export type DashboardContext = Pick<
   accounts: AccountRow[];
   campaigns: CampaignRow[];
 };
-
-const DEV_TIMING = process.env.NODE_ENV === "development";
-
-async function timed<T>(label: string, run: () => PromiseLike<T>): Promise<T> {
-  if (!DEV_TIMING) return run();
-  const startedAt = performance.now();
-  try {
-    return await run();
-  } finally {
-    console.info(`[dashboard] ${label}: ${Math.round(performance.now() - startedAt)}ms`);
-  }
-}
-
-function emptyTotals(): Totals {
-  return { spend: 0, revenue: 0, conversions: 0, impressions: 0, clicks: 0 };
-}
-
-function addTotals(target: Totals, source: Totals) {
-  target.spend += source.spend;
-  target.revenue += source.revenue;
-  target.conversions += source.conversions;
-  target.impressions += source.impressions;
-  target.clicks += source.clicks;
-}
 
 function uniqueSorted(values: Array<string | null>, transform: (value: string) => string = (v) => v) {
   return Array.from(
@@ -136,6 +93,9 @@ export function filtersKey(filters: DashboardFilters): string {
   return JSON.stringify({
     from: filters.from ?? null,
     to: filters.to ?? null,
+    rangePreset: filters.rangePreset ?? null,
+    clientId: filters.clientId ?? null,
+    accountExternalId: filters.accountExternalId ?? null,
     adAccountId: filters.adAccountId ?? null,
     campaignStatuses: filters.campaignStatuses ?? [],
     campaignObjectives: filters.campaignObjectives ?? [],
@@ -147,31 +107,71 @@ function parseFiltersKey(key: string): DashboardFilters {
   return {
     from: (parsed.from as string | null) ?? undefined,
     to: (parsed.to as string | null) ?? undefined,
+    rangePreset: (parsed.rangePreset as string | null) ?? undefined,
+    clientId: (parsed.clientId as string | null) ?? undefined,
+    accountExternalId: (parsed.accountExternalId as string | null) ?? undefined,
     adAccountId: (parsed.adAccountId as string | null) ?? undefined,
     campaignStatuses: parsed.campaignStatuses as string[],
     campaignObjectives: parsed.campaignObjectives as string[],
   };
 }
 
-const loadDashboardContext = cache(async (key: string): Promise<DashboardContext> => {
-  const inputFilters = parseFiltersKey(key);
+type DashboardAccess = {
+  supabase: SupabaseClient;
+  orgId: string;
+  name: string | null;
+};
+
+// Quem entra pela senha do painel não tem usuário no Supabase: usa a
+// organização e o cliente resolvidos por getDashboardSession.
+export const resolveDashboardAccess = cache(async (): Promise<DashboardAccess> => {
   const [user, profile, supabase] = await Promise.all([
     getSessionUser(),
     timed("profile", () => getSessionProfile()),
     getServerSupabase(),
   ]);
 
-  if (!user) {
-    throw new Error("UNAUTHORIZED");
-  }
-  if (!profile?.orgId) {
-    throw new Error("ORG_NOT_FOUND");
+  if (user) {
+    if (!profile?.orgId) throw new Error("ORG_NOT_FOUND");
+    return { supabase, orgId: profile.orgId, name: profile.name };
   }
 
-  const orgId = profile.orgId;
-  const adAccountId = inputFilters.adAccountId ?? "all";
+  const session = await getDashboardSession();
+  if (session.isAuthorized && session.isPainel && session.orgId && session.supabase) {
+    return { supabase: session.supabase as SupabaseClient, orgId: session.orgId, name: null };
+  }
+  throw new Error("UNAUTHORIZED");
+});
+
+const loadDashboardContext = cache(async (key: string): Promise<DashboardContext> => {
+  const inputFilters = parseFiltersKey(key);
+  const { supabase, orgId, name } = await resolveDashboardAccess();
+  const requestedAdAccountId = inputFilters.adAccountId ?? "all";
   const campaignStatuses = resolveStatusFilter(inputFilters.campaignStatuses);
   const campaignObjectives = inputFilters.campaignObjectives ?? [];
+
+  const [inventory, orgResult] = await timed("authorized-accounts+org", () =>
+    Promise.all([
+      listOperationalAccounts(supabase, orgId),
+      supabase.from("organizations").select("timezone").eq("id", orgId).single(),
+    ]),
+  );
+  const allAccounts = inventory.accounts.map((account) => ({
+    id: account.id,
+    name: account.name,
+    external_id: account.external_id,
+    timezone: account.timezone,
+    client_id: account.client_id,
+  })) as AccountRow[];
+  const clientId = allAccounts.some((account) => account.client_id === inputFilters.clientId)
+    ? inputFilters.clientId
+    : undefined;
+  const accounts = clientId ? allAccounts.filter((account) => account.client_id === clientId) : allAccounts;
+  const authorizedAccountIds = accounts.map((account) => account.id);
+  const byExternalId = accounts.find((account) => account.external_id === inputFilters.accountExternalId);
+  const requestedId = byExternalId?.id ?? requestedAdAccountId;
+  const adAccountId =
+    requestedId === "all" || authorizedAccountIds.includes(requestedId) ? requestedId : "all";
 
   let campaignsQuery = supabase
     .from("campaigns")
@@ -180,6 +180,8 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
 
   if (adAccountId !== "all") {
     campaignsQuery = campaignsQuery.eq("ad_account_id", adAccountId);
+  } else if (authorizedAccountIds.length > 0) {
+    campaignsQuery = campaignsQuery.in("ad_account_id", authorizedAccountIds);
   }
   if (campaignStatuses.length > 0) {
     campaignsQuery = campaignsQuery.in("status", campaignStatuses);
@@ -188,27 +190,14 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
     campaignsQuery = campaignsQuery.in("objective", campaignObjectives);
   }
 
-  // Contas, organização e campanhas só dependem do org_id: vão juntas.
-  const [accountsResult, orgResult, campaignsResult] = await timed("accounts+org+campaigns", () =>
-    Promise.all([
-      supabase
-        .from("ad_accounts")
-        .select("id, name, external_id, timezone")
-        .eq("org_id", orgId)
-        .order("name", { ascending: true }),
-      supabase.from("organizations").select("timezone").eq("id", orgId).single(),
-      campaignsQuery,
-    ]),
-  );
-
-  if (accountsResult.error) {
-    throw new Error(`ACCOUNTS_ERROR:${accountsResult.error.message}`);
-  }
+  const campaignsResult =
+    authorizedAccountIds.length === 0
+      ? { data: [] as CampaignRow[], error: null }
+      : await timed("authorized-campaigns", () => campaignsQuery);
   if (campaignsResult.error) {
     throw new Error(`CAMPAIGNS_ERROR:${campaignsResult.error.message}`);
   }
 
-  const accounts = (accountsResult.data ?? []) as AccountRow[];
   const campaigns = (campaignsResult.data ?? []) as CampaignRow[];
   const organizationTimezone = (orgResult.data?.timezone as string | null) ?? null;
   const timezone =
@@ -217,8 +206,9 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
     "UTC";
 
   const today = todayInTimezone(timezone);
-  const from = isValidDate(inputFilters.from) ? inputFilters.from : subDays(today, 29);
-  const to = isValidDate(inputFilters.to) ? inputFilters.to : today;
+  const preset = inputFilters.rangePreset ? resolvePreset(inputFilters.rangePreset, today) : null;
+  const from = isValidDate(inputFilters.from) ? inputFilters.from : (preset?.from ?? subDays(today, 29));
+  const to = isValidDate(inputFilters.to) ? inputFilters.to : (preset?.to ?? today);
 
   return {
     orgId,
@@ -226,7 +216,7 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
     campaigns,
     timezone,
     range: { from, to },
-    filters: { adAccountId, campaignStatuses, campaignObjectives },
+    filters: { clientId, adAccountId, campaignStatuses, campaignObjectives },
     filterOptions: {
       accounts: accounts.map((account) => ({
         id: account.id,
@@ -238,7 +228,7 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
       statuses: uniqueSorted(campaigns.map((c) => c.status), (s) => s.toUpperCase()),
       objectives: uniqueSorted(campaigns.map((c) => c.objective)),
     },
-    userProfile: { name: profile.name },
+    userProfile: { name },
   };
 });
 
@@ -248,85 +238,6 @@ const loadDashboardContext = cache(async (key: string): Promise<DashboardContext
  */
 export function getDashboardContext(filters: DashboardFilters = {}): Promise<DashboardContext> {
   return loadDashboardContext(filtersKey(filters));
-}
-
-async function fetchRollup(
-  supabase: SupabaseClient,
-  context: DashboardContext,
-): Promise<Rollup> {
-  const campaignIds = context.campaigns.map((campaign) => campaign.id);
-  const { from, to } = context.range;
-
-  const rpc = await timed("metrics rollup (rpc)", () =>
-    supabase.rpc("dashboard_metrics_rollup", {
-      p_org_id: context.orgId,
-      p_from: from,
-      p_to: to,
-      p_campaign_ids: campaignIds,
-    }),
-  );
-
-  if (!rpc.error) {
-    const rollup: Rollup = { byCampaign: new Map(), byDay: new Map() };
-    for (const row of rpc.data ?? []) {
-      const totals: Totals = {
-        spend: Number(row.spend) || 0,
-        revenue: Number(row.revenue) || 0,
-        conversions: Number(row.conversions) || 0,
-        impressions: Number(row.impressions) || 0,
-        clicks: Number(row.clicks) || 0,
-      };
-      (row.kind === "day" ? rollup.byDay : rollup.byCampaign).set(row.key, totals);
-    }
-    return rollup;
-  }
-
-  // Sem a migração aplicada: soma as linhas diárias aqui, como antes.
-  if (DEV_TIMING) {
-    console.warn(`[dashboard] RPC indisponível, usando soma em JS: ${rpc.error.message}`);
-  }
-
-  let metricsQuery = supabase
-    .from("daily_metrics")
-    .select("date, campaign_id, spend, revenue_attributed, conversions, impressions, clicks")
-    .eq("org_id", context.orgId)
-    .gte("date", from)
-    .lte("date", to)
-    .order("date", { ascending: true });
-
-  const { adAccountId, campaignStatuses, campaignObjectives } = context.filters;
-  const hasSpecificFilter =
-    adAccountId !== "all" || campaignStatuses.length > 0 || campaignObjectives.length > 0;
-  if (hasSpecificFilter && campaignIds.length <= 100) {
-    metricsQuery = metricsQuery.in("campaign_id", campaignIds);
-  }
-
-  const { data: metricsData, error: metricsError } = await timed("metrics rows", () => metricsQuery);
-  if (metricsError) {
-    throw new Error(`METRICS_ERROR:${metricsError.message}`);
-  }
-
-  const known = new Set(campaignIds);
-  const rollup: Rollup = { byCampaign: new Map(), byDay: new Map() };
-  for (const metric of (metricsData ?? []) as MetricRow[]) {
-    if (!known.has(metric.campaign_id)) continue;
-    const totals: Totals = {
-      spend: toNumber(metric.spend),
-      revenue: toNumber(metric.revenue_attributed),
-      conversions: toNumber(metric.conversions),
-      impressions: toNumber(metric.impressions),
-      clicks: toNumber(metric.clicks),
-    };
-
-    const campaignTotals = rollup.byCampaign.get(metric.campaign_id) ?? emptyTotals();
-    addTotals(campaignTotals, totals);
-    rollup.byCampaign.set(metric.campaign_id, campaignTotals);
-
-    const dayTotals = rollup.byDay.get(metric.date) ?? emptyTotals();
-    addTotals(dayTotals, totals);
-    rollup.byDay.set(metric.date, dayTotals);
-  }
-  return rollup;
 }
 
 function buildKpis(totals: Totals): DashboardKpis {
@@ -350,9 +261,9 @@ function buildKpis(totals: Totals): DashboardKpis {
 }
 
 const loadDashboardData = cache(async (key: string): Promise<DashboardData> => {
-  const [context, supabase] = await Promise.all([
+  const [context, { supabase }] = await Promise.all([
     loadDashboardContext(key),
-    getServerSupabase(),
+    resolveDashboardAccess(),
   ]);
 
   const rollup: Rollup =
@@ -395,6 +306,9 @@ const loadDashboardData = cache(async (key: string): Promise<DashboardData> => {
       spend: totals.spend,
       revenue: totals.revenue,
       profit: totals.revenue - totals.spend,
+      conversions: totals.conversions,
+      impressions: totals.impressions,
+      clicks: totals.clicks,
     }))
     .sort((a, b) => a.date.localeCompare(b.date));
 

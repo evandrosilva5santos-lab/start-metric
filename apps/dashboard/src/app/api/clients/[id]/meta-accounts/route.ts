@@ -22,6 +22,7 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
     .from("clients")
     .select("id")
     .eq("id", id)
+    .eq("org_id", orgId)
     .is("archived_at", null)
     .maybeSingle();
   if (!client) {
@@ -54,10 +55,10 @@ export async function GET(req: NextRequest, { params }: { params: Params }) {
 
   const [linkedRes, clientsRes] = await Promise.all([
     supabase.from("ad_accounts").select("external_id, client_id").eq("org_id", orgId).eq("platform", "meta"),
-    supabase.from("clients").select("id, name").eq("org_id", orgId),
+    supabase.from("clients").select("id, name").eq("org_id", orgId).is("archived_at", null),
   ]);
-  const clientName = new Map((clientsRes.data ?? []).map((c: any) => [c.id, c.name]));
-  const owner = new Map((linkedRes.data ?? []).map((a: any) => [a.external_id, a.client_id]));
+  const clientName = new Map((clientsRes.data ?? []).map((clientRow) => [clientRow.id, clientRow.name]));
+  const owner = new Map((linkedRes.data ?? []).map((accountRow) => [accountRow.external_id, accountRow.client_id]));
 
   const contas = metaAccounts
     .map((acc) => {

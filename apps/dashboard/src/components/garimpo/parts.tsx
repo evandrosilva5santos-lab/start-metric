@@ -6,6 +6,7 @@ import { setOfferStatus } from "@/app/(dashboard)/garimpo/actions";
 import { SOURCE_LABELS } from "@/lib/garimpo/sources/types";
 import type { OfferStatus, RunView } from "@/lib/garimpo/view-types";
 import { fmtCount, fmtDateTime, fmtDuration } from "./format";
+import { CHART_COLOR, GRID_COLOR } from "@/lib/chart-theme";
 
 export const STATUS_LABELS: Record<OfferStatus, string> = {
   novo: "Novos",
@@ -86,11 +87,11 @@ export function Sparkline({ values, label }: { values: number[]; label: string }
   const points = values.map((v, i) => [values.length > 1 ? i * step : w / 2, h - 2 - (v / max) * (h - 4)] as const);
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} role="img" aria-label={`${label}: ${values.join(", ")}`} className="shrink-0">
-      <line x1={0} x2={w} y1={h - 1} y2={h - 1} stroke="#1c1f1e" />
+      <line x1={0} x2={w} y1={h - 1} y2={h - 1} stroke={GRID_COLOR} />
       {points.length > 1 && (
-        <polyline points={points.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke="#44d5a4" strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
+        <polyline points={points.map(([x, y]) => `${x},${y}`).join(" ")} fill="none" stroke={CHART_COLOR} strokeWidth={1.75} strokeLinejoin="round" strokeLinecap="round" />
       )}
-      <circle cx={points[points.length - 1][0]} cy={points[points.length - 1][1]} r={2.5} fill="#44d5a4" />
+      <circle cx={points[points.length - 1][0]} cy={points[points.length - 1][1]} r={2.5} fill={CHART_COLOR} />
     </svg>
   );
 }

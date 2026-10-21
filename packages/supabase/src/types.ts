@@ -479,7 +479,23 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      operational_ad_accounts: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          connected_at: string | null
+          currency: string | null
+          external_id: string | null
+          id: string | null
+          last_synced_at: string | null
+          name: string | null
+          org_id: string | null
+          platform: string | null
+          status: string | null
+          timezone: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       decrypt_token: {
@@ -497,6 +513,20 @@ export type Database = {
         Returns: string
       }
       get_user_org_id: { Args: never; Returns: string }
+      set_client_ad_accounts: {
+        Args: {
+          p_client_id: string
+          p_confirm_reassignment?: boolean
+          p_external_ids: string[]
+          p_org_id: string
+          p_platform: string
+        }
+        Returns: {
+          linked_count: number
+          reassigned_count: number
+          unlinked_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

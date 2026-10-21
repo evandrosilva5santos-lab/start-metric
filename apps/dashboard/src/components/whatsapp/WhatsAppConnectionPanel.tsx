@@ -6,6 +6,10 @@ import {
   MessageCircle, QrCode, CheckCircle, WifiOff, Send, AlertCircle, Loader2, Smartphone, Shield, Zap, Users, Search
 } from 'lucide-react'
 import { ComingSoonBadge } from '@/components/ui/ComingSoonBadge'
+import { Button } from '@/components/ui/button'
+
+const FIELD_CLASS = 'h-11 w-full rounded-md border border-border-strong bg-surface px-3 text-[16px] text-fg outline-none transition-colors placeholder:text-faint focus:border-primary focus:ring-2 focus:ring-ring/30 md:text-[14px]'
+const LABEL_CLASS = 'mb-1.5 block text-[12px] font-medium text-fg-muted'
 
 interface WhatsAppConnectionPanelProps {
   clientId: string
@@ -231,48 +235,48 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
         if (showForm) {
           return (
             <motion.form key="form" onSubmit={handleConnect} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col p-6 space-y-5">
-              <div className="flex items-center gap-3 border-b border-slate-800 pb-4 mb-2">
-                <Smartphone className="w-6 h-6 text-emerald-400" />
-                <h3 className="text-lg font-semibold text-slate-100">Nova Instância WhatsApp</h3>
+              <div className="flex items-center gap-3 border-b border-border pb-4 mb-2">
+                <Smartphone className="w-6 h-6 text-primary" />
+                <h3 className="text-lg font-semibold text-fg">Nova instância do WhatsApp</h3>
               </div>
 
-              {errorMessage && <div className="text-sm text-red-400 bg-red-400/10 p-3 rounded-lg">{errorMessage}</div>}
+              {errorMessage && <div className="text-sm text-danger bg-danger-tint p-3 rounded-lg">{errorMessage}</div>}
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Nome da Instância</label>
-                  <input type="text" placeholder="Ex: Atendimento Comercial" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/30 outline-none transition-all" required />
+                  <label className={LABEL_CLASS}>Nome da instância</label>
+                  <input type="text" placeholder="Ex: Atendimento Comercial" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} className={FIELD_CLASS} required />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Número do WhatsApp</label>
-                  <input type="tel" placeholder="Ex: 5511999999999" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className="w-full px-4 py-3 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-200 focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/30 outline-none transition-all" required />
+                  <label className={LABEL_CLASS}>Número do WhatsApp</label>
+                  <input type="tel" placeholder="Ex: 5511999999999" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} className={FIELD_CLASS} required />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-slate-400 uppercase tracking-widest mb-2">Tipo de Conexão</label>
+                  <label className={LABEL_CLASS}>Tipo de conexão</label>
                   <div className="grid grid-cols-2 gap-3">
-                    <button type="button" onClick={() => setFormData({ ...formData, isPrimary: true })} className={`flex flex-col items-center p-3 rounded-xl border transition-all ${formData.isPrimary ? 'bg-emerald-400/10 border-emerald-400/50 text-emerald-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                    <button type="button" onClick={() => setFormData({ ...formData, isPrimary: true })} className={`flex flex-col items-center p-3 rounded-md border transition-colors ${formData.isPrimary ? 'bg-primary-tint border-primary/40 text-primary' : 'bg-surface border-border text-fg-muted hover:border-border-strong'}`}>
                       <Shield className="w-5 h-5 mb-1" />
                       <span className="text-sm font-semibold">Principal</span>
-                      <span className="text-[10px] text-center mt-1 opacity-80">Oficial da Campanha</span>
+                      <span className="text-[10px] text-center mt-1 opacity-80">Oficial da campanha</span>
                     </button>
-                    <button type="button" onClick={() => setFormData({ ...formData, isPrimary: false })} className={`flex flex-col items-center p-3 rounded-xl border transition-all ${!formData.isPrimary ? 'bg-cyan-400/10 border-cyan-400/50 text-cyan-400' : 'bg-slate-900 border-slate-700 text-slate-400 hover:border-slate-500'}`}>
+                    <button type="button" onClick={() => setFormData({ ...formData, isPrimary: false })} className={`flex flex-col items-center p-3 rounded-md border transition-colors ${!formData.isPrimary ? 'bg-client-tint border-client/40 text-client' : 'bg-surface border-border text-fg-muted hover:border-border-strong'}`}>
                       <Zap className="w-5 h-5 mb-1" />
                       <span className="text-sm font-semibold">Auxiliar</span>
-                      <span className="text-[10px] text-center mt-1 opacity-80">Envios / Contingência</span>
+                      <span className="text-[10px] text-center mt-1 opacity-80">Envios / contingência</span>
                     </button>
                   </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 pt-4 border-t border-slate-800">
-                <button type="button" onClick={() => setShowForm(false)} className="flex-1 py-3 text-sm font-semibold text-slate-400 hover:text-slate-200 transition-colors">
+              <div className="flex gap-3 pt-4 border-t border-border">
+                <Button type="button" variant="ghost" size="lg" onClick={() => setShowForm(false)} className="flex-1">
                   Cancelar
-                </button>
-                <button type="submit" className="flex-[2] flex items-center justify-center gap-2 bg-emerald-400 text-slate-950 font-bold rounded-xl hover:bg-emerald-500 transition-all shadow-lg shadow-emerald-500/20">
+                </Button>
+                <Button type="submit" size="lg" className="flex-[2]">
                   <QrCode className="w-4 h-4" /> Gerar QR Code
-                </button>
+                </Button>
               </div>
             </motion.form>
           )
@@ -280,93 +284,93 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
 
         return (
           <motion.div key="idle" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center p-8 space-y-4">
-            <MessageCircle className="w-16 h-16 text-slate-600" />
+            <MessageCircle className="w-16 h-16 text-fg-muted" />
             <div>
-              <h3 className="text-xl font-semibold text-slate-100">Conectar WhatsApp</h3>
-              <p className="text-slate-400 mt-1 max-w-sm text-sm">
+              <h3 className="text-xl font-semibold text-fg">Conectar WhatsApp</h3>
+              <p className="text-fg-muted mt-1 max-w-sm text-sm">
                 Conecte o WhatsApp do cliente para receber relatórios automáticos e alertas.
               </p>
             </div>
-            <button onClick={() => setShowForm(true)} className="flex items-center gap-2 px-6 py-3 bg-emerald-400 text-slate-950 font-bold rounded-xl hover:bg-emerald-500 transition-colors shadow-lg shadow-emerald-500/20 mt-2">
-              <Smartphone className="w-5 h-5" /> Configurar Aparelho
-            </button>
+            <Button size="lg" onClick={() => setShowForm(true)} className="mt-2">
+              <Smartphone className="w-5 h-5" /> Configurar aparelho
+            </Button>
           </motion.div>
         )
       case 'creating':
         return (
           <motion.div key="creating" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center justify-center p-16 space-y-4">
-            <Loader2 className="w-10 h-10 text-emerald-400 animate-spin" />
-            <p className="text-slate-300 font-medium">Iniciando ambiente seguro...</p>
+            <Loader2 className="w-10 h-10 text-primary animate-spin" />
+            <p className="text-fg font-medium">Iniciando ambiente seguro…</p>
           </motion.div>
         )
       case 'qr_pending':
         return (
           <motion.div key="qr_pending" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center p-8 space-y-6">
             <div>
-              <h3 className="text-xl font-semibold text-slate-100">Escaneie o QR Code</h3>
-              <p className="text-slate-400 mt-1 max-w-sm text-sm">
+              <h3 className="text-xl font-semibold text-fg">Escaneie o QR Code</h3>
+              <p className="text-fg-muted mt-1 max-w-sm text-sm">
                 No celular: <b>WhatsApp</b> → Configurações → Dispositivos vinculados → Adicionar dispositivo
               </p>
             </div>
-            <div className="relative flex justify-center items-center w-48 h-48 bg-slate-800 rounded-2xl border border-slate-700 overflow-hidden shadow-inner">
+            <div className="relative flex justify-center items-center w-48 h-48 bg-subtle rounded-panel border border-border overflow-hidden">
               {qrCode ? (
                 <>
                   {/* eslint-disable-next-line @next/next/no-img-element -- QR code é data URI base64, incompatível com next/image */}
                   <img src={qrCode.startsWith('data:') ? qrCode : `data:image/png;base64,${qrCode}`} alt="QR Code WhatsApp" className="w-full h-full object-cover" />
                 </>
               ) : (
-                <div className="flex flex-col items-center space-y-2"><Loader2 className="w-8 h-8 text-slate-400 animate-spin" /><span className="text-xs text-slate-400">Gerando...</span></div>
+                <div className="flex flex-col items-center space-y-2"><Loader2 className="w-8 h-8 text-fg-muted animate-spin" /><span className="text-xs text-fg-muted">Gerando…</span></div>
               )}
             </div>
             <div className="flex flex-col items-center space-y-2">
-              <div className="flex items-center gap-2 text-emerald-400"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium">Aguardando escaneamento...</span></div>
-              <span className={`text-sm font-medium ${countdown < 30 ? 'text-amber-400' : 'text-slate-500'}`}>Expira em {countdown}s</span>
+              <div className="flex items-center gap-2 text-primary"><Loader2 className="w-4 h-4 animate-spin" /><span className="text-sm font-medium">Aguardando escaneamento…</span></div>
+              <span className={`text-sm font-medium ${countdown < 30 ? 'text-warning' : 'text-fg-muted'}`}>Expira em {countdown}s</span>
             </div>
-            <button onClick={() => setStatus('idle')} className="text-sm text-slate-400 hover:text-slate-200 transition-colors">Cancelar conexão</button>
+            <button onClick={() => setStatus('idle')} className="text-sm text-fg-muted hover:text-fg transition-colors">Cancelar conexão</button>
           </motion.div>
         )
       case 'connected':
         return (
           <motion.div key="connected" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center p-8 space-y-6">
-            <div className="flex items-center justify-center w-16 h-16 bg-emerald-500/10 border border-emerald-500/20 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.15)]"><CheckCircle className="w-8 h-8 text-emerald-500" /></div>
+            <div className="flex items-center justify-center w-16 h-16 bg-success-tint border border-success/20 rounded-full"><CheckCircle className="w-8 h-8 text-success" /></div>
             <div>
               <div className="flex items-center justify-center gap-2 mb-1">
-                <h3 className="text-xl font-semibold text-slate-100">{instanceNameDisplay || 'WhatsApp Conectado'}</h3>
+                <h3 className="text-xl font-semibold text-fg">{instanceNameDisplay || 'WhatsApp conectado'}</h3>
                 {isPrimary ? (
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 rounded-md border border-emerald-500/20">Principal</span>
+                  <span className="rounded-full bg-primary-tint px-2 py-0.5 text-[12px] font-medium text-primary">Principal</span>
                 ) : (
-                  <span className="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-cyan-500/20 text-cyan-400 rounded-md border border-cyan-500/20">Auxiliar</span>
+                  <span className="rounded-full bg-client-tint px-2 py-0.5 text-[12px] font-medium text-client">Auxiliar</span>
                 )}
               </div>
-              <p className="text-slate-400 text-sm mt-1">{phoneNumber ? `Número: +${phoneNumber}` : 'Dispositivo ativo e sincronizado'}</p>
+              <p className="text-fg-muted text-sm mt-1">{phoneNumber ? `Número: +${phoneNumber}` : 'Dispositivo ativo e sincronizado'}</p>
             </div>
 
             {/* Seção de Busca e Seleção de Grupo */}
-            <div className="w-full mt-4 bg-slate-900 border border-slate-800 rounded-xl p-4 text-left">
+            <div className="w-full mt-4 bg-surface border border-border rounded-panel p-4 text-left">
               <div className="flex items-center gap-2 mb-3">
-                <Users className="w-4 h-4 text-slate-400" />
-                <h4 className="text-sm font-semibold text-slate-300">Grupo de Destino <span className="text-xs font-normal text-slate-500">(Obrigatório ser Admin)</span></h4>
+                <Users className="w-4 h-4 text-fg-muted" />
+                <h4 className="text-sm font-semibold text-fg">Grupo de destino <span className="text-xs font-normal text-fg-muted">(é preciso ser admin)</span></h4>
               </div>
               {targetGroup ? (
-                <div className="flex items-center justify-between p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                  <span className="text-sm font-medium text-emerald-400 truncate">{targetGroup.name}</span>
-                  <button onClick={() => setTargetGroup(null)} className="text-xs text-red-400 hover:underline">Remover</button>
+                <div className="flex items-center justify-between p-3 bg-success-tint border border-success/20 rounded-lg">
+                  <span className="text-sm font-medium text-success truncate">{targetGroup.name}</span>
+                  <button onClick={() => setTargetGroup(null)} className="text-xs text-danger hover:underline">Remover</button>
                 </div>
               ) : (
                 <div className="space-y-3">
                   <div className="flex gap-2">
                     <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                      <input type="text" placeholder="Nome ou Emoji do grupo..." value={groupSearch} onChange={(e) => setGroupSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchGroups()} className="w-full pl-9 pr-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-200 focus:border-cyan-400/50 outline-none" />
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-fg-muted" />
+                      <input type="text" placeholder="Nome ou emoji do grupo…" value={groupSearch} onChange={(e) => setGroupSearch(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleSearchGroups()} className="w-full pl-9 pr-3 py-2 bg-surface border border-border rounded-lg text-sm text-fg focus:border-primary/40 outline-none" />
                     </div>
-                    <button onClick={handleSearchGroups} disabled={isSearchingGroups} className="px-4 py-2 bg-slate-800 text-cyan-400 font-medium text-sm rounded-lg hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center gap-2">
+                    <button onClick={handleSearchGroups} disabled={isSearchingGroups} className="px-4 py-2 bg-subtle text-primary font-medium text-sm rounded-lg hover:bg-border-strong transition-colors disabled:opacity-50 flex items-center gap-2">
                       {isSearchingGroups ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Buscar'}
                     </button>
                   </div>
                   {groups.length > 0 && (
-                    <div className="max-h-32 overflow-y-auto space-y-1 bg-slate-950 rounded-lg border border-slate-800 p-1">
+                    <div className="max-h-32 overflow-y-auto space-y-1 bg-surface rounded-lg border border-border p-1">
                       {groups.map(g => (
-                        <button key={g.id} onClick={() => handleSelectGroup(g)} className="w-full text-left p-2 hover:bg-slate-900 rounded border border-transparent hover:border-slate-800 transition-colors text-sm text-slate-300 truncate">
+                        <button key={g.id} onClick={() => handleSelectGroup(g)} className="w-full text-left p-2 hover:bg-surface rounded border border-transparent hover:border-border transition-colors text-sm text-fg truncate">
                           {g.name}
                         </button>
                       ))}
@@ -377,45 +381,45 @@ export function WhatsAppConnectionPanel({ clientId, clientName }: WhatsAppConnec
             </div>
 
             {/* Seção de Configurações Avançadas / Pro */}
-            <div className="w-full mt-4 bg-slate-900/60 border border-slate-800 rounded-xl p-4 text-left space-y-3">
+            <div className="w-full mt-4 bg-surface border border-border rounded-panel p-4 text-left space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-cyan-400" />
-                  <h4 className="text-sm font-semibold text-slate-200">Blindagem & Presença Avançada</h4>
+                  <Shield className="w-4 h-4 text-primary" />
+                  <h4 className="text-sm font-semibold text-fg">Blindagem e presença avançada</h4>
                 </div>
                 <ComingSoonBadge variant="pro" label="Pro" />
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-slate-400 pt-1">
-                <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
-                  <span>Simulação &quot;Digitando...&quot;</span>
-                  <span className="text-emerald-400 font-medium">Ativo</span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-fg-muted pt-1">
+                <div className="p-2.5 rounded-lg bg-surface border border-border flex items-center justify-between">
+                  <span>Simulação &quot;digitando…&quot;</span>
+                  <span className="text-success font-medium">Ativo</span>
                 </div>
-                <div className="p-2.5 rounded-lg bg-slate-950/70 border border-slate-800/80 flex items-center justify-between">
-                  <span>Proxy Dedicado Anti-Ban</span>
+                <div className="p-2.5 rounded-lg bg-surface border border-border flex items-center justify-between">
+                  <span>Proxy dedicado anti-ban</span>
                   <ComingSoonBadge variant="roadmap" label="Em breve" />
                 </div>
               </div>
             </div>
 
-            <div className="flex w-full max-w-sm gap-3 pt-6 border-t border-slate-800">
-              <button onClick={handleTestMessage} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 text-emerald-400 font-medium rounded-lg hover:bg-slate-700 transition-colors"><Send className="w-4 h-4" /> Testar</button>
-              <button onClick={handleDisconnect} className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 text-red-400 font-medium rounded-lg hover:bg-slate-700 transition-colors"><WifiOff className="w-4 h-4" /> Desconectar</button>
+            <div className="flex w-full max-w-sm gap-3 pt-6 border-t border-border">
+              <Button variant="secondary" onClick={handleTestMessage} className="flex-1"><Send className="w-4 h-4" /> Testar</Button>
+              <Button variant="danger" onClick={handleDisconnect} className="flex-1"><WifiOff className="w-4 h-4" /> Desconectar</Button>
             </div>
           </motion.div>
         )
       case 'error':
         return (
           <motion.div key="error" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="flex flex-col items-center text-center p-8 space-y-5">
-            <div className="flex items-center justify-center w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full"><AlertCircle className="w-8 h-8 text-red-500" /></div>
-            <div><h3 className="text-xl font-semibold text-slate-100">Erro na conexão</h3><p className="text-slate-400 mt-1 max-w-sm text-sm">{errorMessage}</p></div>
-            <button onClick={handleConnect} className="flex items-center gap-2 px-6 py-3 bg-emerald-400 text-slate-950 font-bold rounded-xl hover:bg-emerald-500 transition-colors mt-2"><QrCode className="w-5 h-5" /> Tentar novamente</button>
+            <div className="flex items-center justify-center w-16 h-16 bg-danger-tint border border-danger/20 rounded-full"><AlertCircle className="w-8 h-8 text-danger" /></div>
+            <div><h3 className="text-xl font-semibold text-fg">Erro na conexão</h3><p className="text-fg-muted mt-1 max-w-sm text-sm">{errorMessage}</p></div>
+            <Button size="lg" onClick={handleConnect} className="mt-2"><QrCode className="w-5 h-5" /> Tentar novamente</Button>
           </motion.div>
         )
     }
   }
 
   return (
-    <div className="w-full bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+    <div className="w-full overflow-hidden rounded-panel border border-border bg-surface shadow-card">
       <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>
     </div>
   )

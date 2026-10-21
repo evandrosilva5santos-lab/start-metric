@@ -18,11 +18,10 @@ const DAYS = ["Domingo", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sáb
 const DAYS_SHORT = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const HOURS = Array.from({ length: 24 }, (_, h) => h);
 
-// Escala sequencial de um só tom: o verde do tema, mais forte = mais atividade.
 function cellColor(intensity: number): string {
   if (intensity <= 0) return "var(--color-surface-2)";
   const alpha = 0.14 + intensity * 0.86;
-  return `rgba(68, 213, 164, ${alpha.toFixed(3)})`;
+  return `color-mix(in srgb, var(--chart-1) ${(alpha * 100).toFixed(1)}%, transparent)`;
 }
 
 export function HorarioClient() {
@@ -99,7 +98,7 @@ function Heatmap({ data }: { data: DadosResponse }) {
               >
                 <span />
                 {HOURS.map((h) => (
-                  <span key={h} className="pb-1 text-center text-[10px] tabular-nums text-text-muted">
+                  <span key={h} className="pb-1 text-center text-[12px] tabular-nums text-text-muted">
                     {h % 3 === 0 ? `${h}h` : ""}
                   </span>
                 ))}

@@ -1,58 +1,41 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getDashboardSession } from "@/lib/auth/session";
+import {
+  listOperationalAccounts,
+  OperationalAccountError,
+} from "@/lib/accounts/operational";
 
-type AccountRow = {
+type AccountResponse = {
   id: string;
   name: string;
   currency: string | null;
-  is_active: boolean;
-  account_status: number;
+  is_active: true;
+  account_status: 1;
+  client_id: string;
 };
 
-function statusToCode(status: string): number {
-  if (status === "active") return 1;
-  if (status === "expired") return 3;
-  if (status === "disconnected") return 101;
-  return 0;
-}
-
 export async function GET(): Promise<NextResponse> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-    error: authError,
-  } = await supabase.auth.getUser();
-
-  if (authError || !user) {
-    return NextResponse.json(
-      { error: "Não autenticado" },
-      { status: 401 },
-    );
+  const session = await getDashboardSession();
+  if (!session.isAuthorized) {
+    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
 
-  const { data, error } = await supabase
-    .from("ad_accounts")
-    .select("id, name, currency, status")
-    .eq("platform", "meta")
-    .order("name", { ascending: true });
-
-  if (error) {
-    return NextResponse.json(
-      { error: "Erro ao buscar contas Meta", detail: error.message },
-      { status: 500 },
-    );
+  try {
+    const inventory = await listOperationalAccounts(session.supabase, session.orgId, "meta");
+    const accounts: AccountResponse[] = inventory.accounts.map((account) => ({
+      id: account.id,
+      name: account.name,
+      currency: account.currency,
+      is_active: true,
+      account_status: 1,
+      client_id: account.client_id!,
+    }));
+    return NextResponse.json(accounts);
+  } catch (error) {
+    if (error instanceof OperationalAccountError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+    }
+    console.error("[meta/accounts] Falha inesperada:", error);
+    return NextResponse.json({ error: "Erro ao buscar contas Meta" }, { status: 500 });
   }
-
-  const accounts: AccountRow[] = (data ?? []).map((row) => {
-    const code = statusToCode(row.status);
-    return {
-      id: row.id,
-      name: row.name,
-      currency: row.currency,
-      is_active: code === 1,
-      account_status: code,
-    };
-  });
-
-  return NextResponse.json(accounts);
 }

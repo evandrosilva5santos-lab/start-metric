@@ -1,13 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+import { getDashboardSession } from "@/lib/auth/session";
+import {
+  OperationalAccountError,
+  resolveOperationalAccount,
+} from "@/lib/accounts/operational";
 import { decryptToken } from "@/lib/meta/token";
-import { isPainelAuthorized, PAINEL_COOKIE_NAME } from "@/lib/auth/painel";
 
 export const dynamic = "force-dynamic";
 
 const CACHE_TTL_MS = 180 * 1000;
 const GRAPH_TIMEOUT_MS = 15_000;
 const memoryCache = new Map<string, { timestamp: number; data: Record<string, unknown> }>();
+
+const querySchema = z.object({
+  account_id: z.string().regex(/^act_[0-9]+$/, "account_id inválido"),
+  client_id: z.string().uuid("client_id inválido").optional(),
+  range: z
+    .enum(["today", "yesterday", "last_7d", "last_14d", "last_30d", "this_month", "last_month"])
+    .default("last_30d"),
+  fresh: z.enum(["true", "false"]).optional(),
+});
 
 function graphFetch(url: string, init?: RequestInit): Promise<Response> {
   return fetch(url, { ...init, signal: AbortSignal.timeout(GRAPH_TIMEOUT_MS) });
@@ -294,30 +307,41 @@ function extractDeduplicatedResults(actions: MetaAction[] = [], actionValues: Me
 }
 
 export async function GET(req: NextRequest): Promise<NextResponse> {
-  const searchParams = req.nextUrl.searchParams;
-  const accountId = searchParams.get("account_id");
-  if (!accountId || !/^act_[0-9]+$/.test(accountId)) {
-    return NextResponse.json({ error: "Parâmetro account_id é obrigatório (formato act_...)" }, { status: 400 });
-  }
-  const rangeType = searchParams.get("range") || "last_30d";
-  const forceFresh = searchParams.get("fresh") === "true";
-
-  const painelCookie = req.cookies.get(PAINEL_COOKIE_NAME)?.value;
-  const isPainel = await isPainelAuthorized(painelCookie);
-
-  let user = null;
-  let supabase = null;
-  try {
-    supabase = await createClient();
-    const { data } = await supabase.auth.getUser();
-    user = data.user;
-  } catch {
-    // Supabase opcional se autenticado via PAINEL_SENHA
+  const parsedQuery = querySchema.safeParse(Object.fromEntries(req.nextUrl.searchParams));
+  if (!parsedQuery.success) {
+    return NextResponse.json(
+      { error: "Parâmetros inválidos", details: parsedQuery.error.issues },
+      { status: 400 },
+    );
   }
 
-  if (!isPainel && !user) {
+  const session = await getDashboardSession();
+  if (!session.isAuthorized) {
     return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
   }
+
+  const accountId = parsedQuery.data.account_id;
+  const rangeType = parsedQuery.data.range;
+  const forceFresh = parsedQuery.data.fresh === "true";
+
+  let operationalAccount;
+  try {
+    operationalAccount = await resolveOperationalAccount(session.supabase, {
+      orgId: session.orgId,
+      externalId: accountId,
+      clientId: parsedQuery.data.client_id,
+      platform: "meta",
+    });
+  } catch (error) {
+    if (error instanceof OperationalAccountError) {
+      return NextResponse.json({ error: error.message, code: error.code }, { status: error.status });
+    }
+    console.error("[meta/dados] Falha ao autorizar conta:", error);
+    return NextResponse.json({ error: "Falha ao autorizar a conta." }, { status: 500 });
+  }
+
+  const supabase = session.supabase;
+  const orgId = session.orgId;
 
   const envToken =
     process.env.META_TOKEN ||
@@ -325,35 +349,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     process.env.META_USER_TOKEN;
 
   let token: string | null = envToken || null;
-  let orgId = "default_org";
-
-  if (supabase && user) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("org_id")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.org_id) {
-      orgId = profile.org_id;
-
-      if (!token) {
-        const { data: adAccount } = await supabase
-          .from("ad_accounts")
-          .select("token_encrypted")
-          .eq("org_id", orgId)
-          .eq("platform", "meta")
-          .eq("external_id", accountId)
-          .maybeSingle();
-
-        if (adAccount?.token_encrypted) {
-          try {
-            token = await decryptToken(adAccount.token_encrypted, supabase);
-          } catch (err) {
-            console.error("[meta/dados] Falha ao descriptografar token:", err);
-          }
-        }
-      }
+  if (!token && operationalAccount.token_encrypted) {
+    try {
+      token = await decryptToken(operationalAccount.token_encrypted, supabase);
+    } catch (error) {
+      console.error("[meta/dados] Falha ao descriptografar token:", error);
     }
   }
 
@@ -364,7 +364,7 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const cacheKey = `${orgId}_${accountId}_${rangeType}`;
+  const cacheKey = `${orgId}_${operationalAccount.client_id}_${accountId}_${rangeType}`;
   const now = Date.now();
 
   if (!forceFresh && memoryCache.has(cacheKey)) {
@@ -397,7 +397,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       }
       if (accData.error.code === 190) {
-        if (supabase) void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        void supabase
+          .from("ad_accounts")
+          .update({ status: "expired" })
+          .eq("id", operationalAccount.id)
+          .eq("org_id", orgId);
         return NextResponse.json(
           {
             error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,
@@ -459,7 +463,11 @@ export async function GET(req: NextRequest): Promise<NextResponse> {
         });
       }
       if (r?.error?.code === 190) {
-        if (supabase) void supabase.from("ad_accounts").update({ status: "expired" }).eq("external_id", accountId);
+        void supabase
+          .from("ad_accounts")
+          .update({ status: "expired" })
+          .eq("id", operationalAccount.id)
+          .eq("org_id", orgId);
         return NextResponse.json(
           {
             error: `Erro na conta (190): Sua sessão com a Meta expirou ou foi invalidada pelo Facebook. Reconecte sua conta em Configurações > Meta Ads.`,

@@ -20,8 +20,12 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "@types/stripe": "^8.0.416",
     "playwright": "^1.63.0",
     "prettier": "latest",
     "turbo": "latest"
+  },
+  "dependencies": {
+    "stripe": "^22.6.2"
   }
 }

@@ -2,8 +2,8 @@
 // Página "Conectar Conta Meta Ads" — Server Component com Client Components inline.
 // Exibe contas conectadas, status e botões de ação.
 
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import type { Database } from "@/lib/supabase/types";
 
 import MetaAccountsClient from "./MetaAccountsClient";
 
@@ -14,6 +14,11 @@ export const metadata = {
 
 import { getDashboardSession } from "@/lib/auth/session";
 
+type MetaAccountSummary = Pick<
+  Database["public"]["Tables"]["ad_accounts"]["Row"],
+  "id" | "name" | "external_id" | "status" | "currency" | "connected_at" | "token_expires_at"
+>;
+
 export default async function MetaSettingsPage({
   searchParams,
 }: {
@@ -22,12 +27,13 @@ export default async function MetaSettingsPage({
   const session = await getDashboardSession();
   if (!session.isAuthorized) redirect("/auth");
 
-  let accounts: any[] = [];
+  let accounts: MetaAccountSummary[] = [];
   try {
     const supabase = session.supabase;
     const { data: accs } = await supabase
       .from("ad_accounts")
       .select("id, name, external_id, status, currency, connected_at, token_expires_at")
+      .eq("org_id", session.orgId)
       .eq("platform", "meta")
       .order("connected_at", { ascending: false });
     accounts = accs ?? [];
@@ -39,20 +45,20 @@ export default async function MetaSettingsPage({
     <div className="w-full space-y-8 animate-in fade-in duration-300">
       {/* Header */}
       <div className="mb-6">
-        <p className="text-[11px] text-cyan-400/70 uppercase tracking-[0.2em] font-semibold mb-1">
+        <p className="text-[12px] text-primary uppercase tracking-[0.2em] font-semibold mb-1">
           Integrações
         </p>
         <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-blue-500/10 border border-blue-500/20 rounded-xl flex items-center justify-center">
-            <svg className="w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="currentColor">
+          <div className="w-10 h-10 bg-primary-tint border border-primary/20 rounded-xl flex items-center justify-center">
+            <svg className="w-5 h-5 text-primary" viewBox="0 0 24 24" fill="currentColor">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
             </svg>
           </div>
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight leading-none">
+            <h1 className="text-3xl font-extrabold text-fg tracking-tight leading-none">
               Meta Ads
             </h1>
-            <p className="text-slate-500 text-sm mt-1">
+            <p className="text-fg-muted text-sm mt-1">
               Conecte seu gerenciador de anúncios
             </p>
           </div>

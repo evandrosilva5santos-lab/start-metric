@@ -16,7 +16,7 @@ export function ShareLinkButton({ clientId, clientName }: ShareLinkButtonProps) 
     <>
       <button
         onClick={() => setModalOpen(true)}
-        className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl transition-colors border border-slate-700"
+        className="flex items-center gap-2 px-4 py-2 bg-subtle hover:bg-border-strong text-fg rounded-xl transition-colors border border-border"
       >
         <Share2 size={18} />
         Compartilhar

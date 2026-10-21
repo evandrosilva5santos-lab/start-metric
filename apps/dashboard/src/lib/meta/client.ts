@@ -2,6 +2,8 @@
 // Nunca importe este arquivo em Client Components.
 // Todas as chamadas à Graph API passam por aqui.
 
+import { toActionMap, type ActionMap } from "./action-map";
+
 const GRAPH_API_BASE = "https://graph.facebook.com/v20.0";
 const MAX_RETRIES = 3;
 const BACKOFF_BASE_MS = 500;
@@ -47,6 +49,8 @@ export interface ParsedMetric {
   revenue_attributed: number;
   roas: number;
   cpa: number;
+  actions: ActionMap;
+  action_values: ActionMap;
 }
 
 export interface MetaDateRange {
@@ -241,6 +245,8 @@ export async function fetchCampaignInsights(
       revenue_attributed: revenueAttributed,
       roas,
       cpa,
+      actions: toActionMap(row.actions),
+      action_values: toActionMap(row.action_values),
     };
   });
 }

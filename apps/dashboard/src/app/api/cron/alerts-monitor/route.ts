@@ -3,16 +3,12 @@ import { runAlertsMonitor } from "@/lib/alerts/evaluator";
 
 const CRON_SECRET = process.env.CRON_SECRET;
 
+// Só o segredo: o cabeçalho x-vercel-cron pode ser forjado por qualquer um.
 function isCronAuthorized(request: Request): boolean {
-  const authHeader = request.headers.get("Authorization") ?? request.headers.get("authorization");
+  if (!CRON_SECRET) return false;
+  const authHeader = request.headers.get("authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
-
-  if (CRON_SECRET && token === CRON_SECRET) return true;
-
-  const vercelCron = request.headers.get("x-vercel-cron");
-  if (process.env.VERCEL && vercelCron === "1") return true;
-
-  return false;
+  return token === CRON_SECRET;
 }
 
 export async function POST(request: Request): Promise<NextResponse> {

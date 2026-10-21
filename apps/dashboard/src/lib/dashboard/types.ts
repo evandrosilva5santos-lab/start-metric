@@ -1,6 +1,9 @@
 export type DashboardFilters = {
   from?: string;
   to?: string;
+  rangePreset?: string;
+  clientId?: string;
+  accountExternalId?: string;
   adAccountId?: string;
   campaignStatuses?: string[];
   campaignObjectives?: string[];
@@ -34,6 +37,9 @@ export type DashboardChartPoint = {
   spend: number;
   revenue: number;
   profit: number;
+  conversions: number;
+  impressions: number;
+  clicks: number;
 };
 
 export type DashboardCampaignRow = {
@@ -72,6 +78,7 @@ export type DashboardData = {
     to: string;
   };
   filters: {
+    clientId?: string;
     adAccountId: string;
     campaignStatuses: string[];
     campaignObjectives: string[];

@@ -6,6 +6,8 @@ import { AlertTriangle, Link2, WifiOff } from "lucide-react";
 import { formatVariation } from "@/lib/format";
 import { useMetaAccounts, useMetaDados } from "@/hooks/useMetaDashboard";
 import type { DadosResponse } from "@/lib/meta/dados-types";
+import { Badge } from "@/components/ui/badge";
+import { Kpi } from "@/components/ui/StatCard";
 
 export function PageHeading({ title, subtitle }: { title: string; subtitle?: string }) {
   const { data } = useMetaDados();
@@ -32,20 +34,15 @@ export type VariationSense = "good" | "bad" | "neutral";
 
 export function VariationBadge({ value, sense }: { value: number | undefined; sense: VariationSense }) {
   if (value === undefined || !Number.isFinite(value)) return null;
-  let tone = "border-border bg-surface-2 text-text-secondary";
+  let tone: "ok" | "bad" | "neu" = "neu";
   if (sense !== "neutral" && value !== 0) {
     const improved = sense === "good" ? value > 0 : value < 0;
-    tone = improved
-      ? "border-primary/25 bg-primary-dim text-primary"
-      : "border-danger/25 bg-danger-dim text-danger";
+    tone = improved ? "ok" : "bad";
   }
   return (
-    <span
-      className={`inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold tabular-nums ${tone}`}
-      title="Comparado ao período anterior"
-    >
+    <Badge variant={tone} dot={false} className="tabular-nums" title="Comparado ao período anterior">
       {formatVariation(value)}
-    </span>
+    </Badge>
   );
 }
 
@@ -65,20 +62,13 @@ export function KpiTile({
   emphasis?: boolean;
 }) {
   return (
-    <div className="min-w-0 rounded-lg border border-border bg-card p-4 md:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <span className="truncate text-xs font-semibold uppercase tracking-wider text-text-secondary">{label}</span>
-        <VariationBadge value={variation} sense={sense} />
-      </div>
-      <div
-        className={`mt-2 truncate font-display font-bold tracking-tight tabular-nums ${
-          emphasis ? "text-2xl text-primary md:text-3xl" : "text-2xl text-foreground md:text-3xl"
-        }`}
-      >
-        {value}
-      </div>
-      {hint && <div className="mt-1 truncate text-xs text-text-muted">{hint}</div>}
-    </div>
+    <Kpi
+      label={label}
+      value={value}
+      detail={hint}
+      emphasis={emphasis}
+      badge={<VariationBadge value={variation} sense={sense} />}
+    />
   );
 }
 

@@ -78,10 +78,10 @@ export async function GET() {
         return NextResponse.json({ clients: [] });
       }
 
-      clients = (clientsWithoutCount ?? []).map((c: any) => ({
-        ...c,
+      clients = (clientsWithoutCount ?? []).map((clientRow) => ({
+        ...clientRow,
         ad_accounts: [],
-      })) as ClientListRow[];
+      }));
     } else {
       clients = clientsWithCount;
     }
@@ -106,7 +106,7 @@ export async function GET() {
       }
     >();
 
-    (whatsappInstances ?? []).forEach((instance: any) => {
+    (whatsappInstances ?? []).forEach((instance) => {
       if (!instance.client_id) return;
 
       const previous = whatsappByClient.get(instance.client_id);

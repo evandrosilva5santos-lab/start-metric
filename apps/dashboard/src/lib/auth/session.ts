@@ -90,20 +90,32 @@ export const getSessionIdentity = cache(async (): Promise<SessionIdentity> => {
   return { email: null, name: null };
 });
 
-export type DashboardSession = {
-  isAuthorized: boolean;
-  user: { id: string; email: string | null } | null;
+type DashboardSupabase = ReturnType<typeof createAdminClient>;
+
+type AuthorizedDashboardSession = {
+  isAuthorized: true;
+  user: { id: string; email: string | null };
   orgId: string;
-  supabase: any;
+  supabase: DashboardSupabase;
   isPainel: boolean;
 };
+
+type UnauthorizedDashboardSession = {
+  isAuthorized: false;
+  user: { id: string; email: string | null } | null;
+  orgId: string;
+  supabase: null;
+  isPainel: false;
+};
+
+export type DashboardSession = AuthorizedDashboardSession | UnauthorizedDashboardSession;
 
 export const getDashboardSession = cache(async (): Promise<DashboardSession> => {
   const cookieStore = await cookies();
   const painelCookie = cookieStore.get(PAINEL_COOKIE_NAME)?.value;
   const isPainel = await isPainelAuthorized(painelCookie);
 
-  let supabase: any = null;
+  let supabase: DashboardSupabase | null = null;
   let user: { id: string; email: string | null } | null = null;
   let orgId: string | null = null;
 
@@ -131,7 +143,7 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession> => 
     };
   }
 
-  if (user && orgId) {
+  if (user && orgId && supabase) {
     return {
       isAuthorized: true,
       user,
@@ -141,7 +153,7 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession> => 
     };
   }
 
-  let adminClient: any = null;
+  let adminClient: DashboardSupabase | null = null;
   try {
     adminClient = createAdminClient();
   } catch {
@@ -152,18 +164,22 @@ export const getDashboardSession = cache(async (): Promise<DashboardSession> => 
     try {
       const { data: orgs } = await adminClient.from("organizations").select("id, name");
       if (orgs && orgs.length > 0) {
-        const evandroOrg = orgs.find((o: any) => o.name?.toLowerCase().includes("evandro"));
+        const evandroOrg = orgs.find((organization) => organization.name?.toLowerCase().includes("evandro"));
         orgId = evandroOrg?.id || orgs[0].id;
       }
     } catch {}
+  }
+
+  const effectiveSupabase = adminClient ?? supabase;
+  if (!effectiveSupabase) {
+    throw new Error("Não foi possível inicializar o cliente Supabase do dashboard");
   }
 
   return {
     isAuthorized: true,
     user: user ?? { id: "painel-admin", email: "admin@startmetric.com" },
     orgId: orgId ?? "0b7ec073-d8cd-4ab8-8a36-fc2380c2b0b1",
-    supabase: adminClient ?? supabase,
+    supabase: effectiveSupabase,
     isPainel: true,
   };
 });
-

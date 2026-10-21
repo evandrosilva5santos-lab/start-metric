@@ -1,38 +1,19 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { headers } from "next/headers";
-import { createHmac, timingSafeEqual } from "node:crypto";
+import Stripe from "stripe";
+import { StripeWebhookPayloadSchema } from "@start-metric/types";
 
 export const dynamic = "force-dynamic";
-export const runtime = "nodejs";
 
-type StripeWebhookItem = {
-  product_id: string;
-  product_name: string;
-  quantity?: number;
-  unit_price: number;
-};
-
-type StripeWebhookPayload = {
-  org_id: string;
-  external_order_id: string;
-  status?: string;
-  total_amount?: number;
-  currency?: string;
-  customer_email?: string;
-  customer_name?: string;
-  tracking_session_id?: string;
-  utm_source?: string;
-  utm_medium?: string;
-  utm_campaign?: string;
-  attribution_fbc?: string;
-  attribution_fbp?: string;
-  click_id?: string;
-  items?: StripeWebhookItem[];
-};
+// Inicializa o cliente Stripe para caso seja necessário fetch de line_items
+// STRIPE_SECRET_KEY default para evitar erro na inicialização sem uso.
+const stripeSecret = process.env.STRIPE_SECRET_KEY || "sk_test_mock";
+const stripe = new Stripe(stripeSecret, {
+  apiVersion: "2026-08-26.dahlia",
+});
 
 const STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
-const SIGNATURE_TOLERANCE_SECONDS = 300;
 
 // Fail-closed: sem secret configurado, nenhum webhook é aceito.
 function requireWebhookSecret(): string {
@@ -42,155 +23,144 @@ function requireWebhookSecret(): string {
   return STRIPE_WEBHOOK_SECRET;
 }
 
-// Formato Stripe: t=<timestamp>,v1=<hex digest> (pode haver múltiplas entradas v1).
-function parseSignatureHeader(signature: string): { timestamp: number; digests: string[] } | null {
-  const parts = signature.split(",").map((p) => p.trim());
-  let timestamp: number | null = null;
-  const digests: string[] = [];
-
-  for (const part of parts) {
-    const [key, value] = part.split("=");
-    if (!key || value === undefined) continue;
-    if (key === "t") {
-      const parsed = Number(value);
-      if (!Number.isFinite(parsed)) return null;
-      timestamp = parsed;
-    } else if (key === "v1") {
-      digests.push(value.toLowerCase());
-    }
-  }
-
-  if (timestamp === null || digests.length === 0) return null;
-  return { timestamp, digests };
-}
-
-function verifyStripeSignature(payload: string, signature: string, secret: string): boolean {
-  const parsed = parseSignatureHeader(signature);
-  if (!parsed) return false;
-
-  // Proteção contra replay: rejeitar timestamps fora da janela de tolerância.
-  const ageSeconds = Math.abs(Math.floor(Date.now() / 1000) - parsed.timestamp);
-  if (ageSeconds > SIGNATURE_TOLERANCE_SECONDS) return false;
-
-  const signedPayload = `${parsed.timestamp}.${payload}`;
-  const hmac = createHmac("sha256", secret);
-  const digest = hmac.update(signedPayload).digest("hex");
-
-  return parsed.digests.some((candidate) => {
-    const a = Buffer.from(candidate, "utf8");
-    const b = Buffer.from(digest, "utf8");
-    return a.length === b.length && timingSafeEqual(a, b);
-  });
-}
-
 export async function POST(req: Request) {
-  let secret: string;
   try {
-    secret = requireWebhookSecret();
-  } catch {
-    console.error("[webhooks/stripe] STRIPE_WEBHOOK_SECRET ausente — webhook rejeitado (fail-closed).");
-    return NextResponse.json({ error: "Webhook não configurado" }, { status: 503 });
-  }
-
-  try {
+    const webhookSecret = requireWebhookSecret();
     const headersList = await headers();
     const signature = headersList.get("stripe-signature");
-    const rawPayload = await req.text();
 
-    // Header de assinatura é obrigatório — ausência = rejeição imediata.
-    if (!signature || !verifyStripeSignature(rawPayload, signature, secret)) {
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    if (!signature) {
+      return NextResponse.json({ error: "Missing stripe-signature header" }, { status: 400 });
     }
 
-    const payload = JSON.parse(rawPayload) as StripeWebhookPayload;
+    const rawBody = await req.text();
 
-    const {
-      org_id,
-      external_order_id,
-      status = "completed",
-      total_amount = 0,
-      currency = "BRL",
-      customer_email,
-      customer_name,
-      tracking_session_id,
-      click_id,
-      attribution_fbc,
-      attribution_fbp,
-      items = []
-    } = payload;
-
-    if (!org_id || !external_order_id) {
-      return NextResponse.json({ error: "org_id e external_order_id são obrigatórios" }, { status: 400 });
+    let event: Stripe.Event;
+    try {
+      event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
+    } catch (err: unknown) {
+      console.error("Stripe signature verification failed:", err);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      return NextResponse.json({ error: "Invalid stripe signature", details: errorMessage }, { status: 400 });
     }
 
-    // Supabase Service Role client (bypasses RLS)
+    if (event.type !== "payment_intent.succeeded" && event.type !== "charge.refunded") {
+      return NextResponse.json({ received: true, ignored: true, type: event.type });
+    }
+
+    const object = event.data.object;
+
+    // Fallback variables
+    const status = event.type === "payment_intent.succeeded" ? "completed" : "refunded";
+    const external_order_id = object.id || ""; // e.g. pi_123 or ch_123
+    const currency = (object.currency || "brl").toUpperCase();
+    const total_amount = object.amount ? object.amount / 100 : 0; // Stripe provides amount in cents
+    const customer_email = object.receipt_email || ""; // Typical in charges
+    const customer_name = object.shipping?.name || "";
+
+    // Extrair dados da metadata (esperamos org_id, etc. lá)
+    const metadata = object.metadata || {};
+    const payloadInput = {
+      org_id: metadata.org_id,
+      external_order_id: external_order_id,
+      status: status,
+      total_amount: total_amount,
+      currency: currency,
+      customer_email: customer_email || metadata.customer_email || undefined,
+      customer_name: customer_name || metadata.customer_name || undefined,
+      tracking_session_id: metadata.tracking_session_id || undefined,
+      click_id: metadata.click_id || undefined,
+      attribution_fbc: metadata.attribution_fbc || undefined,
+      attribution_fbp: metadata.attribution_fbp || undefined,
+      items: metadata.items ? JSON.parse(metadata.items) : [],
+    };
+
+    // Validar de forma segura o que extraímos
+    const parsedPayload = StripeWebhookPayloadSchema.safeParse(payloadInput);
+    if (!parsedPayload.success) {
+      console.error("Payload mismatch for Stripe webhook:", parsedPayload.error);
+      return NextResponse.json({ error: "Metadata doesn't match schema requirements (e.g. missing org_id)", details: parsedPayload.error }, { status: 400 });
+    }
+
+    const payload = parsedPayload.data;
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // 1. Criar registro na tabela conversions para o motor de atribuição
-    const userIdentifier = attribution_fbc ?? tracking_session_id ?? click_id ?? attribution_fbp ?? customer_email;
+    // Identificador para motor de atribuição
+    const userIdentifier = payload.attribution_fbc ?? payload.tracking_session_id ?? payload.click_id ?? payload.attribution_fbp ?? payload.customer_email;
 
+    // Inserir registro na tabela conversions
+    let conversionId = null;
     const { data: conversion, error: conversionError } = await supabase
       .from("conversions")
       .insert({
-        org_id,
-        external_id: `stripe_${external_order_id}`,
+        org_id: payload.org_id,
+        external_id: `stripe_${payload.external_order_id}`,
         source: "stripe",
-        event_type: "purchase",
-        revenue: total_amount,
-        currency,
-        customer_id: tracking_session_id,
-        customer_email,
-        occurred_at: new Date().toISOString(),
+        event_type: "purchase", // Em cenários mais avançados pode ser refund também
+        revenue: payload.total_amount,
+        currency: payload.currency,
+        customer_id: payload.tracking_session_id,
+        customer_email: payload.customer_email,
+        occurred_at: new Date(event.created * 1000).toISOString(),
         attribution_window_days: 30,
       })
       .select("id")
       .single();
 
-    if (conversionError && conversionError.code !== "23505") {
-      console.error("Erro inserindo conversion:", conversionError);
+    if (conversionError) {
+      if (conversionError.code === "23505") { // dup
+        // buscar o ID existente se houver conflito
+        const { data: existing } = await supabase.from("conversions").select("id").eq("external_id", `stripe_${payload.external_order_id}`).single();
+        conversionId = existing?.id;
+      } else {
+        console.error("Erro inserindo conversion:", conversionError);
+      }
+    } else {
+      conversionId = conversion?.id;
     }
 
-    // 2. Se temos um identificador, tentar atribuir automaticamente
-    if (conversion?.id && userIdentifier) {
+    // Se temos um identificador novo, tentar atribuir automaticamente
+    if (conversionId && userIdentifier) {
       await supabase.rpc("attribute_conversion_last_click", {
-        p_conversion_id: conversion.id,
+        p_conversion_id: conversionId,
         p_user_identifier: userIdentifier,
         p_attribution_window_days: 30,
       });
     }
 
-    // 3. Upsert idempotente no Pedido (mantendo compatibilidade com schema existente)
+    // Upsert idempotente na tabela sales_orders
     const { data: order, error: orderError } = await supabase
       .from("sales_orders")
       .upsert({
-        org_id,
+        org_id: payload.org_id,
+        external_order_id: payload.external_order_id,
         source: "stripe",
-        external_order_id,
-        status,
-        total_amount,
-        currency,
-        customer_email,
-        customer_name,
-        tracking_session_id,
-        attribution_fbc,
-        attribution_fbp,
-        click_id,
-        attributed_conversion_id: conversion?.id,
+        status: payload.status,
+        total_amount: payload.total_amount,
+        currency: Object.keys(currency).length ? currency : "BRL",
+        customer_email: payload.customer_email,
+        customer_name: payload.customer_name,
+        tracking_session_id: payload.tracking_session_id,
+        attribution_fbc: payload.attribution_fbc,
+        attribution_fbp: payload.attribution_fbp,
+        click_id: payload.click_id,
+        attributed_conversion_id: conversionId,
       }, { onConflict: "org_id, external_order_id, source" })
       .select()
       .single();
 
-    if (orderError) {
+    if (orderError || !order) {
       console.error("Erro inserindo sales_order:", orderError);
-      return NextResponse.json({ error: orderError.message }, { status: 500 });
+      return NextResponse.json({ error: orderError?.message || "Failed to upset order" }, { status: 500 });
     }
 
-    // 4. Inserir items se existirem
-    if (items.length > 0) {
-      const orderItems = items.map((item: StripeWebhookItem) => ({
+    // Inserir items da compra se existirem, convertendo-os ao formato da tabela
+    if (payload.items && payload.items.length > 0) {
+      const orderItems = payload.items.map((item) => ({
         order_id: order.id,
         product_id: item.product_id,
         product_name: item.product_name,
@@ -211,12 +181,11 @@ export async function POST(req: Request) {
     return NextResponse.json({
       success: true,
       order_id: order.id,
-      conversion_id: conversion?.id,
-      attributed: !!conversion?.id,
+      conversion_id: conversionId,
+      attributed: !!conversionId,
     });
-
   } catch (error: unknown) {
-    console.error("Webhook Error:", error);
-    return NextResponse.json({ error: "Erro interno no webhook" }, { status: 500 });
+    console.error("Stripe Webhook Handler Error:", error);
+    return NextResponse.json({ error: "Erro interno no processamento do webhook" }, { status: 500 });
   }
 }

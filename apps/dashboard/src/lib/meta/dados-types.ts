@@ -5,7 +5,8 @@ export type MetaAccount = {
   name: string;
   currency: string;
   isActive: boolean;
-  clientId: string | null;
+  clientId: string;
+  platform: "meta";
 };
 
 export type ClientRef = { id: string; name: string };

@@ -66,12 +66,7 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-8">
-      <div
-        className="absolute inset-0 opacity-30"
-        style={{ backgroundImage: "radial-gradient(circle at 50% 30%, rgba(34,211,238,0.08) 0%, transparent 60%)" }}
-      />
-
+    <div className="min-h-screen flex items-center justify-center bg-surface p-8">
       <motion.div
         initial={{ opacity: 0, scale: 0.97 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -79,18 +74,18 @@ export default function ResetPasswordPage() {
         className="w-full max-w-md z-10"
       >
         <div className="flex items-center gap-2 mb-10">
-          <div className="w-8 h-8 rounded-lg bg-cyan-400/10 border border-cyan-400/30 flex items-center justify-center text-cyan-400 font-bold text-xs">
+          <div className="w-8 h-8 rounded-lg bg-primary-tint border border-primary/30 flex items-center justify-center text-primary font-bold text-xs">
             SM
           </div>
-          <span className="text-white font-bold tracking-tight">START METRIC</span>
+          <span className="text-fg font-bold tracking-tight">START METRIC</span>
         </div>
 
-        <h2 className="text-2xl font-bold text-white mb-1">Nova senha</h2>
-        <p className="text-slate-500 text-sm mb-8">Escolha uma senha forte para proteger sua conta.</p>
+        <h2 className="text-2xl font-bold text-fg mb-1">Nova senha</h2>
+        <p className="text-fg-muted text-sm mb-8">Escolha uma senha forte para proteger sua conta.</p>
 
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="space-y-2">
-            <label htmlFor="password" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            <label htmlFor="password" className="text-xs font-semibold text-fg-muted uppercase tracking-widest">
               Nova senha
             </label>
             <div className="relative">
@@ -103,12 +98,12 @@ export default function ResetPasswordPage() {
                 placeholder="••••••••"
                 required
                 autoComplete="new-password"
-                className="w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30 transition-all duration-200"
+                className="w-full px-4 py-3 pr-12 rounded-xl glass text-fg placeholder:text-fg-muted text-sm focus:outline-none focus:border-primary/40 focus:ring-1 focus:ring-primary/30 transition-all duration-200"
               />
               <button
                 type="button"
                 onClick={() => setShowPwd(!showPwd)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-fg-muted hover:text-fg transition-colors"
               >
                 {showPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
@@ -123,11 +118,11 @@ export default function ResetPasswordPage() {
                 {passwordRules.map((rule) => (
                   <div key={rule.label} className="flex items-center gap-1.5">
                     {rule.met ? (
-                      <Check size={11} className="text-emerald-400 shrink-0" />
+                      <Check size={11} className="text-success shrink-0" />
                     ) : (
-                      <X size={11} className="text-slate-600 shrink-0" />
+                      <X size={11} className="text-fg-muted shrink-0" />
                     )}
-                    <span className={`text-[10px] transition-colors ${rule.met ? "text-emerald-400" : "text-slate-600"}`}>
+                    <span className={`text-[12px] transition-colors ${rule.met ? "text-success" : "text-fg-muted"}`}>
                       {rule.label}
                     </span>
                   </div>
@@ -137,7 +132,7 @@ export default function ResetPasswordPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="confirmPassword" className="text-xs font-semibold text-slate-400 uppercase tracking-widest">
+            <label htmlFor="confirmPassword" className="text-xs font-semibold text-fg-muted uppercase tracking-widest">
               Confirmar nova senha
             </label>
             <div className="relative">
@@ -149,22 +144,22 @@ export default function ResetPasswordPage() {
                 placeholder="••••••••"
                 required
                 autoComplete="new-password"
-                className={`w-full px-4 py-3 pr-12 rounded-xl glass text-slate-200 placeholder:text-slate-600 text-sm focus:outline-none transition-all duration-200 ${
+                className={`w-full px-4 py-3 pr-12 rounded-xl glass text-fg placeholder:text-fg-muted text-sm focus:outline-none transition-all duration-200 ${
                   confirmPassword && confirmPassword !== password
-                    ? "focus:border-red-400/50 focus:ring-1 focus:ring-red-400/30"
-                    : "focus:border-cyan-400/50 focus:ring-1 focus:ring-cyan-400/30"
+                    ? "focus:border-danger/40 focus:ring-1 focus:ring-danger/30"
+                    : "focus:border-primary/40 focus:ring-1 focus:ring-primary/30"
                 }`}
               />
               <button
                 type="button"
                 onClick={() => setShowConfirmPwd(!showConfirmPwd)}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-fg-muted hover:text-fg transition-colors"
               >
                 {showConfirmPwd ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
             {confirmPassword && confirmPassword !== password && (
-              <p className="text-[11px] text-red-400">As senhas não conferem.</p>
+              <p className="text-[12px] text-danger">As senhas não conferem.</p>
             )}
           </div>
 
@@ -174,7 +169,7 @@ export default function ResetPasswordPage() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                className="bg-red-500/10 border border-red-500/20 rounded-xl px-4 py-3 text-red-400 text-sm"
+                className="bg-danger-tint border border-danger/20 rounded-xl px-4 py-3 text-danger text-sm"
               >
                 {error}
               </motion.div>
@@ -186,7 +181,7 @@ export default function ResetPasswordPage() {
             disabled={loading}
             whileHover={{ scale: 1.01 }}
             whileTap={{ scale: 0.99 }}
-            className="w-full py-3.5 rounded-xl bg-cyan-400 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 glow-primary-sm hover:bg-cyan-300 transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="w-full py-3.5 rounded-xl bg-primary text-primary-fg font-bold text-sm flex items-center justify-center gap-2 glow-primary-sm hover:bg-primary-hover transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? <Loader2 size={18} className="animate-spin" /> : "Salvar nova senha"}
           </motion.button>

@@ -100,28 +100,28 @@ export default function AdminAuthClient({ nextParam, errorParam }: AdminAuthClie
   const visibleError = error ?? queryError;
 
   return (
-    <div className="relative min-h-[calc(100vh-72px)] overflow-hidden bg-[#0b0f17]">
+    <div className="relative min-h-[calc(100vh-72px)] overflow-hidden bg-background">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute -top-28 -left-20 h-72 w-72 rounded-full bg-orange-500/25 blur-3xl" />
-        <div className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-amber-400/15 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-red-500/10 blur-3xl" />
+        <div className="absolute -top-28 -left-20 h-72 w-72 rounded-full bg-warning-tint blur-3xl" />
+        <div className="absolute top-1/2 -right-20 h-80 w-80 rounded-full bg-warning-tint blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-64 w-64 rounded-full bg-danger-tint blur-3xl" />
       </div>
 
       <div className="relative mx-auto grid min-h-[calc(100vh-72px)] w-full max-w-7xl grid-cols-1 gap-10 px-6 py-10 lg:grid-cols-2 lg:gap-16 lg:px-10">
-        <section className="flex flex-col justify-between rounded-3xl border border-orange-400/20 bg-gradient-to-br from-[#1a1410] via-[#14120f] to-[#100f0d] p-8 shadow-[0_30px_80px_rgba(0,0,0,0.45)]">
+        <section className="flex flex-col justify-between rounded-3xl border border-warning/20 bg-sidebar text-sidebar-fg p-8">
           <div className="space-y-6">
-            <div className="inline-flex items-center gap-2 rounded-full border border-orange-300/30 bg-orange-300/10 px-3 py-1 text-[11px] font-black uppercase tracking-[0.2em] text-orange-200">
+            <div className="inline-flex items-center gap-2 rounded-full border border-warning/30 bg-warning-tint px-3 py-1 text-[12px] font-black uppercase tracking-[0.2em] text-warning">
               <ShieldCheck size={14} />
               Backoffice Seguro
             </div>
 
             <div>
-              <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
+              <h1 className="text-4xl font-black leading-tight text-fg sm:text-5xl">
                 Painel
                 <br />
-                <span className="text-orange-300">Administrativo</span>
+                <span className="text-warning">Administrativo</span>
               </h1>
-              <p className="mt-4 max-w-lg text-sm leading-relaxed text-slate-300">
+              <p className="mt-4 max-w-lg text-sm leading-relaxed text-fg">
                 Ambiente isolado para operação interna, gestão de usuários, análise de incidentes e auditoria técnica.
                 Não compartilha fluxo de autenticação com o portal de clientes.
               </p>
@@ -129,16 +129,16 @@ export default function AdminAuthClient({ nextParam, errorParam }: AdminAuthClie
           </div>
 
           <div className="mt-8 space-y-4">
-            <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-              <p className="text-xs uppercase tracking-[0.15em] text-slate-400">Política de acesso</p>
-              <p className="mt-2 text-sm text-slate-200">
+            <div className="rounded-2xl border border-border bg-subtle p-4">
+              <p className="text-xs uppercase tracking-[0.15em] text-fg-muted">Política de acesso</p>
+              <p className="mt-2 text-sm text-fg">
                 Apenas e-mails presentes na allowlist de administração entram neste ambiente.
               </p>
             </div>
 
             <Link
               href="/auth"
-              className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-orange-200 transition hover:text-orange-100"
+              className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-[0.14em] text-warning transition hover:text-warning"
             >
               Ir para login de cliente
               <ArrowRight size={14} />
@@ -149,41 +149,41 @@ export default function AdminAuthClient({ nextParam, errorParam }: AdminAuthClie
         <section className="flex items-center">
           <form
             onSubmit={handleSubmit}
-            className="w-full rounded-3xl border border-white/10 bg-[#0f1420]/90 p-7 shadow-[0_25px_80px_rgba(0,0,0,0.4)] sm:p-9"
+            className="w-full rounded-3xl border border-border bg-surface p-7 sm:p-9"
           >
             <div className="mb-7">
-              <p className="text-[11px] font-black uppercase tracking-[0.18em] text-orange-300">Admin Sign-In</p>
-              <h2 className="mt-2 text-3xl font-black tracking-tight text-white">Acesso Restrito</h2>
+              <p className="text-[12px] font-black uppercase tracking-[0.18em] text-warning">Admin Sign-In</p>
+              <h2 className="mt-2 text-3xl font-black tracking-tight text-fg">Acesso Restrito</h2>
             </div>
 
             <div className="space-y-4">
               <label className="block space-y-2">
-                <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">E-mail admin</span>
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-fg-muted">E-mail admin</span>
                 <input
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
                   placeholder="admin@startinc.com.br"
-                  className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none transition focus:border-orange-300/40"
+                  className="w-full rounded-xl border border-border bg-subtle px-4 py-3 text-sm text-fg outline-none transition focus:border-warning/40"
                   required
                 />
               </label>
 
               <label className="block space-y-2">
-                <span className="text-xs font-bold uppercase tracking-[0.14em] text-slate-400">Senha</span>
+                <span className="text-xs font-bold uppercase tracking-[0.14em] text-fg-muted">Senha</span>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="••••••••"
-                    className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 pr-11 text-sm text-white outline-none transition focus:border-orange-300/40"
+                    className="w-full rounded-xl border border-border bg-subtle px-4 py-3 pr-11 text-sm text-fg outline-none transition focus:border-warning/40"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((current) => !current)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-fg-muted hover:text-fg"
                   >
                     {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                   </button>
@@ -192,7 +192,7 @@ export default function AdminAuthClient({ nextParam, errorParam }: AdminAuthClie
             </div>
 
             {visibleError && (
-              <div className="mt-5 flex items-start gap-2 rounded-xl border border-red-400/30 bg-red-500/10 px-3 py-3 text-sm text-red-100">
+              <div className="mt-5 flex items-start gap-2 rounded-xl border border-danger/30 bg-danger-tint px-3 py-3 text-sm text-danger">
                 <AlertTriangle size={16} className="mt-0.5 shrink-0" />
                 <span>{visibleError}</span>
               </div>
@@ -201,7 +201,7 @@ export default function AdminAuthClient({ nextParam, errorParam }: AdminAuthClie
             <button
               type="submit"
               disabled={submitting}
-              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-orange-300/50 bg-gradient-to-r from-orange-500/80 to-amber-500/80 px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-black transition hover:from-orange-400 hover:to-amber-400 disabled:opacity-60"
+              className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-xl border border-warning/40 bg-gradient-to-r from-warning to-warning px-4 py-3 text-sm font-black uppercase tracking-[0.16em] text-primary-fg transition hover:from-warning hover:to-warning disabled:opacity-60"
             >
               <Lock size={16} />
               {submitting ? "Validando acesso..." : "Entrar no backoffice"}

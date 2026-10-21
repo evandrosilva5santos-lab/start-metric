@@ -1,3 +1,4 @@
+import { Kpi } from "@/components/ui/StatCard";
 import type { DashboardCampaignRow, DashboardKpis } from "@/lib/dashboard/types";
 
 function formatCurrencyBRL(value: number): string {
@@ -58,16 +59,16 @@ export function PerformanceResultsView({ kpis, campaigns, generatedAt, stale = f
       </div>
 
       <div className="glass rounded-2xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-800/60 flex items-center justify-between">
-          <h2 className="font-semibold text-white">Campanhas</h2>
-          <p className="text-xs text-slate-500">
+        <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+          <h2 className="font-semibold text-fg">Campanhas</h2>
+          <p className="text-xs text-fg-muted">
             Gerado em {new Date(generatedAt).toLocaleString("pt-BR")}
           </p>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
             <thead>
-              <tr className="text-[11px] uppercase tracking-widest text-slate-600 border-b border-slate-800/60">
+              <tr className="text-[12px] uppercase tracking-widest text-fg-muted border-b border-border">
                 <th className="text-left font-semibold px-5 py-3">Campanha</th>
                 <th className="text-left font-semibold px-5 py-3">Conta</th>
                 <th className="text-left font-semibold px-5 py-3">Status</th>
@@ -77,23 +78,23 @@ export function PerformanceResultsView({ kpis, campaigns, generatedAt, stale = f
                 <th className="text-right font-semibold px-5 py-3">CPA</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/40">
+            <tbody className="divide-y divide-border">
               {campaigns.map((row) => (
-                <tr key={row.campaignId} className="hover:bg-slate-800/30 transition-colors">
+                <tr key={row.campaignId} className="hover:bg-subtle transition-colors">
                   <td className="px-5 py-3">
-                    <div className="font-medium text-white">{row.campaignName}</div>
-                    <div className="text-xs text-slate-600 font-mono">{row.campaignId}</div>
+                    <div className="font-medium text-fg">{row.campaignName}</div>
+                    <div className="text-xs text-fg-muted font-mono">{row.campaignId}</div>
                   </td>
-                  <td className="px-5 py-3 text-slate-300">{row.accountName}</td>
+                  <td className="px-5 py-3 text-fg">{row.accountName}</td>
                   <td className="px-5 py-3">
-                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-slate-700/50 text-slate-400 border border-slate-700/50">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-subtle text-fg-muted border border-border">
                       {row.status}
                     </span>
                   </td>
-                  <td className="px-5 py-3 text-right text-slate-300 text-mono tabular-nums">{formatCurrencyBRL(row.spend)}</td>
-                  <td className="px-5 py-3 text-right text-slate-300 text-mono tabular-nums">{formatCurrencyBRL(row.revenue)}</td>
-                  <td className="px-5 py-3 text-right text-emerald-400 font-bold text-mono tabular-nums">{formatRatio(row.roas)}</td>
-                  <td className="px-5 py-3 text-right text-slate-300 text-mono tabular-nums">{formatCurrencyBRL(row.cpa)}</td>
+                  <td className="px-5 py-3 text-right text-fg text-mono tabular-nums">{formatCurrencyBRL(row.spend)}</td>
+                  <td className="px-5 py-3 text-right text-fg text-mono tabular-nums">{formatCurrencyBRL(row.revenue)}</td>
+                  <td className="px-5 py-3 text-right text-success font-bold text-mono tabular-nums">{formatRatio(row.roas)}</td>
+                  <td className="px-5 py-3 text-right text-fg text-mono tabular-nums">{formatCurrencyBRL(row.cpa)}</td>
                 </tr>
               ))}
             </tbody>
@@ -105,12 +106,7 @@ export function PerformanceResultsView({ kpis, campaigns, generatedAt, stale = f
 }
 
 function KpiCard({ title, value }: { title: string; value: string }) {
-  return (
-    <div className="glass rounded-2xl p-5">
-      <p className="text-xs text-slate-500 uppercase tracking-wider font-semibold">{title}</p>
-      <p className="text-xl font-bold mt-2 text-white text-mono tabular-nums">{value}</p>
-    </div>
-  );
+  return <Kpi label={title} value={value} />;
 }
 
 /** Esqueleto no formato da faixa de KPIs e da tabela. */
@@ -120,8 +116,8 @@ export function PerformanceResultsSkeleton() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 8 }, (_, index) => (
           <div key={index} className="glass rounded-2xl p-5 space-y-3" aria-hidden="true">
-            <div className="h-3 w-20 rounded-full bg-white/5 animate-pulse" />
-            <div className="h-6 w-28 rounded-lg bg-white/5 animate-pulse" />
+            <div className="h-3 w-20 rounded-full bg-subtle animate-pulse" />
+            <div className="h-6 w-28 rounded-lg bg-subtle animate-pulse" />
           </div>
         ))}
       </div>

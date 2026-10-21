@@ -1,85 +1,32 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import type { AlertRuleInput } from "@/lib/alerts/types";
-
-async function getUserOrgId() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return { supabase, orgId: null as string | null, userId: null as string | null };
-  }
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("org_id")
-    .eq("id", user.id)
-    .single();
-
-  return {
-    supabase,
-    orgId: (profile?.org_id as string | undefined) ?? null,
-    userId: user.id,
-  };
-}
+import { createRule, RULE_COLUMNS } from "@/lib/alerts/rules-store";
+import { firstIssue, ruleCreateSchema } from "@/lib/alerts/schemas";
+import { jsonError, readJson, requireAlertsAuth } from "@/lib/alerts/server";
 
 export async function GET(): Promise<NextResponse> {
-  const { supabase, orgId } = await getUserOrgId();
-  if (!orgId) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-  }
+  const auth = await requireAlertsAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  const { data, error } = await supabase
+  const { data, error } = await auth.supabase
     .from("notification_rules")
-    .select("id, org_id, campaign_id, metric, operator, threshold, channel, active, created_at, updated_at")
-    .eq("org_id", orgId)
+    .select(RULE_COLUMNS)
+    .eq("org_id", auth.orgId)
     .order("created_at", { ascending: false });
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
+  if (error) return jsonError("Não deu para carregar as regras.", 500);
   return NextResponse.json(data ?? []);
 }
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const { supabase, orgId, userId } = await getUserOrgId();
-  if (!orgId || !userId) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-  }
+  const auth = await requireAlertsAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  let body: AlertRuleInput;
-  try {
-    body = (await request.json()) as AlertRuleInput;
-  } catch {
-    return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
-  }
+  const json = await readJson(request);
+  if (!json.ok) return jsonError("Payload inválido", 400);
+  const parsed = ruleCreateSchema.safeParse(json.body);
+  if (!parsed.success) return jsonError(firstIssue(parsed.error), 422);
 
-  const { metric, operator, threshold, campaign_id, active = true } = body;
-  if (!metric || !operator || typeof threshold !== "number") {
-    return NextResponse.json({ error: "Campos obrigatórios ausentes" }, { status: 422 });
-  }
-
-  const { data, error } = await supabase
-    .from("notification_rules")
-    .insert({
-      org_id: orgId,
-      campaign_id: campaign_id ?? null,
-      metric,
-      operator,
-      threshold,
-      channel: "web_push",
-      active,
-      created_by: userId,
-    })
-    .select("id, org_id, campaign_id, metric, operator, threshold, channel, active, created_at, updated_at")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data, { status: 201 });
+  const outcome = await createRule(auth, parsed.data);
+  if (!outcome.ok) return jsonError(outcome.error, outcome.status);
+  return NextResponse.json(outcome.rule, { status: 201 });
 }

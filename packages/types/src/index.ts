@@ -331,3 +331,6 @@ export interface WhatsAppTemplate {
   created_at: string;
   updated_at: string;
 }
+
+// Orders types
+export * from './orders';

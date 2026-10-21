@@ -182,7 +182,7 @@ function Signal({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
       <dd className="font-display text-xl font-bold tabular-nums text-foreground">{value}</dd>
-      <dt className="truncate text-[11px] text-text-muted">{label}</dt>
+      <dt className="truncate text-[12px] text-text-muted">{label}</dt>
     </div>
   );
 }
@@ -220,7 +220,7 @@ function OfferCard({ offer }: { offer: OfferCardView }) {
         </div>
         <div className="shrink-0 text-right">
           <div className="font-display text-2xl font-bold tabular-nums text-primary">{fmtScore(offer.score)}</div>
-          <div className="text-[11px] text-text-muted">score de sinal</div>
+          <div className="text-[12px] text-text-muted">score de sinal</div>
         </div>
       </div>
 
@@ -254,7 +254,7 @@ function Chip({ tone, title, children }: { tone: "warning" | "primary" | "muted"
     muted: "border-border bg-surface-2 text-text-secondary",
   };
   return (
-    <span title={title} className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[11px] font-semibold ${tones[tone]}`}>
+    <span title={title} className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2 py-0.5 text-[12px] font-semibold ${tones[tone]}`}>
       {children}
     </span>
   );
@@ -303,7 +303,7 @@ function CutsDialog({ open, onClose, cut }: { open: boolean; onClose: () => void
                   formats.includes(f.value) ? "border-primary/40 bg-primary-dim text-primary" : "border-border bg-input text-text-secondary"
                 }`}
               >
-                <input type="checkbox" checked={formats.includes(f.value)} onChange={() => toggle(f.value)} className="h-4 w-4 accent-[#44d5a4]" />
+                <input type="checkbox" checked={formats.includes(f.value)} onChange={() => toggle(f.value)} className="h-4 w-4 accent-primary" />
                 {f.label}
               </label>
             ))}

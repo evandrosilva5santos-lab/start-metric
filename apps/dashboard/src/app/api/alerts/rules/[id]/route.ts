@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { updateRule } from "@/lib/alerts/rules-store";
+import { alertIdSchema, firstIssue, ruleUpdateSchema } from "@/lib/alerts/schemas";
+import { jsonError, readJson, requireAlertsAuth } from "@/lib/alerts/server";
 
 type Context = {
   params: Promise<{ id: string }>;
@@ -7,62 +9,30 @@ type Context = {
 
 export async function PATCH(request: Request, context: Context): Promise<NextResponse> {
   const { id } = await context.params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!alertIdSchema.safeParse(id).success) return jsonError("Regra inválida.", 400);
 
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-  }
+  const auth = await requireAlertsAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  let body: Record<string, unknown>;
-  try {
-    body = (await request.json()) as Record<string, unknown>;
-  } catch {
-    return NextResponse.json({ error: "Payload inválido" }, { status: 400 });
-  }
+  const json = await readJson(request);
+  if (!json.ok) return jsonError("Payload inválido", 400);
+  const parsed = ruleUpdateSchema.safeParse(json.body);
+  if (!parsed.success) return jsonError(firstIssue(parsed.error), 422);
 
-  const payload: Record<string, unknown> = {};
-  if (typeof body.active === "boolean") payload.active = body.active;
-  if (typeof body.threshold === "number") payload.threshold = body.threshold;
-  if (typeof body.operator === "string") payload.operator = body.operator;
-  if (typeof body.metric === "string") payload.metric = body.metric;
-  if (typeof body.campaign_id === "string" || body.campaign_id === null) payload.campaign_id = body.campaign_id;
-
-  if (Object.keys(payload).length === 0) {
-    return NextResponse.json({ error: "Nada para atualizar" }, { status: 422 });
-  }
-
-  const { data, error } = await supabase
-    .from("notification_rules")
-    .update(payload)
-    .eq("id", id)
-    .select("id, org_id, campaign_id, metric, operator, threshold, channel, active, created_at, updated_at")
-    .single();
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  return NextResponse.json(data);
+  const outcome = await updateRule(auth, id, parsed.data);
+  if (!outcome.ok) return jsonError(outcome.error, outcome.status);
+  return NextResponse.json(outcome.rule);
 }
 
 export async function DELETE(_: Request, context: Context): Promise<NextResponse> {
   const { id } = await context.params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  if (!alertIdSchema.safeParse(id).success) return jsonError("Regra inválida.", 400);
 
-  if (!user) {
-    return NextResponse.json({ error: "Não autenticado" }, { status: 401 });
-  }
+  const auth = await requireAlertsAuth();
+  if (auth instanceof NextResponse) return auth;
 
-  const { error } = await supabase.from("notification_rules").delete().eq("id", id);
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
+  const { error } = await auth.supabase.from("notification_rules").delete().eq("id", id).eq("org_id", auth.orgId);
+  if (error) return jsonError("Não deu para excluir a regra.", 500);
 
   return NextResponse.json({ ok: true });
 }

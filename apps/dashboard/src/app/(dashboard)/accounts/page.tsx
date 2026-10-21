@@ -48,23 +48,23 @@ function resolveStatus(account: MetaAccount): {
 
 const STATUS_STYLES = {
   green: {
-    badge: "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20",
-    dot: "bg-emerald-400 animate-pulse",
+    badge: "bg-success-tint text-success border border-success/20",
+    dot: "bg-success animate-pulse",
     Icon: CheckCircle2,
   },
   red: {
-    badge: "bg-red-500/10 text-red-400 border border-red-500/20",
-    dot: "bg-red-400",
+    badge: "bg-danger-tint text-danger border border-danger/20",
+    dot: "bg-danger",
     Icon: XCircle,
   },
   yellow: {
-    badge: "bg-amber-500/10 text-amber-400 border border-amber-500/20",
-    dot: "bg-amber-400 animate-pulse",
+    badge: "bg-warning-tint text-warning border border-warning/20",
+    dot: "bg-warning animate-pulse",
     Icon: Clock,
   },
   gray: {
-    badge: "bg-slate-700/50 text-slate-500 border border-slate-700/50",
-    dot: "bg-slate-600",
+    badge: "bg-subtle text-fg-muted border border-border",
+    dot: "bg-border-strong",
     Icon: AlertCircle,
   },
 };
@@ -76,13 +76,13 @@ function AccountSkeleton() {
     <div className="glass rounded-2xl p-5 animate-pulse">
       <div className="flex items-start justify-between mb-4">
         <div className="space-y-2 flex-1">
-          <div className="h-4 bg-slate-800 rounded-lg w-3/5" />
-          <div className="h-3 bg-slate-800/60 rounded w-2/5" />
+          <div className="h-4 bg-subtle rounded-lg w-3/5" />
+          <div className="h-3 bg-subtle rounded w-2/5" />
         </div>
-        <div className="h-6 w-20 bg-slate-800 rounded-full ml-4" />
+        <div className="h-6 w-20 bg-subtle rounded-full ml-4" />
       </div>
-      <div className="h-3 bg-slate-800/40 rounded w-1/3 mb-5" />
-      <div className="h-9 bg-slate-800/60 rounded-xl" />
+      <div className="h-3 bg-subtle rounded w-1/3 mb-5" />
+      <div className="h-9 bg-subtle rounded-xl" />
     </div>
   );
 }
@@ -126,10 +126,10 @@ export default function AccountsPage() {
         {/* Header */}
         <header className="flex items-center gap-4 mb-10">
           <motion.div initial={{ opacity: 0, x: -16 }} animate={{ opacity: 1, x: 0 }}>
-            <p className="text-[11px] text-cyan-400/70 uppercase tracking-[0.2em] font-semibold mb-1">
+            <p className="text-[12px] text-primary uppercase tracking-[0.2em] font-semibold mb-1">
               Meta Ads
             </p>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight leading-none">
+            <h1 className="text-3xl font-extrabold text-fg tracking-tight leading-none">
               Contas de Anúncios
             </h1>
           </motion.div>
@@ -144,7 +144,7 @@ export default function AccountsPage() {
               id="btn-sync"
               onClick={() => fetchAccounts(true)}
               disabled={syncing || loading}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-400/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary-tint border border-primary/20 text-primary text-sm font-semibold hover:bg-primary-tint transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <RefreshCw size={15} className={syncing ? "animate-spin" : ""} />
               {syncing ? "Sincronizando..." : "Sincronizar"}
@@ -160,7 +160,7 @@ export default function AccountsPage() {
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
-              className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
+              className="flex items-center gap-3 mb-6 p-4 rounded-xl bg-danger-tint border border-danger/20 text-danger text-sm"
             >
               <AlertCircle size={16} className="shrink-0" />
               <span>{error}</span>
@@ -186,7 +186,7 @@ export default function AccountsPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="flex flex-col items-center justify-center py-24 text-slate-600"
+            className="flex flex-col items-center justify-center py-24 text-fg-muted"
           >
             <Wallet size={40} className="mb-4 opacity-30" />
             <p className="text-sm font-medium">Nenhuma conta encontrada.</p>
@@ -208,22 +208,22 @@ export default function AccountsPage() {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.96 }}
                     transition={{ delay: i * 0.07, type: "spring", stiffness: 260, damping: 22 }}
-                    className="glass rounded-2xl p-5 flex flex-col gap-4 hover:border-slate-600/60 transition-all duration-300 group"
+                    className="glass rounded-2xl p-5 flex flex-col gap-4 hover:border-border-strong transition-all duration-300 group"
                   >
                     {/* Card header */}
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <h3 className="text-sm font-bold text-white truncate group-hover:text-cyan-100 transition-colors">
+                        <h3 className="text-sm font-bold text-fg truncate group-hover:text-primary transition-colors">
                           {account.name}
                         </h3>
-                        <p className="text-[11px] text-slate-600 mt-0.5 font-mono">
+                        <p className="text-[12px] text-fg-muted mt-0.5 font-mono">
                           ID: {account.id}
                         </p>
                       </div>
 
                       {/* Status badge */}
                       <span
-                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider shrink-0 ${badge}`}
+                        className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[12px] font-bold uppercase tracking-wider shrink-0 ${badge}`}
                       >
                         <span className={`w-1.5 h-1.5 rounded-full ${dot}`} />
                         {status.label}
@@ -231,16 +231,16 @@ export default function AccountsPage() {
                     </div>
 
                     {/* Currency */}
-                    <div className="flex items-center gap-2 text-xs text-slate-500">
+                    <div className="flex items-center gap-2 text-xs text-fg-muted">
                       <StatusIcon size={13} />
-                      <span>Moeda: <span className="text-slate-400 font-semibold">{account.currency}</span></span>
+                      <span>Moeda: <span className="text-fg-muted font-semibold">{account.currency}</span></span>
                     </div>
 
                     {/* CTA */}
                     <button
                       id={`btn-metrics-${account.id}`}
                       onClick={() => router.push(`/insights?account_id=${account.id}`)}
-                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-slate-800/60 border border-slate-700/50 text-sm text-slate-300 font-semibold hover:bg-cyan-400/10 hover:border-cyan-400/25 hover:text-cyan-300 transition-all duration-200 mt-auto"
+                      className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-subtle border border-border text-sm text-fg font-semibold hover:bg-primary-tint hover:border-primary/25 hover:text-primary transition-all duration-200 mt-auto"
                     >
                       Ver métricas
                       <ArrowRight size={14} />

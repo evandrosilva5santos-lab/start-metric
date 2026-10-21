@@ -34,27 +34,27 @@ export function PeriodSummary({ kpis, generatedAt }: PeriodSummaryProps) {
     : "--:--:--";
 
   return (
-    <section className="glass glass-2 rounded-3xl p-6 lg:p-7 h-[380px] lg:h-[410px] flex flex-col relative overflow-hidden border-white/10 noise-overlay justify-between">
-      <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/5 blur-3xl pointer-events-none" />
+    <section className="glass glass-2 rounded-3xl p-6 lg:p-7 h-[380px] lg:h-[410px] flex flex-col relative overflow-hidden border-border noise-overlay justify-between">
+      <div className="absolute top-0 right-0 w-32 h-32 bg-primary-tint blur-3xl pointer-events-none" />
 
       <div>
-        <h2 className="text-base font-black text-white mb-1 uppercase tracking-widest flex items-center gap-2">
-          <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+        <h2 className="text-base font-black text-fg mb-1 uppercase tracking-widest flex items-center gap-2">
+          <span className="w-1.5 h-4 bg-success rounded-full" />
           Resumo de Período
         </h2>
-        <p className="text-[10px] font-bold text-slate-500 mb-6 uppercase tracking-widest">
+        <p className="text-[12px] font-bold text-fg-muted mb-6 uppercase tracking-widest">
           {"// Agregado Tático Global"}
         </p>
 
         <div className="space-y-3">
           {items.map((item) => (
             <div key={item.label} className="group/item relative">
-              <div className="flex items-center justify-between p-3 rounded-2xl hover:bg-white/5 transition-all duration-300 border border-transparent hover:border-white/10">
+              <div className="flex items-center justify-between p-3 rounded-2xl hover:bg-subtle transition-all duration-300 border border-transparent hover:border-border">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-xl bg-slate-800/50 text-slate-400 group-hover/item:text-cyan-400 transition-colors border border-white/5">
+                  <div className="p-2 rounded-xl bg-subtle text-fg-muted group-hover/item:text-primary transition-colors border border-border">
                     <item.icon size={14} />
                   </div>
-                  <span className="text-[10px] font-black uppercase text-slate-500 tracking-widest group-hover/item:text-slate-300 transition-colors">
+                  <span className="text-[12px] font-black uppercase text-fg-muted tracking-widest group-hover/item:text-fg transition-colors">
                     {item.label}
                   </span>
                 </div>
@@ -62,8 +62,8 @@ export function PeriodSummary({ kpis, generatedAt }: PeriodSummaryProps) {
                   className={cn(
                     "text-sm font-black text-mono group-hover/item:scale-105 transition-transform",
                     item.highlight
-                      ? "text-emerald-400 animate-glow-pulse"
-                      : "text-white",
+                      ? "text-success animate-glow-pulse"
+                      : "text-fg",
                   )}
                 >
                   {item.value}
@@ -74,15 +74,15 @@ export function PeriodSummary({ kpis, generatedAt }: PeriodSummaryProps) {
         </div>
       </div>
 
-      <div className="pt-4 border-t border-white/10 flex items-center justify-between relative z-10">
+      <div className="pt-4 border-t border-border flex items-center justify-between relative z-10">
         <div className="flex items-center gap-2">
-          <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping" />
-          <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+          <div className="w-1.5 h-1.5 bg-success rounded-full animate-ping" />
+          <span className="text-[12px] font-bold text-fg-muted uppercase tracking-widest">
             Telemetria Ativa
           </span>
         </div>
         <span
-          className="text-[9px] font-black text-slate-500 uppercase tracking-widest font-mono"
+          className="text-[12px] font-black text-fg-muted uppercase tracking-widest font-mono"
           suppressHydrationWarning
         >
           Atualizado: {formattedTime}

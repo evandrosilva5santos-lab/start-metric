@@ -28,8 +28,14 @@ export function statusLabel(status: string): string {
 /**
  * Formata número em moeda brasileira (BRL).
  */
+const MISSING_VALUE = "—";
+
+function isMissing(value: number | null | undefined): value is null | undefined {
+  return value === null || value === undefined || !Number.isFinite(value);
+}
+
 export function formatCurrency(value: number | null | undefined): string {
-  if (!value) return "R$ 0,00";
+  if (isMissing(value)) return MISSING_VALUE;
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",
     currency: "BRL",
@@ -42,7 +48,7 @@ export function formatCurrency(value: number | null | undefined): string {
  * Formata número com separadores de milhares.
  */
 export function formatNumber(value: number | null | undefined): string {
-  if (!value) return "0";
+  if (isMissing(value)) return MISSING_VALUE;
   return new Intl.NumberFormat("pt-BR", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,

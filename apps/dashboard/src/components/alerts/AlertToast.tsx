@@ -36,23 +36,28 @@ export function AlertToast({
 
   const severityStyles = {
     roas: {
-      border: "border-red-500/40",
-      icon: "text-red-400",
-      bg: "from-red-500/10 to-transparent",
+      border: "border-danger/40",
+      icon: "text-danger",
+      bg: "from-danger-tint to-transparent",
     },
     cpa: {
-      border: "border-amber-500/40",
-      icon: "text-amber-400",
-      bg: "from-amber-500/10 to-transparent",
+      border: "border-warning/40",
+      icon: "text-warning",
+      bg: "from-warning-tint to-transparent",
     },
     spend_no_conversion: {
-      border: "border-orange-500/40",
-      icon: "text-orange-400",
-      bg: "from-orange-500/10 to-transparent",
+      border: "border-warning/40",
+      icon: "text-warning",
+      bg: "from-warning-tint to-transparent",
     },
   };
 
-  const style = alert ? severityStyles[alert.metric] : severityStyles.roas;
+  const style =
+    alert && alert.metric in severityStyles
+      ? severityStyles[alert.metric as keyof typeof severityStyles]
+      : alert?.severity === "critical"
+        ? severityStyles.roas
+        : severityStyles.cpa;
 
   return (
     <AnimatePresence>
@@ -67,34 +72,34 @@ export function AlertToast({
         >
           {/* Barra de progresso de auto-dismiss */}
           <motion.div
-            className="absolute top-0 left-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-cyan-400 to-indigo-400"
+            className="absolute top-0 left-0 h-[2px] rounded-t-2xl bg-gradient-to-r from-primary to-primary"
             initial={{ width: "100%" }}
             animate={{ width: "0%" }}
             transition={{ duration: autoDismissMs / 1000, ease: "linear" }}
           />
 
           <div className="flex items-start gap-3">
-            <div className={`mt-0.5 p-1.5 rounded-lg bg-slate-800/60 ${style.icon}`}>
+            <div className={`mt-0.5 p-1.5 rounded-lg bg-subtle ${style.icon}`}>
               <AlertTriangle size={16} />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-white leading-tight">
+              <p className="text-sm font-bold text-fg leading-tight">
                 {alert.title}
               </p>
-              <p className="text-xs text-slate-300 mt-1 leading-relaxed line-clamp-2">
+              <p className="text-xs text-fg mt-1 leading-relaxed line-clamp-2">
                 {alert.message}
               </p>
               <div className="mt-3 flex items-center gap-2">
                 <button
                   onClick={handleMarkRead}
-                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 transition-colors font-medium"
+                  className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-primary-tint text-primary hover:bg-primary-tint transition-colors font-medium"
                 >
                   <CheckCheck size={12} />
                   Marcar lido
                 </button>
                 <button
                   onClick={handleClose}
-                  className="text-xs px-3 py-1.5 rounded-lg bg-slate-700/40 text-slate-400 hover:bg-slate-700/60 hover:text-slate-200 transition-colors"
+                  className="text-xs px-3 py-1.5 rounded-lg bg-subtle text-fg-muted hover:bg-subtle hover:text-fg transition-colors"
                 >
                   Fechar
                 </button>
@@ -102,7 +107,7 @@ export function AlertToast({
             </div>
             <button
               onClick={handleClose}
-              className="text-slate-600 hover:text-slate-300 transition-colors p-1"
+              className="text-fg-muted hover:text-fg transition-colors p-1"
               aria-label="Fechar alerta"
             >
               <X size={14} />

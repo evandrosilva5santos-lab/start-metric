@@ -33,8 +33,8 @@ function LoadError({ error }: { error: unknown }) {
 
   return (
     <div className="glass rounded-2xl p-6">
-      <h2 className="text-lg font-semibold text-white">Não deu para carregar os números</h2>
-      <p className="text-slate-400 mt-2 text-sm">Falha ao carregar dados: {message}</p>
+      <h2 className="text-lg font-semibold text-fg">Não deu para carregar os números</h2>
+      <p className="text-fg-muted mt-2 text-sm">Falha ao carregar dados: {message}</p>
     </div>
   );
 }
@@ -54,19 +54,19 @@ async function PerformanceHeader({ filters }: { filters: DashboardFilters }) {
       {/* Header */}
       <div className="flex items-center justify-between gap-4">
         <div className="space-y-1">
-          <p className="text-[11px] text-cyan-400/70 uppercase tracking-[0.2em] font-semibold">
+          <p className="text-[12px] text-primary uppercase tracking-[0.2em] font-semibold">
             Meta Ads
           </p>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight leading-none">
+          <h1 className="text-3xl font-extrabold text-fg tracking-tight leading-none">
             Performance de Campanhas
           </h1>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-fg-muted">
             {data.range.from} → {data.range.to} · TZ: {data.timezone}
           </p>
         </div>
         <Link
           href="/settings/meta"
-          className="px-4 py-2.5 rounded-xl bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-400/20 transition-all duration-200"
+          className="px-4 py-2.5 rounded-xl bg-primary-tint border border-primary/20 text-primary text-sm font-semibold hover:bg-primary-tint transition-all duration-200"
         >
           Conectar / Gerenciar Meta
         </Link>
@@ -79,13 +79,13 @@ async function PerformanceHeader({ filters }: { filters: DashboardFilters }) {
         className="glass rounded-2xl p-5 grid grid-cols-1 md:grid-cols-4 gap-4"
       >
         <div className="space-y-1">
-          <label htmlFor="perfAccountSelect" className="text-xs text-slate-500">Conta</label>
+          <label htmlFor="perfAccountSelect" className="text-xs text-fg-muted">Conta</label>
           <select
             id="perfAccountSelect"
             name="adAccountId"
             aria-label="Selecionar conta de anúncios"
             defaultValue={data.filters.adAccountId}
-            className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+            className="w-full glass rounded-xl px-3 py-2 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30"
           >
             <option value="all">Todas</option>
             {data.filterOptions.accounts.map((acc) => (
@@ -97,13 +97,13 @@ async function PerformanceHeader({ filters }: { filters: DashboardFilters }) {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="perfStatusSelect" className="text-xs text-slate-500">Status</label>
+          <label htmlFor="perfStatusSelect" className="text-xs text-fg-muted">Status</label>
           <select
             id="perfStatusSelect"
             name="campaignStatus"
             aria-label="Selecionar status da campanha"
             defaultValue={data.filters.campaignStatuses.length === 0 ? "all" : data.filters.campaignStatuses[0]}
-            className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+            className="w-full glass rounded-xl px-3 py-2 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30"
           >
             <option value="all">Todos</option>
             {data.filterOptions.statuses.map((status) => (
@@ -115,39 +115,39 @@ async function PerformanceHeader({ filters }: { filters: DashboardFilters }) {
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="perfFromDate" className="text-xs text-slate-500">De</label>
+          <label htmlFor="perfFromDate" className="text-xs text-fg-muted">De</label>
           <input
             id="perfFromDate"
             name="from"
             type="date"
             aria-label="Data de início"
             defaultValue={data.range.from}
-            className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+            className="w-full glass rounded-xl px-3 py-2 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         </div>
 
         <div className="space-y-1">
-          <label htmlFor="perfToDate" className="text-xs text-slate-500">Até</label>
+          <label htmlFor="perfToDate" className="text-xs text-fg-muted">Até</label>
           <input
             id="perfToDate"
             name="to"
             type="date"
             aria-label="Data de término"
             defaultValue={data.range.to}
-            className="w-full glass rounded-xl px-3 py-2 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30"
+            className="w-full glass rounded-xl px-3 py-2 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30"
           />
         </div>
 
         <div className="md:col-span-4 flex items-center justify-end gap-3">
           <Link
             href="/performance"
-            className="text-sm text-slate-500 hover:text-slate-200 transition-colors"
+            className="text-sm text-fg-muted hover:text-fg transition-colors"
           >
             Limpar
           </Link>
           <button
             type="submit"
-            className="px-4 py-2 rounded-xl bg-cyan-400/10 border border-cyan-400/20 text-cyan-400 text-sm font-semibold hover:bg-cyan-400/20 transition-all duration-200"
+            className="px-4 py-2 rounded-xl bg-primary-tint border border-primary/20 text-primary text-sm font-semibold hover:bg-primary-tint transition-all duration-200"
           >
             Aplicar filtros
           </button>
@@ -181,10 +181,10 @@ async function PerformanceResults({
   if (data.campaigns.length === 0) {
     return (
       <div data-perf-live className="glass rounded-2xl p-8">
-        <h2 className="text-lg font-semibold text-white">Sem dados ainda</h2>
-        <p className="text-slate-400 mt-2 text-sm">
+        <h2 className="text-lg font-semibold text-fg">Sem dados ainda</h2>
+        <p className="text-fg-muted mt-2 text-sm">
           Conecte uma conta Meta e clique em &quot;Sincronizar&quot; em{" "}
-          <Link href="/settings/meta" className="text-cyan-400 hover:text-cyan-300">
+          <Link href="/settings/meta" className="text-primary hover:text-primary">
             Integrações → Meta Ads
           </Link>
           . Depois volte aqui para ver campanhas e métricas.
@@ -216,9 +216,9 @@ function HeaderFallback() {
   return (
     <div className="space-y-8" aria-hidden="true">
       <div className="space-y-2">
-        <div className="h-3 w-20 rounded-full bg-white/5 animate-pulse" />
-        <div className="h-8 w-72 rounded-xl bg-white/5 animate-pulse" />
-        <div className="h-3 w-56 rounded-full bg-white/5 animate-pulse" />
+        <div className="h-3 w-20 rounded-full bg-subtle animate-pulse" />
+        <div className="h-8 w-72 rounded-xl bg-subtle animate-pulse" />
+        <div className="h-3 w-56 rounded-full bg-subtle animate-pulse" />
       </div>
       <div className="glass rounded-2xl h-[168px] md:h-[124px] animate-pulse" />
     </div>

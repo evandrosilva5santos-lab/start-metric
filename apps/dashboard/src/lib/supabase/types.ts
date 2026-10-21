@@ -198,48 +198,66 @@ export type Database = {
       }
       alerts: {
         Row: {
+          acknowledged_at: string | null
+          assigned_to: string | null
           campaign_id: string | null
           channel: string
           id: string
           message: string
+          metadata: Json | null
           metric: string
           observed_value: number
           operator: string
           org_id: string
           read_at: string | null
+          resolution_note: string | null
+          resolved_at: string | null
           rule_id: string | null
+          severity: string | null
           status: string
           threshold: number
           title: string
           triggered_at: string | null
         }
         Insert: {
+          acknowledged_at?: string | null
+          assigned_to?: string | null
           campaign_id?: string | null
           channel?: string
           id?: string
           message: string
+          metadata?: Json | null
           metric: string
           observed_value: number
           operator: string
           org_id: string
           read_at?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
           rule_id?: string | null
+          severity?: string | null
           status?: string
           threshold: number
           title: string
           triggered_at?: string | null
         }
         Update: {
+          acknowledged_at?: string | null
+          assigned_to?: string | null
           campaign_id?: string | null
           channel?: string
           id?: string
           message?: string
+          metadata?: Json | null
           metric?: string
           observed_value?: number
           operator?: string
           org_id?: string
           read_at?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
           rule_id?: string | null
+          severity?: string | null
           status?: string
           threshold?: number
           title?: string
@@ -343,6 +361,8 @@ export type Database = {
       }
       daily_metrics: {
         Row: {
+          action_values: Json | null
+          actions: Json | null
           campaign_id: string
           clicks: number | null
           conversions: number | null
@@ -357,6 +377,8 @@ export type Database = {
           spend: number | null
         }
         Insert: {
+          action_values?: Json | null
+          actions?: Json | null
           campaign_id: string
           clicks?: number | null
           conversions?: number | null
@@ -371,6 +393,8 @@ export type Database = {
           spend?: number | null
         }
         Update: {
+          action_values?: Json | null
+          actions?: Json | null
           campaign_id?: string
           clicks?: number | null
           conversions?: number | null
@@ -404,46 +428,69 @@ export type Database = {
       notification_rules: {
         Row: {
           active: boolean
+          ad_account_id: string | null
           campaign_id: string | null
           channel: string
+          client_id: string | null
           created_at: string | null
           id: string
           metric: string
           operator: string
           org_id: string
+          template_body: string | null
           threshold: number
           updated_at: string | null
         }
         Insert: {
           active?: boolean
+          ad_account_id?: string | null
           campaign_id?: string | null
           channel?: string
+          client_id?: string | null
           created_at?: string | null
           id?: string
           metric: string
           operator: string
           org_id: string
+          template_body?: string | null
           threshold: number
           updated_at?: string | null
         }
         Update: {
           active?: boolean
+          ad_account_id?: string | null
           campaign_id?: string | null
           channel?: string
+          client_id?: string | null
           created_at?: string | null
           id?: string
           metric?: string
           operator?: string
           org_id?: string
+          template_body?: string | null
           threshold?: number
           updated_at?: string | null
         }
         Relationships: [
           {
+            foreignKeyName: "notification_rules_ad_account_id_fkey"
+            columns: ["ad_account_id"]
+            isOneToOne: false
+            referencedRelation: "ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "notification_rules_campaign_id_fkey"
             columns: ["campaign_id"]
             isOneToOne: false
             referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_rules_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
           {
@@ -1179,9 +1226,376 @@ export type Database = {
           },
         ]
       }
+      message_templates: {
+        Row: {
+          body: string
+          channel: string | null
+          context: string
+          created_at: string
+          id: string
+          name: string
+          objective: string | null
+          org_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          body: string
+          channel?: string | null
+          context: string
+          created_at?: string
+          id?: string
+          name: string
+          objective?: string | null
+          org_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          body?: string
+          channel?: string | null
+          context?: string
+          created_at?: string
+          id?: string
+          name?: string
+          objective?: string | null
+          org_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_templates_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reports: {
+        Row: {
+          client_id: string
+          created_at: string
+          frequency: string
+          id: string
+          month_day: number | null
+          name: string
+          next_run_at: string | null
+          org_id: string
+          send_time: string
+          status: string
+          timezone: string
+          updated_at: string
+          weekday: number | null
+        }
+        Insert: {
+          client_id: string
+          created_at?: string
+          frequency?: string
+          id?: string
+          month_day?: number | null
+          name: string
+          next_run_at?: string | null
+          org_id: string
+          send_time?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          weekday?: number | null
+        }
+        Update: {
+          client_id?: string
+          created_at?: string
+          frequency?: string
+          id?: string
+          month_day?: number | null
+          name?: string
+          next_run_at?: string | null
+          org_id?: string
+          send_time?: string
+          status?: string
+          timezone?: string
+          updated_at?: string
+          weekday?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reports_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reports_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_parts: {
+        Row: {
+          ad_account_id: string | null
+          body: string
+          custom_end: string | null
+          custom_start: string | null
+          id: string
+          period: string
+          position: number
+          report_id: string
+          send_without_data: boolean
+        }
+        Insert: {
+          ad_account_id?: string | null
+          body: string
+          custom_end?: string | null
+          custom_start?: string | null
+          id?: string
+          period?: string
+          position: number
+          report_id: string
+          send_without_data?: boolean
+        }
+        Update: {
+          ad_account_id?: string | null
+          body?: string
+          custom_end?: string | null
+          custom_start?: string | null
+          id?: string
+          period?: string
+          position?: number
+          report_id?: string
+          send_without_data?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_parts_ad_account_id_fkey"
+            columns: ["ad_account_id"]
+            isOneToOne: false
+            referencedRelation: "ad_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_parts_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      report_runs: {
+        Row: {
+          approved_at: string | null
+          delivery_note: string | null
+          received_at: string | null
+          sent_at: string | null
+          sent_by: string | null
+          created_at: string
+          error_message: string | null
+          finished_at: string | null
+          id: string
+          missing_variables: string[]
+          org_id: string
+          rendered_body: string | null
+          report_id: string
+          scheduled_for: string
+          started_at: string | null
+          status: string
+        }
+        Insert: {
+          approved_at?: string | null
+          delivery_note?: string | null
+          received_at?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          missing_variables?: string[]
+          org_id: string
+          rendered_body?: string | null
+          report_id: string
+          scheduled_for: string
+          started_at?: string | null
+          status?: string
+        }
+        Update: {
+          approved_at?: string | null
+          delivery_note?: string | null
+          received_at?: string | null
+          sent_at?: string | null
+          sent_by?: string | null
+          created_at?: string
+          error_message?: string | null
+          finished_at?: string | null
+          id?: string
+          missing_variables?: string[]
+          org_id?: string
+          rendered_body?: string | null
+          report_id?: string
+          scheduled_for?: string
+          started_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "report_runs_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "report_runs_report_fkey"
+            columns: ["report_id", "org_id"]
+            isOneToOne: false
+            referencedRelation: "reports"
+            referencedColumns: ["id", "org_id"]
+          },
+        ]
+      }
+      lead_webhooks: {
+        Row: {
+          active: boolean
+          client_id: string | null
+          created_at: string
+          id: string
+          name: string
+          org_id: string
+          provider: string | null
+          template_body: string | null
+          token: string
+        }
+        Insert: {
+          active?: boolean
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          name: string
+          org_id: string
+          provider?: string | null
+          template_body?: string | null
+          token?: string
+        }
+        Update: {
+          active?: boolean
+          client_id?: string | null
+          created_at?: string
+          id?: string
+          name?: string
+          org_id?: string
+          provider?: string | null
+          template_body?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_webhooks_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_webhooks_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      leads: {
+        Row: {
+          campaign: string | null
+          client_id: string | null
+          created_at: string
+          email: string | null
+          id: string
+          name: string | null
+          org_id: string
+          payload: Json
+          phone: string | null
+          read_at: string | null
+          rendered_message: string | null
+          source: string | null
+          webhook_id: string | null
+        }
+        Insert: {
+          campaign?: string | null
+          client_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          org_id: string
+          payload?: Json
+          phone?: string | null
+          read_at?: string | null
+          rendered_message?: string | null
+          source?: string | null
+          webhook_id?: string | null
+        }
+        Update: {
+          campaign?: string | null
+          client_id?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string | null
+          org_id?: string
+          payload?: Json
+          phone?: string | null
+          read_at?: string | null
+          rendered_message?: string | null
+          source?: string | null
+          webhook_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "lead_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
-      [_ in never]: never
+      operational_ad_accounts: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          connected_at: string | null
+          currency: string | null
+          external_id: string | null
+          id: string | null
+          last_synced_at: string | null
+          name: string | null
+          org_id: string | null
+          platform: string | null
+          status: string | null
+          timezone: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       dashboard_metrics_rollup: {
@@ -1216,6 +1630,28 @@ export type Database = {
         Returns: string
       }
       get_user_org_id: { Args: never; Returns: string }
+      register_report_delivery: {
+        Args: {
+          p_note?: string | null
+          p_run_id: string
+          p_step: string
+        }
+        Returns: Database["public"]["Tables"]["report_runs"]["Row"]
+      }
+      set_client_ad_accounts: {
+        Args: {
+          p_client_id: string
+          p_confirm_reassignment?: boolean
+          p_external_ids: string[]
+          p_org_id: string
+          p_platform: string
+        }
+        Returns: {
+          linked_count: number
+          reassigned_count: number
+          unlinked_count: number
+        }[]
+      }
     }
     Enums: {
       garimpo_offer_status: "novo" | "em_analise" | "aprovado" | "descartado"

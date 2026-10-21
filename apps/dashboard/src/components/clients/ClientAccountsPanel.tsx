@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link2, Search, X } from "lucide-react";
 import { Button } from "@/components/ui";
-import { useMetaAccounts } from "@/hooks/useMetaDashboard";
 
 type CandidateAccount = {
   id: string;
@@ -16,7 +15,12 @@ type CandidateAccount = {
   clientName: string | null;
 };
 
-type CandidatesResponse = { contas?: CandidateAccount[]; error?: string; code?: string };
+type CandidatesResponse = {
+  contas?: CandidateAccount[];
+  error?: string;
+  code?: string;
+  conflicts?: string[];
+};
 
 class ApiError extends Error {
   constructor(message: string, public readonly code?: string) {
@@ -24,14 +28,24 @@ class ApiError extends Error {
   }
 }
 
-async function saveClientAccounts(clientId: string, externalIds: string[]) {
+async function saveClientAccounts(clientId: string, externalIds: string[], confirmReassignment = false) {
   const res = await fetch(`/api/clients/${clientId}/accounts`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ external_ids: externalIds }),
+    body: JSON.stringify({
+      external_ids: externalIds,
+      confirm_reassignment: confirmReassignment,
+    }),
   });
-  const json = (await res.json().catch(() => ({}))) as { error?: string };
-  if (!res.ok) throw new Error(json.error || "Não deu para salvar as contas.");
+  const json = (await res.json().catch(() => ({}))) as CandidatesResponse;
+  if (!res.ok) throw new ApiError(json.error || "Não deu para salvar as contas.", json.code);
+}
+
+async function fetchClientMetaAccounts(clientId: string, signal?: AbortSignal) {
+  const res = await fetch(`/api/clients/${clientId}/meta-accounts`, { signal });
+  const json = (await res.json().catch(() => ({}))) as CandidatesResponse;
+  if (!res.ok) throw new ApiError(json.error || "Não deu para buscar as contas.", json.code);
+  return json.contas ?? [];
 }
 
 export function ClientAccountsPanel({
@@ -44,12 +58,21 @@ export function ClientAccountsPanel({
   startOpen?: boolean;
 }) {
   const queryClient = useQueryClient();
-  const { accounts, isLoading } = useMetaAccounts();
+  const inventory = useQuery({
+    queryKey: ["client-meta-accounts", clientId],
+    queryFn: ({ signal }) => fetchClientMetaAccounts(clientId, signal),
+    retry: false,
+    staleTime: 60 * 1000,
+  });
   const [searchOpen, setSearchOpen] = useState(startOpen);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
   const [removing, setRemoving] = useState<string | null>(null);
 
-  const linked = useMemo(() => accounts.filter((a) => a.clientId === clientId), [accounts, clientId]);
+  const linked = useMemo(
+    () => (inventory.data ?? []).filter((account) => account.clientId === clientId),
+    [clientId, inventory.data],
+  );
+  const isLoading = inventory.isLoading;
 
   async function refreshAll() {
     await Promise.all([
@@ -67,7 +90,10 @@ export function ClientAccountsPanel({
         linked.filter((a) => a.id !== accountId).map((a) => a.id),
       );
       await refreshAll();
-      setMessage({ type: "success", text: "Conta solta. Ela agora aparece em “Sem cliente”." });
+      setMessage({
+        type: "success",
+        text: "Conta desvinculada. Ela saiu das telas operacionais e continua disponível na Carteira.",
+      });
     } catch (err) {
       setMessage({ type: "error", text: err instanceof Error ? err.message : "Erro ao soltar a conta." });
     } finally {
@@ -178,16 +204,15 @@ function AccountSearch({
   const [onlyFree, setOnlyFree] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [confirmReassignment, setConfirmReassignment] = useState(false);
 
+  // O pai só monta este painel quando a consulta não está carregando; refazer a busca ao montar
+  // reabria o carregamento, desmontava o painel e repetia em loop quando a API devolvia erro.
   const candidates = useQuery({
     queryKey: ["client-meta-accounts", clientId],
-    queryFn: async ({ signal }) => {
-      const res = await fetch(`/api/clients/${clientId}/meta-accounts`, { signal });
-      const json = (await res.json().catch(() => ({}))) as CandidatesResponse;
-      if (!res.ok) throw new ApiError(json.error || "Não deu para buscar as contas.", json.code);
-      return json.contas ?? [];
-    },
+    queryFn: ({ signal }) => fetchClientMetaAccounts(clientId, signal),
     retry: false,
+    retryOnMount: false,
     staleTime: 60 * 1000,
   });
 
@@ -201,6 +226,8 @@ function AccountSearch({
   }, [candidates.data, search, onlyFree, clientId]);
 
   function toggle(id: string) {
+    setConfirmReassignment(false);
+    setSaveError(null);
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
@@ -213,10 +240,15 @@ function AccountSearch({
     setSaving(true);
     setSaveError(null);
     try {
-      await saveClientAccounts(clientId, [...selected]);
+      await saveClientAccounts(clientId, [...selected], confirmReassignment);
       await onSaved(selected.size);
     } catch (err) {
-      setSaveError(err instanceof Error ? err.message : "Erro ao salvar.");
+      if (err instanceof ApiError && err.code === "reassignment_confirmation_required") {
+        setConfirmReassignment(true);
+        setSaveError("Confirme abaixo para mover as contas indicadas de outro cliente.");
+      } else {
+        setSaveError(err instanceof Error ? err.message : "Erro ao salvar.");
+      }
     } finally {
       setSaving(false);
     }
@@ -247,7 +279,7 @@ function AccountSearch({
             type="checkbox"
             checked={onlyFree}
             onChange={(e) => setOnlyFree(e.target.checked)}
-            className="h-4 w-4 accent-[#44d5a4]"
+            className="h-4 w-4 accent-primary"
           />
           Só sem cliente
         </label>
@@ -297,7 +329,7 @@ function AccountSearch({
                           type="checkbox"
                           checked={checked}
                           onChange={() => toggle(acc.id)}
-                          className="h-4 w-4 shrink-0 accent-[#44d5a4]"
+                          className="h-4 w-4 shrink-0 accent-primary"
                         />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm text-foreground" title={acc.name}>
@@ -334,6 +366,12 @@ function AccountSearch({
         </p>
       )}
 
+      {confirmReassignment && movingCount > 0 ? (
+        <p role="alert" className="mt-3 rounded-lg border border-warning/30 bg-warning-dim p-3 text-sm text-warning">
+          Esta ação moverá {movingCount} conta{movingCount === 1 ? "" : "s"} para este cliente. O vínculo anterior será substituído.
+        </p>
+      ) : null}
+
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-text-secondary">
           <span className="font-semibold tabular-nums text-foreground">{selected.size}</span> selecionadas
@@ -348,8 +386,14 @@ function AccountSearch({
           <Button variant="outline" onClick={onClose} className="h-11 flex-1 sm:flex-none">
             Cancelar
           </Button>
-          <Button onClick={() => void save()} loading={saving} disabled={!candidates.data} className="h-11 flex-1 sm:flex-none">
-            Salvar contas
+          <Button
+            onClick={() => void save()}
+            loading={saving}
+            disabled={!candidates.data}
+            variant={confirmReassignment ? "danger" : "default"}
+            className="h-11 flex-1 sm:flex-none"
+          >
+            {confirmReassignment ? "Confirmar reatribuição" : "Salvar contas"}
           </Button>
         </div>
       </div>

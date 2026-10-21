@@ -7,6 +7,7 @@ import { NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { fetchCampaigns, fetchCampaignInsights, MetaApiError } from "@/lib/meta/client";
 import { decryptToken } from "@/lib/meta/token";
+import { toDailyMetricRow, upsertDailyMetrics } from "@/lib/meta/daily-metrics";
 import type { Database } from "@/lib/supabase/types";
 
 const CRON_SECRET = process.env.CRON_SECRET;
@@ -20,19 +21,12 @@ function createServiceClient() {
   );
 }
 
+// Só o segredo: o cabeçalho x-vercel-cron pode ser forjado por qualquer um.
 function isCronAuthorized(request: Request): boolean {
-  const authHeader = request.headers.get("Authorization") ?? request.headers.get("authorization");
+  if (!CRON_SECRET) return false;
+  const authHeader = request.headers.get("authorization");
   const token = authHeader?.startsWith("Bearer ") ? authHeader.slice("Bearer ".length) : null;
-
-  // Manual trigger with a shared secret (recommended).
-  if (CRON_SECRET && token === CRON_SECRET) return true;
-
-  // Vercel Cron calls don't let us set custom headers; accept Vercel's cron marker header.
-  // Guard with VERCEL env to avoid enabling this behavior in non-Vercel environments.
-  const vercelCron = request.headers.get("x-vercel-cron");
-  if (process.env.VERCEL && vercelCron === "1") return true;
-
-  return false;
+  return token === CRON_SECRET;
 }
 
 export async function POST(request: Request) {
@@ -99,23 +93,16 @@ export async function POST(request: Request) {
       // ── Upsert das métricas com revenue real ────────────────────────
       const metricRows = insights
         .filter((ins) => idMap.has(ins.campaign_id))
-        .map((ins) => ({
-          campaign_id: idMap.get(ins.campaign_id)!,
-          org_id: account.org_id,
-          date: ins.date,
-          spend: ins.spend,
-          impressions: ins.impressions,
-          clicks: ins.clicks,
-          conversions: ins.conversions,
-          revenue_attributed: ins.revenue_attributed,
-          roas: ins.roas,
-          cpa: ins.cpa,
-        }));
+        .map((ins) => toDailyMetricRow(ins, idMap.get(ins.campaign_id)!, account.org_id));
 
       if (metricRows.length > 0) {
-        await supabase
-          .from("daily_metrics")
-          .upsert(metricRows, { onConflict: "campaign_id,date" });
+        const { error: metricsError, legacy } = await upsertDailyMetrics(supabase, metricRows);
+        if (legacy) {
+          console.warn("[cron/meta-sync] daily_metrics sem colunas actions/action_values; gravado sem conversões por tipo.");
+        }
+        if (metricsError) {
+          console.error(`[cron/meta-sync] Erro upsert daily_metrics (${account.external_id}):`, metricsError);
+        }
 
         results.synced_campaigns += metricRows.length;
       }

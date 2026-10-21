@@ -2,113 +2,156 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Zap } from "lucide-react";
 import { useSessionIdentity, type SessionIdentity } from "@/hooks/useSessionIdentity";
 import { useDiagnosticCount } from "@/hooks/useMetaDashboard";
-import { META_NAV, DISCOVER_NAV, MANAGE_NAV, isActivePath, type NavItem } from "@/components/layout/nav-items";
+import { cn } from "@/lib/utils";
+import { DIAGNOSTIC_HREF, NAV_GROUPS, activeNavHref, type NavItem } from "@/components/layout/nav-items";
+
+const ICON_STROKE = 1.75;
 
 export function BrandMark({ compact = false }: { compact?: boolean }) {
   return (
-    <Link href="/" prefetch={true} className="flex items-center gap-2.5 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-      <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-primary/30 bg-primary-dim text-primary">
-        <Zap size={16} fill="currentColor" />
-      </span>
-      <span className="flex flex-col leading-none">
-        <span className="font-display text-base font-bold tracking-tight text-foreground">Start Metric</span>
-        {!compact && (
-          <span className="mt-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-[0.08em] text-text-muted">
-            Anúncios em português
-          </span>
-        )}
-      </span>
+    <Link
+      href="/"
+      prefetch={true}
+      aria-label="Start Metric, ir para a Visão Geral"
+      className="flex min-h-8 items-center gap-2 rounded-control px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <span aria-hidden="true" className="size-[22px] shrink-0 rounded-control bg-primary" />
+      {!compact && (
+        <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.2] text-sidebar-foreground">
+          Start Metric
+        </span>
+      )}
     </Link>
   );
 }
 
-export function NavLinks({
-  items,
-  pathname,
-  diagnosticCount,
-  onNavigate,
-}: {
-  items: NavItem[];
+type NavLinksProps = {
   pathname: string;
   diagnosticCount: number;
+  layout: "responsive" | "drawer";
   onNavigate?: () => void;
-}) {
+};
+
+function countFor(item: NavItem, diagnosticCount: number): number | null {
+  return item.href === DIAGNOSTIC_HREF && diagnosticCount > 0 ? diagnosticCount : null;
+}
+
+export function NavLinks({ pathname, diagnosticCount, layout, onNavigate }: NavLinksProps) {
+  const activeHref = activeNavHref(pathname);
+  const isDrawer = layout === "drawer";
+
   return (
-    <ul className="space-y-0.5">
-      {items.map(({ icon: Icon, label, href }) => {
-        const active = isActivePath(pathname, href);
-        const badge = href === "/diagnostico" && diagnosticCount > 0 ? diagnosticCount : null;
-        return (
-          <li key={href}>
-            <Link
-              href={href}
-              prefetch={true}
-              onClick={onNavigate}
-              aria-current={active ? "page" : undefined}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
-                active
-                  ? "bg-primary-dim font-semibold text-primary"
-                  : "font-medium text-text-secondary hover:bg-surface-2 hover:text-text-primary"
-              }`}
-            >
-              <Icon size={17} className="shrink-0" />
-              <span className="truncate">{label}</span>
-              {badge !== null && (
-                <span className="ml-auto rounded-full border border-danger/30 bg-danger-dim px-2 py-0.5 text-[11px] font-bold text-danger tabular-nums">
-                  {badge}
-                  <span className="sr-only"> avisos</span>
-                </span>
-              )}
-            </Link>
-          </li>
-        );
-      })}
-    </ul>
+    <div className="flex flex-col gap-2">
+      {NAV_GROUPS.map((group, index) => (
+        <div key={group.label} className="flex flex-col gap-px">
+          <p
+            className={cn(
+              "px-2 pb-1 pt-2 text-[12px] font-medium leading-none text-muted-foreground",
+              !isDrawer && "hidden lg:block",
+            )}
+          >
+            {group.label}
+          </p>
+          {!isDrawer && index > 0 && (
+            <span aria-hidden="true" className="mx-3 my-1.5 h-px bg-sidebar-border lg:hidden" />
+          )}
+          <ul className="flex flex-col gap-px">
+            {group.items.map((item) => {
+              const active = item.href === activeHref;
+              const count = countFor(item, diagnosticCount);
+              const Icon = item.icon;
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    prefetch={true}
+                    onClick={onNavigate}
+                    aria-current={active ? "page" : undefined}
+                    title={isDrawer ? undefined : item.label}
+                    className={cn(
+                      "relative flex items-center gap-2.5 rounded-button px-2 text-[14px] leading-[1.55] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                      isDrawer ? "h-11" : "h-11 justify-center lg:h-8 lg:justify-start",
+                      active
+                        ? "bg-accent font-medium text-accent-foreground"
+                        : "text-muted-foreground hover:bg-sidebar-accent hover:text-sidebar-foreground",
+                    )}
+                  >
+                    <Icon size={18} strokeWidth={ICON_STROKE} absoluteStrokeWidth className="shrink-0" aria-hidden="true" />
+                    <span className={cn("truncate", !isDrawer && "sr-only lg:not-sr-only")}>{item.label}</span>
+                    {count !== null && (
+                      <span
+                        className={cn(
+                          "rounded-full bg-primary px-1.5 text-[12px] font-medium leading-[18px] text-primary-foreground tabular-nums",
+                          isDrawer ? "ml-auto" : "absolute right-1 top-1 lg:static lg:ml-auto",
+                        )}
+                      >
+                        {count}
+                        <span className="sr-only"> avisos no diagnóstico</span>
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </div>
   );
+}
+
+export function initialsOf(name: string | null, email: string | null): string {
+  const source = name?.trim() || email?.trim() || "";
+  if (!source) return "—";
+  const parts = source.split(/[\s@.]+/).filter(Boolean);
+  if (name && parts.length > 1) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return source[0].toUpperCase();
 }
 
 export function Sidebar({ identity }: { identity?: Promise<SessionIdentity> }) {
   const pathname = usePathname();
-  const userEmail = useSessionIdentity(identity)?.email ?? null;
+  const session = useSessionIdentity(identity);
+  const userEmail = session?.email ?? null;
+  const userName = session?.name ?? null;
   const diagnosticCount = useDiagnosticCount();
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-50 hidden w-[240px] flex-col border-r border-border bg-popover lg:flex">
-      <div className="flex h-16 items-center border-b border-border px-5">
-        <BrandMark />
+    <aside className="fixed inset-y-0 left-0 z-50 hidden w-[84px] flex-col gap-2 border-r border-sidebar-border bg-sidebar px-2 py-3.5 text-sidebar-foreground md:flex lg:w-[232px]">
+      <div className="flex justify-center pb-1.5 pt-0.5 lg:justify-start">
+        <span className="lg:hidden">
+          <BrandMark compact />
+        </span>
+        <span className="hidden lg:block">
+          <BrandMark />
+        </span>
       </div>
 
-      <nav aria-label="Menu principal" className="flex-1 space-y-6 overflow-y-auto px-3 py-5">
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Meta Ads</p>
-          <NavLinks items={META_NAV} pathname={pathname} diagnosticCount={diagnosticCount} />
-        </div>
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Descoberta</p>
-          <NavLinks items={DISCOVER_NAV} pathname={pathname} diagnosticCount={diagnosticCount} />
-        </div>
-        <div>
-          <p className="mb-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Gestão</p>
-          <NavLinks items={MANAGE_NAV} pathname={pathname} diagnosticCount={diagnosticCount} />
-        </div>
+      <nav aria-label="Menu principal" className="min-h-0 flex-1 overflow-y-auto">
+        <NavLinks pathname={pathname} diagnosticCount={diagnosticCount} layout="responsive" />
       </nav>
 
-      <div className="border-t border-border p-4">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-card p-3">
-          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-dim text-xs font-bold uppercase text-primary">
-            {userEmail?.[0] ?? "E"}
+      <Link
+        href="/settings/profile"
+        prefetch={true}
+        title={userEmail ?? undefined}
+        className="flex min-h-11 items-center justify-center gap-2.5 rounded-button border-t border-sidebar-border px-2 py-2.5 hover:bg-sidebar-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:justify-start"
+      >
+        <span
+          aria-hidden="true"
+          className="flex size-7 shrink-0 items-center justify-center rounded-full bg-accent text-[13px] font-medium text-accent-foreground"
+        >
+          {initialsOf(userName, userEmail)}
+        </span>
+        <span className="hidden min-w-0 flex-col lg:flex">
+          <span className="truncate text-[14px] font-medium leading-[1.45] text-sidebar-foreground">
+            {userName ?? "Minha conta"}
           </span>
-          <span className="min-w-0">
-            <span className="block text-[10px] font-semibold uppercase tracking-[0.14em] text-text-muted">Conta</span>
-            <span className="block truncate text-xs font-medium text-text-primary" title={userEmail ?? undefined}>
-              {userEmail ?? "admin@startmetric.com"}
-            </span>
-          </span>
-        </div>
-      </div>
+          <span className="truncate text-[12px] leading-[1.4] text-muted-foreground">{userEmail ?? "—"}</span>
+        </span>
+        <span className="sr-only lg:hidden">Meu perfil</span>
+      </Link>
     </aside>
   );
 }

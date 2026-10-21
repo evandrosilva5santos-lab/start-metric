@@ -286,3 +286,5 @@ export interface WhatsAppTemplate {
     created_at: string;
     updated_at: string;
 }
+export * from './orders';
+export * from './orders';

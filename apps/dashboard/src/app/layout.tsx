@@ -1,31 +1,31 @@
 import { Suspense } from "react";
-import { Space_Grotesk, Sora } from "next/font/google";
+import { Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { QueryProvider } from "@/components/providers/QueryProvider";
 import { TrackingBootstrap } from "@/components/tracking/TrackingBootstrap";
 import { GlobalStatusOverlay } from "@/components/layout/GlobalStatusOverlay";
+import { ThemeProvider } from "@/components/providers/ThemeProvider";
 
-const fontBody = Space_Grotesk({
+const fontSans = Inter({
   subsets: ["latin"],
-  variable: "--font-space-grotesk",
+  variable: "--font-inter",
   display: "swap",
 });
 
-const fontDisplay = Sora({
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-sora",
-  weight: ["400", "600", "700", "800"],
+  variable: "--font-jetbrains-mono",
   display: "swap",
 });
-
-import type { Metadata, Viewport } from "next";
 
 export const viewport: Viewport = {
-  themeColor: "#030712",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#171717" },
+  ],
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
   viewportFit: "cover",
 };
 
@@ -37,7 +37,7 @@ export const metadata: Metadata = {
   manifest: "/manifest.webmanifest",
   appleWebApp: {
     capable: true,
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default",
     title: "Start Metric",
   },
   icons: {
@@ -58,15 +58,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className={`dark ${fontBody.variable} ${fontDisplay.variable}`}>
-      <body className="font-body antialiased bg-grid selection:bg-primary/25 selection:text-white">
-        <QueryProvider>
-          <GlobalStatusOverlay />
-          <Suspense fallback={null}>
-            <TrackingBootstrap />
-          </Suspense>
-          {children}
-        </QueryProvider>
+    <html lang="pt-BR" suppressHydrationWarning className={`${fontSans.variable} ${fontMono.variable}`}>
+      <body className="bg-background font-body text-foreground antialiased">
+        <ThemeProvider>
+          <QueryProvider>
+            <GlobalStatusOverlay />
+            <Suspense fallback={null}>
+              <TrackingBootstrap />
+            </Suspense>
+            {children}
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

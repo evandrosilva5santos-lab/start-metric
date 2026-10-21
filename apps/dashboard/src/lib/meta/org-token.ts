@@ -7,6 +7,9 @@ import { fetchAdAccounts, type MetaAdAccountSummary } from "@/lib/meta/client";
 
 type DbClient = SupabaseClient<Database>;
 
+// Versões antigas gravavam este marcador no lugar de um token real quando caíam no token do servidor.
+const LEGACY_ENV_TOKEN_MARKER = "env_token";
+
 export type OrgMetaToken = {
   token: string;
   tokenEncrypted: string;
@@ -25,29 +28,17 @@ export async function getOrgMetaToken(supabase: DbClient, orgId: string): Promis
     .eq("platform", "meta")
     .eq("status", "active")
     .not("token_encrypted", "is", null)
+    .neq("token_encrypted", LEGACY_ENV_TOKEN_MARKER)
     .order("connected_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
-  const envToken =
-    process.env.META_TOKEN ||
-    process.env.META_SYSTEM_TOKEN ||
-    process.env.META_USER_TOKEN;
-
-  if (!data?.token_encrypted) {
-    if (envToken) {
-      return { token: envToken, tokenEncrypted: "env_token", tokenExpiresAt: null };
-    }
-    return null;
-  }
+  if (!data?.token_encrypted) return null;
   try {
     const token = await decryptToken(data.token_encrypted, supabase);
     return { token, tokenEncrypted: data.token_encrypted, tokenExpiresAt: data.token_expires_at ?? null };
   } catch (err) {
     console.error("[meta/org-token] Falha ao abrir o token da organização:", err);
-    if (envToken) {
-      return { token: envToken, tokenEncrypted: "env_token", tokenExpiresAt: null };
-    }
     return null;
   }
 }

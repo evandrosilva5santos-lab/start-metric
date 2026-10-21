@@ -1,4 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/lib/supabase/types";
+import { listOperationalAccounts } from "@/lib/accounts/operational";
 
 export interface RenderResult {
   rendered: string;
@@ -136,7 +138,7 @@ interface BuildVariablesOptions {
 }
 
 export async function buildVariables(
-  supabase: SupabaseClient,
+  supabase: SupabaseClient<Database>,
   { orgId, clientId, dateRange }: BuildVariablesOptions,
 ): Promise<Partial<TemplateVariables>> {
   const { data: client } = await supabase
@@ -146,13 +148,10 @@ export async function buildVariables(
     .eq("org_id", orgId)
     .single();
 
-  const { data: adAccounts } = await supabase
-    .from("ad_accounts")
-    .select("id")
-    .eq("org_id", orgId)
-    .eq("client_id", clientId);
-
-  const accountIds = adAccounts?.map((a) => a.id) ?? [];
+  const inventory = await listOperationalAccounts(supabase, orgId);
+  const accountIds = inventory.accounts
+    .filter((account) => account.client_id === clientId)
+    .map((account) => account.id);
 
   if (accountIds.length === 0) {
     return {

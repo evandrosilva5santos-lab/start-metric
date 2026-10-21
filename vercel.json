@@ -15,6 +15,10 @@
     {
       "path": "/api/cron/garimpo-watch",
       "schedule": "30 4 * * *"
+    },
+    {
+      "path": "/api/cron/reports-dispatch",
+      "schedule": "0 11 * * *"
     }
   ]
 }

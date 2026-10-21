@@ -1,66 +1,41 @@
-# AGENTS.md - Synkra AIOX (Codex CLI)
+# AGENTS.md — Contrato Operacional Universal (ECC Powered)
 
-Este arquivo define as instrucoes do projeto para o Codex CLI.
+Este repositório opera sob o protocolo de **Orquestração Determinística Spec-First integrado à metodologia Everything Claude Code (ECC)**.
 
-<!-- AIOX-MANAGED-START: core -->
-## Core Rules
+---
 
-1. **OBRIGATÓRIO / PRIORIDADE MÁXIMA**: Toda IA DEVE ler e seguir integralmente as diretrizes em `claude-fable-5.md` (ou `.agents/rules/claude-fable-5.md`) antes de executar qualquer tarefa, planejamento ou alteração no projeto.
-2. Siga a Constitution em `.aiox-core/constitution.md`
-3. Priorize `CLI First -> Observability Second -> UI Third`
-4. Trabalhe por stories em `docs/stories/`
-5. Nao invente requisitos fora dos artefatos existentes
-<!-- AIOX-MANAGED-END: core -->
+## 1. Regra Fundamental Antes de Executar Qualquer Ação
 
-<!-- AIOX-MANAGED-START: quality -->
-## Quality Gates
+Antes de propor, planejar ou alterar qualquer linha de código, toda IA DEVE obrigatoriamente ler e respeitar:
 
-- Rode `npm run lint`
-- Rode `npm run typecheck`
-- Rode `npm test`
-- Atualize checklist e file list da story antes de concluir
-<!-- AIOX-MANAGED-END: quality -->
+1. [`PRD.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/PRD.md)
+2. [`docs/PROJECT_MAP.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/PROJECT_MAP.md)
+3. [`docs/ARCHITECTURE.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/ARCHITECTURE.md)
+4. [`docs/DESIGN.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/DESIGN.md)
+5. [`docs/RULES.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/RULES.md)
+6. [`docs/DECISIONS.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/DECISIONS.md)
+7. [`docs/ECC_INTEGRATION.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/ECC_INTEGRATION.md)
+8. [`execution/EXECUTION_RULES.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/execution/EXECUTION_RULES.md)
+9. [`execution/CURRENT_TASK.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/execution/CURRENT_TASK.md)
+10. [`state/STATUS.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/state/STATUS.md)
+11. [`state/HANDOFF.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/state/HANDOFF.md)
 
-<!-- AIOX-MANAGED-START: codebase -->
-## Project Map
+---
 
-- Core framework: `.aiox-core/`
-- CLI entrypoints: `bin/`
-- Shared packages: `packages/`
-- Tests: `tests/`
-- Docs: `docs/`
-<!-- AIOX-MANAGED-END: codebase -->
+## 2. Ciclo de Engenharia ECC para Cada Nano Task
 
-<!-- AIOX-MANAGED-START: commands -->
-## Common Commands
+Toda Nano Task executada deve obedecer ao ciclo canônico:
 
-- `npm run sync:ide`
-- `npm run sync:ide:check`
-- `npm run sync:skills:codex`
-- `npm run sync:skills:codex:global` (opcional; neste repo o padrao e local-first)
-- `npm run validate:structure`
-- `npm run validate:agents`
-<!-- AIOX-MANAGED-END: commands -->
+```text
+PLAN ➔ RESEARCH ➔ TEST (TDD) ➔ IMPLEMENT ➔ REVIEW ➔ VERIFY ➔ DOCUMENT ➔ MEMORY ➔ HANDOFF
+```
 
-<!-- AIOX-MANAGED-START: shortcuts -->
-## Agent Shortcuts
-
-Preferencia de ativacao no Codex CLI:
-1. Use `/skills` e selecione `aiox-<agent-id>` vindo de `.codex/skills` (ex.: `aiox-architect`)
-2. Se preferir, use os atalhos abaixo (`@architect`, `/architect`, etc.)
-
-Interprete os atalhos abaixo carregando o arquivo correspondente em `.aiox-core/development/agents/` (fallback: `.codex/agents/`), renderize o greeting via `generate-greeting.js` e assuma a persona ate `*exit`:
-
-- `@architect`, `/architect`, `/architect.md` -> `.aiox-core/development/agents/architect.md`
-- `@dev`, `/dev`, `/dev.md` -> `.aiox-core/development/agents/dev.md`
-- `@qa`, `/qa`, `/qa.md` -> `.aiox-core/development/agents/qa.md`
-- `@pm`, `/pm`, `/pm.md` -> `.aiox-core/development/agents/pm.md`
-- `@po`, `/po`, `/po.md` -> `.aiox-core/development/agents/po.md`
-- `@sm`, `/sm`, `/sm.md` -> `.aiox-core/development/agents/sm.md`
-- `@analyst`, `/analyst`, `/analyst.md` -> `.aiox-core/development/agents/analyst.md`
-- `@devops`, `/devops`, `/devops.md` -> `.aiox-core/development/agents/devops.md`
-- `@data-engineer`, `/data-engineer`, `/data-engineer.md` -> `.aiox-core/development/agents/data-engineer.md`
-- `@ux-design-expert`, `/ux-design-expert`, `/ux-design-expert.md` -> `.aiox-core/development/agents/ux-design-expert.md`
-- `@squad-creator`, `/squad-creator`, `/squad-creator.md` -> `.aiox-core/development/agents/squad-creator.md`
-- `@aiox-master`, `/aiox-master`, `/aiox-master.md` -> `.aiox-core/development/agents/aiox-master.md`
-<!-- AIOX-MANAGED-END: shortcuts -->
+1. **Apenas Uma Nano Task:** Execute exclusivamente a Nano Task autorizada em [`execution/CURRENT_TASK.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/execution/CURRENT_TASK.md).
+2. **Research-First:** Investigue padrões e tipos existentes em `@start-metric/*` antes de implementar para evitar redundâncias.
+3. **Respeito a Arquivos Permitidos:** Nunca altere arquivos listados em `FORBIDDEN FILES`.
+4. **Verificação em 3 Níveis:**
+   - *Level 1:* Teste local / unitário.
+   - *Level 2:* Integração e `npm run typecheck` sem erros.
+   - *Level 3:* Conformidade com o critério de aceite do PRD.
+5. **Memória Persistente & Handoff:** Atualize [`state/CHANGELOG.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/state/CHANGELOG.md), [`execution/TASK_QUEUE.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/execution/TASK_QUEUE.md) e gere o próximo [`state/HANDOFF.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/state/HANDOFF.md).
+6. **Dúvida / Conflito / Bloqueio:** Pare imediatamente e registre em [`docs/PRD_ISSUES.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/docs/PRD_ISSUES.md) ou [`state/BLOCKERS.md`](file:///Volumes/Vol%20Macbook/App/TRAFEGO%20PAGO/state/BLOCKERS.md).

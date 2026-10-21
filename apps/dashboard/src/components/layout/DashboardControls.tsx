@@ -3,19 +3,21 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, RefreshCw } from "lucide-react";
 import { clientOf, useMetaAccounts, useMetaDados } from "@/hooks/useMetaDashboard";
+import { AccountCombobox } from "@/components/shared/AccountCombobox";
 import {
   LIVE_OPTIONS,
   RANGE_OPTIONS,
   useDashboardFilters,
+  type AdsPlatform,
   type LiveInterval,
   type RangeValue,
 } from "@/store/dashboard-filters";
 
 const selectClass =
-  "h-9 rounded-lg border border-border bg-input px-3 text-sm font-medium text-text-primary outline-none transition-colors hover:border-white-hairline-strong focus-visible:ring-2 focus-visible:ring-ring cursor-pointer";
+  "h-11 cursor-pointer rounded-md border border-border-strong bg-surface px-2.5 text-[16px] text-fg outline-none transition-colors hover:bg-subtle focus-visible:ring-2 focus-visible:ring-ring md:text-[13px] lg:h-8";
 
 const iconButtonClass =
-  "h-9 w-9 shrink-0 flex items-center justify-center rounded-lg border border-border bg-input text-text-secondary transition-colors hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50";
+  "flex size-11 shrink-0 items-center justify-center rounded-md border border-border-strong bg-surface text-fg-muted transition-colors hover:bg-subtle hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 lg:size-8";
 
 function useOnlineStatus() {
   const [online, setOnline] = useState(() => (typeof navigator !== "undefined" ? navigator.onLine : true));
@@ -41,12 +43,27 @@ function formatExactTime(updatedAt: number): string {
   });
 }
 
+export type ControlsStatus = {
+  isFetching: boolean;
+  isError: boolean;
+  updatedAt: number;
+  canRefresh: boolean;
+  refresh: () => void;
+  fetchingTitle: string;
+  refreshLabel: string;
+};
+
+export type ScopeChange = { clientId: string; accountId: string; range: string };
+
+export const ALL_ACCOUNTS = "all";
+
 function LiveBadge({
   live,
   isError,
   isFetching,
   updatedAt,
   isOnline,
+  fetchingTitle,
   onRefresh,
 }: {
   live: boolean;
@@ -54,6 +71,7 @@ function LiveBadge({
   isFetching: boolean;
   updatedAt: number;
   isOnline: boolean;
+  fetchingTitle: string;
   onRefresh: () => void;
 }) {
   const time = formatExactTime(updatedAt);
@@ -64,131 +82,171 @@ function LiveBadge({
       <div
         role="status"
         aria-live="polite"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/20 bg-primary-dim/30 px-2.5 py-1 text-xs font-medium text-primary tabular-nums"
-        title="Buscando dados frescos com a Meta…"
+        className="inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-full bg-primary-tint px-2 text-[12px] font-medium text-primary tabular-nums"
+        title={fetchingTitle}
       >
-        <span className="h-2 w-2 rounded-full bg-primary animate-pulse" />
+        <span className="h-1.5 w-1.5 rounded-full bg-primary animate-pulse" />
         <span>Atualizando…</span>
       </div>
     );
   }
 
-  // Falha de rede ou sem conexão: esfria suavemente mantendo os dados na tela (sem alarme vermelho)
   if (isCooledDown) {
     return (
       <button
         type="button"
         onClick={onRefresh}
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border/70 bg-surface-2/60 px-2.5 py-1 text-xs font-medium text-text-secondary tabular-nums transition-colors hover:border-white-hairline-strong hover:text-text-primary"
+        className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full bg-warning-tint px-2 text-[12px] font-medium text-warning tabular-nums transition-colors hover:brightness-95 lg:min-h-[22px]"
         title={
           time
             ? `Conexão oscilando. Dados de ${time} preservados na tela. Toque para tentar agora.`
             : "Aguardando sinal de rede. Toque para tentar."
         }
       >
-        <span className="h-2 w-2 rounded-full bg-amber-400/80 transition-colors" aria-hidden="true" />
+        <span className="h-1.5 w-1.5 rounded-full bg-warning" aria-hidden="true" />
         <span>{time ? `Pausado · dados de ${time}` : "Aguardando rede"}</span>
       </button>
     );
   }
 
-  // Ao vivo ativo e com resposta da Meta
   if (live) {
     return (
       <div
         role="status"
         aria-live="polite"
-        className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-primary/30 bg-primary-dim/40 px-2.5 py-1 text-xs font-semibold text-primary tabular-nums transition-all"
+        className="inline-flex h-[22px] shrink-0 items-center gap-1.5 rounded-full bg-success-tint px-2 text-[12px] font-medium text-success tabular-nums"
         title="Ao vivo · atualiza automaticamente enquanto a tela estiver visível"
       >
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75 motion-reduce:hidden" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
+        <span className="relative flex h-1.5 w-1.5">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-success opacity-75 motion-reduce:hidden" />
+          <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-success" />
         </span>
         <span>{time ? `Ao vivo · ${time}` : "Ao vivo"}</span>
       </div>
     );
   }
 
-  // Atualização manual
   return (
     <button
       type="button"
       onClick={onRefresh}
-      className="inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-border bg-input px-2.5 py-1 text-xs font-medium text-text-muted tabular-nums hover:text-text-primary transition-colors"
+      className="inline-flex min-h-11 shrink-0 items-center gap-1.5 rounded-full border border-border bg-subtle px-2 text-[12px] font-medium text-fg-muted tabular-nums transition-colors hover:text-fg lg:min-h-[22px]"
       title="Atualização manual. Toque para buscar agora."
     >
-      <span className="h-2 w-2 rounded-full bg-text-muted" aria-hidden="true" />
+      <span className="h-1.5 w-1.5 rounded-full bg-fg-muted" aria-hidden="true" />
       <span>{time ? `Atualizado às ${time}` : "Manual"}</span>
     </button>
   );
 }
 
-/** Conta, período, modo ao vivo, atualizar e ocultar valores: valem para todas as telas da Meta. */
-export function DashboardControls() {
+type DashboardControlsProps = {
+  status: ControlsStatus;
+  allAccountsLabel?: string;
+  accountValue?: string;
+  rangeValue?: string;
+  customRangeLabel?: string | null;
+  onScopeChange?: (change: ScopeChange) => void;
+};
+
+export function DashboardControls({
+  status,
+  allAccountsLabel,
+  accountValue,
+  rangeValue,
+  customRangeLabel,
+  onScopeChange,
+}: DashboardControlsProps) {
   const { accounts, clients, clientAccounts, isLoading: accountsLoading } = useMetaAccounts();
-  const dados = useMetaDados();
   const clientId = useDashboardFilters((s) => s.clientId);
-  const setClientId = useDashboardFilters((s) => s.setClientId);
+  const platform = useDashboardFilters((s) => s.platform);
   const accountId = useDashboardFilters((s) => s.accountId);
   const range = useDashboardFilters((s) => s.range);
   const liveInterval = useDashboardFilters((s) => s.liveInterval);
   const hideValues = useDashboardFilters((s) => s.hideValues);
-  const setAccountId = useDashboardFilters((s) => s.setAccountId);
+  const setOperationalScope = useDashboardFilters((s) => s.setOperationalScope);
   const setRange = useDashboardFilters((s) => s.setRange);
   const setLiveInterval = useDashboardFilters((s) => s.setLiveInterval);
   const toggleHideValues = useDashboardFilters((s) => s.toggleHideValues);
   const isOnline = useOnlineStatus();
+  const offersAll = Boolean(allAccountsLabel);
+  const shownRange = rangeValue ?? range;
 
-  const selectedAccount = accounts.find((a) => a.id === accountId);
-  const selectedClient = clients.find((c) => c.id === clientId);
+  function firstAccountOf(nextClientId: string, nextPlatform: AdsPlatform) {
+    return accounts.find(
+      (account) => account.clientId === nextClientId && account.platform === nextPlatform && account.isActive,
+    );
+  }
 
   function chooseClient(nextClientId: string) {
-    setClientId(nextClientId);
-    const pool = accounts.filter((a) => clientOf(a) === nextClientId);
-    const next = pool.find((a) => a.isActive) ?? pool[0];
-    if (next) setAccountId(next.id);
+    const next = firstAccountOf(nextClientId, platform);
+    setOperationalScope({ clientId: nextClientId, platform, accountId: next?.id ?? "" });
+    onScopeChange?.({ clientId: nextClientId, accountId: offersAll ? ALL_ACCOUNTS : (next?.id ?? ""), range: shownRange });
   }
+
+  function choosePlatform(nextPlatform: AdsPlatform) {
+    const next = firstAccountOf(clientId, nextPlatform);
+    setOperationalScope({ clientId, platform: nextPlatform, accountId: next?.id ?? "" });
+  }
+
+  function chooseAccount(nextAccountId: string) {
+    if (nextAccountId !== ALL_ACCOUNTS) setOperationalScope({ clientId, platform, accountId: nextAccountId });
+    onScopeChange?.({ clientId, accountId: nextAccountId, range: shownRange });
+  }
+
+  function chooseRange(nextRange: RangeValue) {
+    setRange(nextRange);
+    onScopeChange?.({ clientId, accountId: accountValue ?? accountId, range: nextRange });
+  }
+
   const live = liveInterval > 0;
+  const accountItems = clientAccounts.map((account) => ({
+    id: account.id,
+    label: account.name,
+    description: account.id,
+  }));
 
   return (
     <div className="flex min-w-0 flex-wrap items-center gap-2">
-      <select
+      <AccountCombobox
+        label="Cliente"
         value={clientId}
-        onChange={(e) => chooseClient(e.target.value)}
-        aria-label="Cliente"
-        title={selectedClient?.name}
+        onValueChange={chooseClient}
+        items={clients.map((client) => ({
+          id: client.id,
+          label: client.name,
+          description: `${accounts.filter((account) => clientOf(account) === client.id).length} conta(s)`,
+        }))}
+        placeholder={accountsLoading ? "Carregando…" : "Selecione o cliente"}
+        searchPlaceholder="Buscar cliente…"
+        emptyText="Nenhum cliente com conta autorizada."
         disabled={accountsLoading || clients.length === 0}
-        className={`${selectClass} min-w-0 max-w-[180px] truncate`}
-      >
-        {clients.length === 0 && <option value="">{accountsLoading ? "Carregando…" : "Nenhum cliente"}</option>}
-        {clients.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.name} ({accounts.filter((a) => clientOf(a) === c.id).length})
-          </option>
-        ))}
-      </select>
+        className="w-[min(12rem,44vw)]"
+      />
 
       <select
-        value={accountId}
-        onChange={(e) => setAccountId(e.target.value)}
-        aria-label="Conta de anúncios"
-        title={selectedAccount?.name}
-        disabled={accountsLoading || clientAccounts.length === 0}
-        className={`${selectClass} min-w-0 max-w-[220px] truncate`}
+        value={platform}
+        onChange={(event) => choosePlatform(event.target.value as AdsPlatform)}
+        aria-label="Plataforma de anúncios"
+        className={`${selectClass} min-w-[104px]`}
       >
-        {clientAccounts.length === 0 && <option value="">{accountsLoading ? "Carregando contas…" : "Nenhuma conta"}</option>}
-        {clientAccounts.map((acc) => (
-          <option key={acc.id} value={acc.id}>
-            {acc.isActive ? "" : "○ "}
-            {acc.name}
-          </option>
-        ))}
+        <option value="meta">Meta Ads</option>
       </select>
 
+      <AccountCombobox
+        label="Conta de anúncios"
+        value={accountValue ?? accountId}
+        onValueChange={chooseAccount}
+        items={offersAll ? [{ id: ALL_ACCOUNTS, label: allAccountsLabel ?? "" }, ...accountItems] : accountItems}
+        placeholder={accountsLoading ? "Carregando contas…" : "Selecione a conta"}
+        searchPlaceholder="Buscar conta por nome ou ID…"
+        emptyText="Este cliente não possui conta autorizada."
+        disabled={accountsLoading || !clientId || clientAccounts.length === 0}
+        className="w-[min(14rem,50vw)]"
+      />
+
       <select
-        value={range}
-        onChange={(e) => setRange(e.target.value as RangeValue)}
+        value={shownRange}
+        onChange={(e) => chooseRange(e.target.value as RangeValue)}
         aria-label="Período"
         className={selectClass}
       >
@@ -197,20 +255,21 @@ export function DashboardControls() {
             {opt.label}
           </option>
         ))}
+        {customRangeLabel && <option value={shownRange}>{customRangeLabel}</option>}
       </select>
 
       <label className="relative flex shrink-0 items-center">
         <span
           aria-hidden="true"
-          className={`pointer-events-none absolute left-3 h-2 w-2 rounded-full ${
-            live ? "bg-primary" : "bg-text-muted"
+          className={`pointer-events-none absolute left-2.5 h-1.5 w-1.5 rounded-full ${
+            live ? "bg-success" : "bg-fg-muted"
           }`}
         />
         <span className="sr-only">Frequência de atualização</span>
         <select
           value={liveInterval}
           onChange={(e) => setLiveInterval(Number(e.target.value) as LiveInterval)}
-          className={`${selectClass} pl-7`}
+          className={`${selectClass} pl-6`}
         >
           {LIVE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -220,25 +279,25 @@ export function DashboardControls() {
         </select>
       </label>
 
-      {/* Selo de "Ao vivo" com hora exata e esfriamento gracioso */}
       <LiveBadge
         live={live}
-        isError={dados.isError}
-        isFetching={dados.isFetching}
-        updatedAt={dados.dataUpdatedAt}
+        isError={status.isError}
+        isFetching={status.isFetching}
+        updatedAt={status.updatedAt}
         isOnline={isOnline}
-        onRefresh={() => void dados.refresh()}
+        fetchingTitle={status.fetchingTitle}
+        onRefresh={status.refresh}
       />
 
       <button
         type="button"
-        onClick={() => void dados.refresh()}
-        disabled={!dados.hasAccount || dados.isFetching}
-        aria-label="Atualizar dados da Meta agora"
+        onClick={status.refresh}
+        disabled={!status.canRefresh || status.isFetching}
+        aria-label={status.refreshLabel}
         title="Atualizar agora"
         className={iconButtonClass}
       >
-        <RefreshCw size={15} className={dados.isFetching ? "animate-spin text-primary" : ""} />
+        <RefreshCw size={15} className={status.isFetching ? "animate-spin text-primary" : ""} />
       </button>
 
       <button
@@ -252,5 +311,22 @@ export function DashboardControls() {
         {hideValues ? <EyeOff size={15} /> : <Eye size={15} />}
       </button>
     </div>
+  );
+}
+
+export function MetaDashboardControls() {
+  const dados = useMetaDados();
+  return (
+    <DashboardControls
+      status={{
+        isFetching: dados.isFetching,
+        isError: dados.isError,
+        updatedAt: dados.dataUpdatedAt,
+        canRefresh: dados.hasAccount,
+        refresh: () => void dados.refresh(),
+        fetchingTitle: "Buscando dados frescos com a Meta…",
+        refreshLabel: "Atualizar dados da Meta agora",
+      }}
+    />
   );
 }

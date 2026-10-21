@@ -79,11 +79,11 @@ export function ClientCard({
 
       <dl className="grid grid-cols-2 border-t border-border text-sm">
         <div className="border-r border-border px-4 py-3">
-          <dt className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">Contas</dt>
+          <dt className="text-[12px] font-medium text-fg-muted">Contas</dt>
           <dd className="mt-0.5 text-lg font-semibold tabular-nums text-foreground">{client.accounts_count}</dd>
         </div>
         <div className="min-w-0 px-4 py-3">
-          <dt className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">WhatsApp</dt>
+          <dt className="text-[12px] font-medium text-fg-muted">WhatsApp</dt>
           <dd className="mt-0.5 flex items-center gap-1.5 truncate tabular-nums text-text-primary">
             <MessageCircle size={13} className={client.whatsapp_connected ? "text-primary" : "text-text-muted"} />
             {client.whatsapp ? formatWhatsapp(client.whatsapp) : "—"}

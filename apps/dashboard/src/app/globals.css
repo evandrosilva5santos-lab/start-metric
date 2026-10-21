@@ -1,93 +1,287 @@
 @import "tailwindcss" source(none);
+@import "tw-animate-css";
+@import "./compat.css";
 @source "../../src";
 @source "../../../../packages";
 
-@theme {
-  /* --- START METRIC · TEMA ADZ --- */
-  --font-body: var(--font-space-grotesk), "Space Grotesk", "Inter", "Segoe UI", sans-serif;
-  --font-display: var(--font-sora), "Sora", "Space Grotesk", "Inter", sans-serif;
-  --font-quote: Georgia, "Times New Roman", serif;
+@custom-variant dark (&:is(.dark *));
 
-  /* Fundo e texto */
-  --color-background: #080a09;
-  --color-foreground: #eaefee;
+/* START METRIC · Metrifiquei Teal — docs/DESIGN.md §2 */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --card: #ffffff;
+  --card-foreground: #171717;
+  --popover: #ffffff;
+  --popover-foreground: #171717;
+  --primary: #007d7c;
+  --primary-hover: #006f6e;
+  --primary-foreground: #ffffff;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #666666;
+  --accent: #e7f6f5;
+  --accent-foreground: #006f6e;
+  --destructive: #c1121f;
+  --border: #e5e5e5;
+  --input: #dedede;
+  --ring: #007d7c;
+  --sidebar: #fafafa;
+  --sidebar-foreground: #171717;
+  --sidebar-accent: #eeeeee;
+  --sidebar-border: #e5e5e5;
+  --success: #2f7d32;
+  --warning: #9a6700;
 
-  /* Cards e camadas flutuantes */
-  --color-card: #0f1413;
-  --color-card-foreground: #eaefee;
-  --color-popover: #0b100e;
-  --color-popover-foreground: #eaefee;
+  --destructive-foreground: #ffffff;
+  --success-tint: #e8f5e9;
+  --success-fg: #ffffff;
+  --warning-tint: #fff4d6;
+  --danger-tint: #fce8ea;
+  --danger-fg: #ffffff;
+  --client: #6d4ed8;
+  --client-tint: #f0ecfd;
 
-  /* Superfícies */
-  --color-surface-1: #0f1413;
-  --color-surface-2: #131816;
-  --color-surface-border: #141917;
+  --chart-1: #007d7c;
+  --chart-2: #c56a12;
+  --chart-3: #6857c8;
+  --chart-4: #2f6fad;
+  --chart-5: #b53a6d;
+  --chart-grid: #e5e5e5;
+  --chart-axis: #666666;
 
-  /* Destaque único: o verde do ADZ */
-  --color-primary: #44d5a4;
-  --color-primary-foreground: #04140e;
-  --color-primary-dim: #0d251d;
-  --color-primary-strong: #122a22;
-  --color-primary-bright: #42e6af;
-  --color-primary-glow: rgba(68, 213, 164, 0);
+  --shadow-value: 0 1px 3px rgb(0 0 0 / 0.08);
+  --radius: 0.75rem;
 
-  /* Secundária */
-  --color-secondary: #131816;
-  --color-secondary-foreground: #d6dbd9;
+  color-scheme: light;
+}
 
-  /* Muted e desabilitado */
-  --color-muted: #0f1413;
-  --color-muted-foreground: #9ba09e;
+/* docs/DESIGN.md §2.2 */
+.dark {
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #171717;
+  --card-foreground: #fafafa;
+  --popover: #171717;
+  --popover-foreground: #fafafa;
+  --primary: #50cdcb;
+  --primary-hover: #69d8d6;
+  --primary-foreground: #0a0a0a;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #b0b0b0;
+  --accent: #173d3c;
+  --accent-foreground: #8ce3e1;
+  --destructive: #ff7376;
+  --border: #3c3c3c;
+  --input: #3c3c3c;
+  --ring: #50cdcb;
+  --sidebar: #171717;
+  --sidebar-foreground: #fafafa;
+  --sidebar-accent: #262626;
+  --sidebar-border: #3c3c3c;
+  --success: #6ccf72;
+  --warning: #efb323;
 
-  /* Accent */
-  --color-accent: #122a22;
-  --color-accent-foreground: #44d5a4;
+  --destructive-foreground: #0a0a0a;
+  --success-tint: #173a1b;
+  --success-fg: #0a0a0a;
+  --warning-tint: #3b2e0d;
+  --danger-tint: #461b1d;
+  --danger-fg: #0a0a0a;
+  --client: #a58bfa;
+  --client-tint: #251c45;
 
-  /* ROI: no ADZ é o mesmo verde de primary, de propósito */
-  --color-roi: #44d5a4;
-  --color-roi-foreground: #04140e;
-  --color-roi-dim: #122a22;
-  --color-roi-glow: rgba(68, 213, 164, 0);
+  --chart-1: #50cdcb;
+  --chart-2: #f0a75a;
+  --chart-3: #a596ff;
+  --chart-4: #72aee6;
+  --chart-5: #ed78a6;
+  --chart-grid: #3c3c3c;
+  --chart-axis: #b0b0b0;
 
-  /* Atenção */
-  --color-warning: #e7ac49;
-  --color-warning-dim: #2a2011;
+  --shadow-value: 0 1px 3px rgb(0 0 0 / 0.5);
 
-  /* Erro e prejuízo */
-  --color-destructive: #d27c75;
-  --color-destructive-foreground: #ffffff;
-  --color-danger: #d27c75;
-  --color-danger-dim: #2a1615;
+  color-scheme: dark;
+}
 
-  /* Bordas, inputs e foco */
-  --color-border: #1c1f1e;
-  --color-input: #131816;
-  --color-ring: #44d5a4;
-  --color-white-hairline: #141917;
-  --color-white-hairline-strong: #1c1f1e;
+/* Aliases do vocabulário anterior, todos resolvidos para tokens Teal (DESIGN.md §10). */
+:root,
+.dark {
+  --danger: var(--destructive);
+  --agency: var(--primary);
+  --agency-tint: var(--accent);
+  --brand-from: var(--primary);
+  --brand-to: var(--primary);
+  --navy-900: var(--foreground);
+  --blue-700: var(--primary);
+  --blue-500: var(--primary-hover);
+  --sky-300: var(--primary);
+  --bg: var(--background);
+  --bg-subtle: var(--muted);
+  --surface: var(--card);
+  --fg: var(--foreground);
+  --fg-muted: var(--muted-foreground);
+  --fg-faint: var(--muted-foreground);
+  --border-strong: var(--input);
+  --primary-fg: var(--primary-foreground);
+  --primary-tint: var(--accent);
+  --sidebar-primary: var(--primary);
+  --sidebar-primary-foreground: var(--primary-foreground);
+  --sidebar-accent-foreground: var(--sidebar-foreground);
+  --sidebar-ring: var(--ring);
+  --sidebar-fg: var(--sidebar-foreground);
+  --sidebar-muted: var(--muted-foreground);
+  --sidebar-active: var(--sidebar-accent);
+  --sidebar-strong: var(--sidebar-foreground);
+  --shadow-card-value: var(--shadow-value);
+  --shadow-pop-value: var(--shadow-value);
+}
 
-  /* Texto: três degraus, e só três */
-  --color-text-primary: #d6dbd9;
-  --color-text-secondary: #9ba09e;
-  --color-text-muted: #656766;
+@theme inline {
+  --font-sans: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-body: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-display: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: var(--font-jetbrains-mono), "JetBrains Mono", ui-monospace, monospace;
+  --font-quote: var(--font-inter), "Inter", -apple-system, "Segoe UI", sans-serif;
 
-  /* Séries de gráfico. Nunca como acento de interface. */
-  --color-series-1: #44d5a4;
-  --color-series-2: #6298ec;
-  --color-series-3: #9d90ed;
-  --color-series-4: #e7ac49;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.25rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5rem;
+  --text-lg: 1rem;
+  --text-lg--line-height: 1.5rem;
+  --text-xl: 1.25rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.5rem;
+  --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem;
+  --text-3xl--line-height: 2.25rem;
+  --text-4xl: 1.875rem;
+  --text-4xl--line-height: 2.25rem;
+  --text-5xl: 1.875rem;
+  --text-5xl--line-height: 2.25rem;
+  --text-6xl: 1.875rem;
+  --text-6xl--line-height: 2.25rem;
 
-  /* Raios. No ADZ o raio do produto é 16px (radius-lg). */
-  --radius-sm: 0.5rem;
-  --radius-md: 0.75rem;
-  --radius-lg: 1rem;
-  --radius-xl: 1.5rem;
-  --radius-2xl: 2rem;
-  --radius-3xl: 2.5rem;
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-success: var(--success);
+  --color-success-tint: var(--success-tint);
+  --color-success-foreground: var(--success-fg);
+  --color-warning: var(--warning);
+  --color-warning-tint: var(--warning-tint);
+  --color-warning-dim: var(--warning-tint);
+
+  --color-surface: var(--surface);
+  --color-surface-1: var(--surface);
+  --color-surface-2: var(--bg-subtle);
+  --color-surface-border: var(--border);
+  --color-bg: var(--bg);
+  --color-subtle: var(--bg-subtle);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-faint: var(--fg-faint);
+  --color-primary-fg: var(--primary-fg);
+  --color-primary-tint: var(--primary-tint);
+  --color-primary-dim: var(--primary-tint);
+  --color-primary-strong: var(--primary-tint);
+  --color-primary-bright: var(--primary-hover);
+  --color-primary-glow: transparent;
+  --color-roi: var(--success);
+  --color-roi-foreground: var(--success-fg);
+  --color-roi-dim: var(--success-tint);
+  --color-roi-glow: transparent;
+  --color-danger: var(--danger);
+  --color-danger-tint: var(--danger-tint);
+  --color-danger-dim: var(--danger-tint);
+  --color-client: var(--client);
+  --color-client-tint: var(--client-tint);
+  --color-agency: var(--agency);
+  --color-agency-tint: var(--agency-tint);
+  --color-border-strong: var(--border-strong);
+  --color-white-hairline: var(--border);
+  --color-white-hairline-strong: var(--border-strong);
+  --color-text-primary: var(--fg);
+  --color-text-secondary: var(--fg-muted);
+  --color-text-muted: var(--fg-muted);
+  --color-sidebar-fg: var(--sidebar-fg);
+  --color-sidebar-muted: var(--sidebar-muted);
+  --color-sidebar-active: var(--sidebar-active);
+  --color-sidebar-strong: var(--sidebar-strong);
+  --color-sky: var(--sky-300);
+  --color-brand-from: var(--brand-from);
+  --color-brand-to: var(--brand-to);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-series-1: var(--chart-1);
+  --color-series-2: var(--chart-2);
+  --color-series-3: var(--chart-3);
+  --color-series-4: var(--chart-4);
+
+  --radius-control: 6px;
+  --radius-button: 8px;
+  --radius-panel: 12px;
+  --radius-drawer: 16px;
+  --radius-xs: 6px;
+  --radius-sm: 6px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-3xl: 16px;
+  --radius-4xl: 16px;
   --radius-full: 9999px;
 
-  /* Profundidade. Tudo none no ADZ: um token, e vidro, halo e
-     profundidade falsa se apagam em todo componente de uma vez. */
+  --shadow-2xs: var(--shadow-value);
+  --shadow-xs: var(--shadow-value);
+  --shadow-sm: var(--shadow-value);
+  --shadow-md: var(--shadow-value);
+  --shadow-lg: var(--shadow-value);
+  --shadow-xl: var(--shadow-value);
+  --shadow-2xl: var(--shadow-value);
+  --shadow-card: var(--shadow-value);
+  --shadow-pop: var(--shadow-value);
   --shadow-glass: none;
   --shadow-glass-solid: none;
   --shadow-card-drop: none;
@@ -100,7 +294,8 @@
 @layer base {
   * {
     box-sizing: border-box;
-    border-color: var(--color-surface-border);
+    border-color: var(--border);
+    outline-color: var(--ring);
   }
 
   html {
@@ -109,8 +304,12 @@
 
   body {
     font-family: var(--font-body);
-    background: var(--color-background);
-    color: var(--color-foreground);
+    font-size: 14px;
+    line-height: 1.55;
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    background: var(--background);
+    color: var(--foreground);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
@@ -122,273 +321,35 @@
   h5,
   h6 {
     font-family: var(--font-display);
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
   }
 
-  /* Scrollbar customizada */
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  ::placeholder {
+    color: var(--muted-foreground);
+  }
+
+  ::selection {
+    background: var(--accent);
+    color: var(--accent-foreground);
+  }
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    accent-color: var(--primary);
+  }
+
   ::-webkit-scrollbar { width: 6px; height: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb {
-    background: var(--color-border);
+    background: var(--input);
     border-radius: var(--radius-full);
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-muted);
+    background: var(--muted-foreground);
   }
-}
-
-/* ============================================================
-   GLASSMORPHISM ATOMS
-   ============================================================ */
-.glass {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-glass);
-}
-
-.glass-1 {
-  background: var(--color-card);
-  border-color: var(--color-border);
-}
-
-.glass-2 {
-  background: var(--color-card);
-  border-color: var(--color-border);
-}
-
-.glass-3 {
-  background: var(--color-card);
-  border-color: var(--color-border);
-}
-
-.glass-solid {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-glass-solid);
-}
-
-/* ============================================================
-   GLOW EFFECTS
-   ============================================================ */
-.glow-primary {
-  box-shadow: var(--shadow-glow-primary);
-}
-
-.glow-primary-sm {
-  box-shadow: var(--shadow-glow-primary-sm);
-}
-
-/* ============================================================
-   GRID DE FUNDO TÁTICO
-   ============================================================ */
-.bg-grid {
-  /* O fundo do ADZ é chapado: é isso que dá o silêncio das telas. */
-  background-image: none;
-}
-
-/* ============================================================
-   TYPOGRAPHY
-   ============================================================ */
-.text-mono {
-  font-variant-numeric: tabular-nums;
-}
-
-.text-gradient-primary {
-  color: var(--color-primary);
-}
-
-.text-gradient-roi {
-  color: var(--color-roi);
-}
-
-/* ============================================================
-   ANIMAÇÕES
-   ============================================================ */
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(16px); }
-  to   { opacity: 1; transform: translateY(0);    }
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-@keyframes pulse-soft {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.5; }
-}
-
-@keyframes pulse-fast {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.65; transform: scale(1.1); }
-}
-
-@keyframes float {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, -20px, 0); }
-}
-
-@keyframes float-delayed {
-  0%, 100% { transform: translate3d(0, 0, 0); }
-  50% { transform: translate3d(0, 22px, 0); }
-}
-
-@keyframes scan {
-  0% { transform: translateY(-120%); }
-  100% { transform: translateY(620%); }
-}
-
-@keyframes shine {
-  0% { left: -100%; }
-  100% { left: 200%; }
-}
-
-@keyframes slide-in {
-  from {
-    opacity: 0;
-    transform: translateX(100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-.animate-fade-in-up {
-  animation: fadeInUp 0.5s ease forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.3s ease forwards;
-}
-
-.animate-pulse-soft {
-  animation: pulse-soft 2s ease-in-out infinite;
-}
-
-.animate-pulse-fast {
-  animation: pulse-fast 1.2s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 9s ease-in-out infinite;
-}
-
-.animate-float-delayed {
-  animation: float-delayed 11s ease-in-out infinite;
-}
-
-.animate-scan {
-  animation: scan 4s linear infinite;
-}
-
-.animate-shine {
-  animation: shine 1.5s ease-in-out infinite;
-}
-
-.animate-slide-in {
-  animation: slide-in 0.3s ease-out forwards;
-}
-
-.animate-pulse-slow {
-  animation: pulse-soft 3s ease-in-out infinite;
-}
-/* ============================================================
-   ELITE UI 2026 UTILITIES
-   ============================================================ */
-.mesh-gradient {
-  background: none;
-}
-
-.noise-overlay {
-  position: relative;
-}
-
-.noise-overlay::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.hud-border {
-  position: relative;
-  overflow: hidden;
-}
-
-.hud-border::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border: 1px solid var(--color-border);
-  pointer-events: none;
-}
-
-.text-hud {
-  font-family: var(--font-display);
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-@keyframes scanline {
-  0% { transform: translateY(-100%); }
-  100% { transform: translateY(500%); }
-}
-
-@keyframes scan-slow {
-  0% { transform: translateY(-160%); opacity: 0; }
-  20% { opacity: 1; }
-  80% { opacity: 1; }
-  100% { transform: translateY(560%); opacity: 0; }
-}
-
-.animate-scanline {
-  animation: scanline 4s linear infinite;
-}
-
-.animate-scan-slow {
-  animation: scan-slow 7s linear infinite;
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.72; }
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 3s ease-in-out infinite;
-}
-
-/* ============================================================
-   PREFERS-REDUCED-MOTION
-   Usuários com sensibilidade a movimento: desativa todas as
-   animações decorativas e mantém apenas transições essenciais.
-   ============================================================ */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-
-  /* Garante que elementos com animate-pulse não fiquem invisíveis */
-  .animate-pulse,
-  .animate-pulse-fast,
-  .animate-ping {
-    opacity: 1 !important;
-  }
-}
-
-/* Performance: cópia local dos últimos números enquanto os novos chegam.
-   Com cópia, o esqueleto some; quando os números novos entram, a cópia some. */
-[data-perf-snapshot] ~ [data-perf-fallback] {
-  display: none;
-}
-[data-perf-snapshot]:has(~ [data-perf-live]) {
-  display: none;
 }

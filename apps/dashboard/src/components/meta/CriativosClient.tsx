@@ -120,12 +120,12 @@ function CreativeCard({
         )}
         <div className="absolute right-3 top-3 flex flex-col items-end gap-1.5">
           {isWinner && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary-dim px-2 py-0.5 text-[11px] font-semibold text-primary">
+            <span className="inline-flex items-center gap-1 rounded-full border border-primary/40 bg-primary-dim px-2 py-0.5 text-[12px] font-semibold text-primary">
               <Award size={12} /> Campeão
             </span>
           )}
           {isFatigued && (
-            <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger-dim px-2 py-0.5 text-[11px] font-semibold text-danger">
+            <span className="inline-flex items-center gap-1 rounded-full border border-danger/40 bg-danger-dim px-2 py-0.5 text-[12px] font-semibold text-danger">
               <AlertTriangle size={12} /> Cansado
             </span>
           )}
@@ -169,7 +169,7 @@ function CreativeCard({
 function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-[10px] font-semibold uppercase tracking-wider text-text-muted">{label}</dt>
+      <dt className="text-[12px] font-semibold uppercase tracking-wider text-text-muted">{label}</dt>
       <dd className="mt-0.5 truncate text-sm font-semibold tabular-nums text-foreground">{value}</dd>
     </div>
   );

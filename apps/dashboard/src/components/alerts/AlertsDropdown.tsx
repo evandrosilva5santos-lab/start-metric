@@ -14,9 +14,9 @@ type AlertsDropdownProps = {
 };
 
 function metricIcon(metric: string) {
-  if (metric === "roas") return <TrendingDown size={13} className="text-red-400" />;
-  if (metric === "cpa") return <DollarSign size={13} className="text-amber-400" />;
-  return <AlertTriangle size={13} className="text-orange-400" />;
+  if (metric === "roas") return <TrendingDown size={13} className="text-danger" />;
+  if (metric === "cpa") return <DollarSign size={13} className="text-warning" />;
+  return <AlertTriangle size={13} className="text-warning" />;
 }
 
 function relativeTime(isoDate: string): string {
@@ -58,7 +58,7 @@ export function AlertsDropdown({
       {/* Bell Button */}
       <button
         onClick={() => setIsOpen((prev) => !prev)}
-        className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:text-cyan-300 transition-colors relative"
+        className="glass rounded-xl px-3 py-2.5 text-sm text-fg hover:text-primary transition-colors relative"
         aria-label={`Alertas: ${unreadCount} não lidos`}
         id="alerts-bell-button"
       >
@@ -73,7 +73,7 @@ export function AlertsDropdown({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               exit={{ scale: 0 }}
-              className="absolute -top-2 -right-2 min-w-5 h-5 rounded-full bg-red-500 text-white text-[10px] font-bold px-1.5 flex items-center justify-center shadow-lg shadow-red-500/30"
+              className="absolute -top-2 -right-2 min-w-5 h-5 rounded-full bg-danger text-primary-fg text-[12px] font-bold px-1.5 flex items-center justify-center shadow-lg"
               id="alerts-badge-count"
             >
               {unreadCount > 99 ? "99+" : unreadCount}
@@ -90,15 +90,15 @@ export function AlertsDropdown({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -8, scale: 0.96 }}
             transition={{ type: "spring", damping: 25, stiffness: 400 }}
-            className="absolute right-0 mt-2 w-[420px] glass-solid rounded-2xl border border-slate-700/50 z-50 overflow-hidden shadow-2xl shadow-black/40"
+            className="absolute right-0 mt-2 w-[420px] glass-solid rounded-2xl border border-border z-50 overflow-hidden shadow-2xl"
             id="alerts-dropdown-panel"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-800/60">
-              <h3 className="text-sm font-bold text-white">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+              <h3 className="text-sm font-bold text-fg">
                 Alertas
                 {unreadCount > 0 && (
-                  <span className="ml-2 text-xs font-medium text-slate-400">
+                  <span className="ml-2 text-xs font-medium text-fg-muted">
                     ({unreadCount} não lido{unreadCount !== 1 ? "s" : ""})
                   </span>
                 )}
@@ -107,7 +107,7 @@ export function AlertsDropdown({
                 <button
                   onClick={onMarkAllRead}
                   disabled={isMarkingAllRead}
-                  className="inline-flex items-center gap-1 text-[11px] px-2.5 py-1 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 transition-colors disabled:opacity-50 font-medium"
+                  className="inline-flex items-center gap-1 text-[12px] px-2.5 py-1 rounded-lg bg-primary-tint text-primary hover:bg-primary-tint transition-colors disabled:opacity-50 font-medium"
                   id="alerts-mark-all-read"
                 >
                   <CheckCheck size={12} />
@@ -120,46 +120,46 @@ export function AlertsDropdown({
             <div className="max-h-[380px] overflow-y-auto">
               {alerts.length === 0 ? (
                 <div className="py-12 text-center">
-                  <Bell size={24} className="text-slate-700 mx-auto mb-3" />
-                  <p className="text-xs text-slate-500">Nenhum alerta no momento</p>
-                  <p className="text-[10px] text-slate-600 mt-1">
+                  <Bell size={24} className="text-fg-muted mx-auto mb-3" />
+                  <p className="text-xs text-fg-muted">Nenhum alerta no momento</p>
+                  <p className="text-[12px] text-fg-muted mt-1">
                     Configure regras para monitorar suas campanhas
                   </p>
                 </div>
               ) : (
-                <div className="divide-y divide-slate-800/40">
+                <div className="divide-y divide-border">
                   {alerts.map((alert, index) => (
                     <motion.div
                       key={alert.id}
                       initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ delay: index * 0.03 }}
-                      className="group flex items-start gap-3 px-4 py-3 hover:bg-slate-800/30 transition-colors cursor-default"
+                      className="group flex items-start gap-3 px-4 py-3 hover:bg-subtle transition-colors cursor-default"
                       id={`alert-item-${alert.id}`}
                     >
-                      <div className="mt-0.5 p-1.5 rounded-lg bg-slate-800/60 shrink-0">
+                      <div className="mt-0.5 p-1.5 rounded-lg bg-subtle shrink-0">
                         {metricIcon(alert.metric)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-100 leading-tight">
+                        <p className="text-xs font-semibold text-fg leading-tight">
                           {alert.title}
                         </p>
-                        <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed line-clamp-2">
+                        <p className="text-[12px] text-fg-muted mt-0.5 leading-relaxed line-clamp-2">
                           {alert.message}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
-                          <span className="text-[10px] text-slate-600">
+                          <span className="text-[12px] text-fg-muted">
                             {relativeTime(alert.triggered_at)}
                           </span>
-                          <span className="text-[10px] text-slate-700">•</span>
-                          <span className="text-[10px] text-slate-600">
+                          <span className="text-[12px] text-fg-muted">•</span>
+                          <span className="text-[12px] text-fg-muted">
                             Valor: {Number(alert.observed_value).toFixed(2)}
                           </span>
                         </div>
                       </div>
                       <button
                         onClick={() => onMarkRead(alert.id)}
-                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[10px] px-2.5 py-1 rounded-lg bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 font-medium"
+                        className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 text-[12px] px-2.5 py-1 rounded-lg bg-primary-tint text-primary hover:bg-primary-tint font-medium"
                         aria-label={`Marcar alerta como lido: ${alert.title}`}
                       >
                         Lido

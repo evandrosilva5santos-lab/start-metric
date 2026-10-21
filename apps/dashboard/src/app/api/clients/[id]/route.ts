@@ -17,6 +17,7 @@ export async function GET(
     }
 
     const supabase = session.supabase;
+    const orgId = session.orgId;
 
     // Buscar cliente com ad_accounts associadas
     const { data: client, error } = await supabase
@@ -36,6 +37,7 @@ export async function GET(
         ad_accounts(id, name, external_id, platform, status)
       `)
       .eq("id", id)
+      .eq("org_id", orgId)
       .is("archived_at", null)
       .single();
 
@@ -62,6 +64,7 @@ export async function PATCH(
     }
 
     const supabase = session.supabase;
+    const orgId = session.orgId;
 
     const body = await request.json();
     const validatedData = updateClientSchema.parse(body);
@@ -75,6 +78,8 @@ export async function PATCH(
       .from("clients")
       .update(updateData)
       .eq("id", id)
+      .eq("org_id", orgId)
+      .is("archived_at", null)
       .select()
       .single();
 
@@ -104,24 +109,21 @@ export async function DELETE(
     }
 
     const supabase = session.supabase;
+    const orgId = session.orgId;
 
     // Soft delete: arquivar cliente
     const { data: client, error } = await supabase
       .from("clients")
       .update({ archived_at: new Date().toISOString() })
       .eq("id", id)
+      .eq("org_id", orgId)
+      .is("archived_at", null)
       .select()
       .single();
 
     if (error || !client) {
       return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
     }
-
-    // Contas de cliente arquivado voltam para "Sem cliente" no seletor.
-    await supabase
-      .from("ad_accounts")
-      .update({ client_id: null })
-      .eq("client_id", id);
 
     return NextResponse.json({ data: { id, archived: true } });
   } catch (error) {

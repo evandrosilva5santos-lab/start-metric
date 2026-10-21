@@ -47,7 +47,7 @@ function MultiSelectDropdown({
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all hover:bg-white/5 min-w-40 text-left flex items-center justify-between border-white/10"
+        className="glass rounded-xl px-3 py-2.5 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all hover:bg-subtle min-w-40 text-left flex items-center justify-between border-border"
       >
         <span className="truncate">
           {selected.length > 0 ? `${selected.length} selecionados` : placeholder}
@@ -61,29 +61,29 @@ function MultiSelectDropdown({
             className="fixed inset-0 z-10"
             onClick={() => setIsOpen(false)}
           />
-          <div className="absolute z-20 mt-1 bg-slate-900 border border-white/10 rounded-xl shadow-xl min-w-48 max-h-64 overflow-auto">
+          <div className="absolute z-20 mt-1 bg-surface border border-border rounded-xl shadow-xl min-w-48 max-h-64 overflow-auto">
             <div className="p-2 space-y-1">
               {options.map((option) => (
                 <label
                   key={option}
-                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-white/5 rounded-lg cursor-pointer"
+                  className="flex items-center gap-2 px-2 py-1.5 hover:bg-subtle rounded-lg cursor-pointer"
                 >
                   <input
                     type="checkbox"
                     checked={selected.includes(option)}
                     onChange={() => toggleOption(option)}
-                    className="rounded border-white/20 bg-white/5 text-cyan-400 focus:ring-1 focus:ring-cyan-400/30"
+                    className="rounded border-border bg-subtle text-primary focus:ring-1 focus:ring-primary/30"
                   />
-                  <span className="text-sm text-slate-300">{label === "Status" ? statusLabel(option) : option}</span>
+                  <span className="text-sm text-fg">{label === "Status" ? statusLabel(option) : option}</span>
                 </label>
               ))}
             </div>
             {selected.length > 0 && (
-              <div className="border-t border-white/10 p-2">
+              <div className="border-t border-border p-2">
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="w-full text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                  className="w-full text-xs text-fg-muted hover:text-fg transition-colors"
                 >
                   Limpar seleção
                 </button>
@@ -112,30 +112,30 @@ export function DashboardFilters({ filterOptions }: DashboardFiltersProps) {
     <div className="space-y-3">
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">De</span>
+          <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted">De</span>
           <input
             type="date"
             value={filters.from}
             onChange={(event) => setFilters({ from: event.target.value })}
-            className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all hover:bg-white/5 border-white/10"
+            className="glass rounded-xl px-3 py-2.5 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all hover:bg-subtle border-border"
           />
         </label>
         <label className="flex flex-col gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Até</span>
+          <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted">Até</span>
           <input
             type="date"
             value={filters.to}
             onChange={(event) => setFilters({ to: event.target.value })}
-            className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all hover:bg-white/5 border-white/10"
+            className="glass rounded-xl px-3 py-2.5 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all hover:bg-subtle border-border"
           />
         </label>
 
         <label className="flex flex-col gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Conta</span>
+          <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted">Conta</span>
           <select
             value={filters.adAccountId}
             onChange={(event) => setFilters({ adAccountId: event.target.value })}
-            className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all hover:bg-white/5 cursor-pointer min-w-40 border-white/10"
+            className="glass rounded-xl px-3 py-2.5 text-sm text-fg focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all hover:bg-subtle cursor-pointer min-w-40 border-border"
           >
             <option value="all">Todas as contas</option>
             {filterOptions.accounts.map((account) => (
@@ -147,7 +147,7 @@ export function DashboardFilters({ filterOptions }: DashboardFiltersProps) {
         </label>
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Status</span>
+          <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted">Status</span>
           <MultiSelectDropdown
             label="Status"
             options={filterOptions.statuses}
@@ -159,7 +159,7 @@ export function DashboardFilters({ filterOptions }: DashboardFiltersProps) {
 
         {filterOptions.objectives && filterOptions.objectives.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500">Objetivo</span>
+            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted">Objetivo</span>
             <MultiSelectDropdown
               label="Objetivo"
               options={filterOptions.objectives}
@@ -176,8 +176,8 @@ export function DashboardFilters({ filterOptions }: DashboardFiltersProps) {
             onClick={clearFilters}
             className="flex flex-col gap-1.5 group"
           >
-            <span className="text-[9px] font-black uppercase tracking-[0.2em] text-slate-500 invisible">Ações</span>
-            <div className="glass rounded-xl px-3 py-2.5 text-sm text-slate-300 hover:text-red-400 focus:outline-none focus:ring-1 focus:ring-cyan-400/30 transition-all hover:bg-white/5 border-white/10 flex items-center gap-2">
+            <span className="text-[12px] font-black uppercase tracking-[0.2em] text-fg-muted invisible">Ações</span>
+            <div className="glass rounded-xl px-3 py-2.5 text-sm text-fg hover:text-danger focus:outline-none focus:ring-1 focus:ring-primary/30 transition-all hover:bg-subtle border-border flex items-center gap-2">
               <X size={14} className="group-hover:rotate-90 transition-transform" />
               Limpar filtros
             </div>
@@ -187,8 +187,8 @@ export function DashboardFilters({ filterOptions }: DashboardFiltersProps) {
 
       {activeFiltersCount > 0 && (
         <div className="flex items-center gap-2 text-xs">
-          <Filter size={12} className="text-cyan-400" />
-          <span className="text-slate-400">
+          <Filter size={12} className="text-primary" />
+          <span className="text-fg-muted">
             {activeFiltersCount} filtro{activeFiltersCount !== 1 ? 's' : ''} ativo{activeFiltersCount !== 1 ? 's' : ''}
           </span>
         </div>

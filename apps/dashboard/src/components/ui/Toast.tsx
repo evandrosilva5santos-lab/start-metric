@@ -92,10 +92,10 @@ function ToastItem({
   onRemove: (id: string) => void;
 }) {
   const variants = {
-    success: "bg-emerald-500/10 border-emerald-500/30 text-emerald-300",
-    error: "bg-red-500/10 border-red-500/30 text-red-300",
-    info: "bg-cyan-500/10 border-cyan-500/30 text-cyan-300",
-    warning: "bg-amber-500/10 border-amber-500/30 text-amber-300",
+    success: "bg-success-tint border-success/30 text-success",
+    error: "bg-danger-tint border-danger/30 text-danger",
+    info: "bg-primary-tint border-primary/30 text-primary",
+    warning: "bg-warning-tint border-warning/30 text-warning",
   };
 
   return (

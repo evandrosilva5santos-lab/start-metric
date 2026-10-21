@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import {
-  Target,
   Copy,
   Check,
   AlertTriangle,
@@ -10,16 +9,13 @@ import {
   ShieldCheck,
   Link2,
   Sparkles,
-  ExternalLink,
   Flame,
-  HelpCircle,
-  Eye,
   CheckCircle2,
 } from "lucide-react";
 import { useDashboardFilters } from "@/store/dashboard-filters";
 import { formatMoney } from "@/lib/format";
 import { MetaDataGate, PageHeading, SectionCard, KpiTile } from "@/components/meta/MetaUi";
-import type { DadosResponse, TrackingAdItem } from "@/lib/meta/dados-types";
+import type { DadosResponse } from "@/lib/meta/dados-types";
 
 export function TrackingClient() {
   return (
@@ -230,7 +226,7 @@ function TrackingHub({ data }: { data: DadosResponse }) {
                 onClick={handleCopyMeta}
                 className={`inline-flex items-center gap-1.5 rounded-lg px-4 py-2 text-xs font-bold transition-all ${
                   copiedMeta
-                    ? "bg-emerald-600 text-white"
+                    ? "bg-success text-primary-fg"
                     : "bg-primary text-primary-foreground hover:bg-primary-bright"
                 }`}
               >

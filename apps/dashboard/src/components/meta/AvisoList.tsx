@@ -35,7 +35,7 @@ export function AvisoList({ avisos, compact = false }: { avisos: Aviso[]; compac
                 <Icon size={15} aria-hidden="true" />
               </span>
               <div className="min-w-0">
-                <p className="text-[11px] font-semibold uppercase tracking-wider text-text-muted">{tone.label}</p>
+                <p className="text-[12px] font-semibold uppercase tracking-wider text-text-muted">{tone.label}</p>
                 <p className="mt-0.5 text-sm font-semibold text-foreground">{aviso.titulo}</p>
                 <p className="mt-1 text-xs leading-relaxed text-text-secondary">{aviso.descricao}</p>
                 {!compact && aviso.acao && (
