@@ -16,7 +16,7 @@
     "test:meta-accounts": "node --test scripts/meta-accounts.test.mjs",
     "test:meta-sync": "node --test scripts/meta-sync.test.mjs",
     "test:dashboard-cards": "node --test scripts/dashboard-cards.test.mjs",
-    "test:activity": "node --test scripts/activity.test.mjs",
+    "test:activity": "node --test scripts/activity.test.mjs scripts/activity-db.test.mjs",
     "test": "node --test \"scripts/*.test.mjs\""
   },
   "dependencies": {
@@ -50,6 +50,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.3.15",
     "@tailwindcss/postcss": "^4",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
