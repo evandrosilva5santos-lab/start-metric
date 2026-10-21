@@ -125,7 +125,11 @@ export function ClientHistoryTab({ clientId }: { clientId: string }) {
       else setNotice({ tone: "ok", text: r.inserted > 0 ? `${r.inserted} alterações novas importadas.` : "Histórico em dia." });
       void queryClient.invalidateQueries({ queryKey: ["client-activity", clientId] });
     },
-    onError: (err) => setNotice({ tone: "warn", text: err instanceof Error ? err.message : "Erro ao atualizar." }),
+    onError: (err) => {
+      setNotice({ tone: "warn", text: err instanceof Error ? err.message : "Erro ao atualizar." });
+      // Parte do histórico pode ter sido importada antes da falha.
+      void queryClient.invalidateQueries({ queryKey: ["client-activity", clientId] });
+    },
   });
 
   const data = activity.data;

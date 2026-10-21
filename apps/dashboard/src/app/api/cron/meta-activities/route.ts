@@ -30,7 +30,7 @@ export async function POST(request: Request) {
   const db = createAdminClient();
   const { data: accounts, error } = await db
     .from("ad_accounts")
-    .select("id, org_id, external_id, token_encrypted, timezone")
+    .select("id, org_id, external_id, token_encrypted, timezone, client_id")
     .eq("platform", "meta")
     .eq("status", "active");
   if (error) {
@@ -47,8 +47,10 @@ export async function POST(request: Request) {
   for (const run of (runs ?? []) as Array<{ ad_account_id: string; started_at: string }>) {
     if (!lastRun.has(run.ad_account_id)) lastRun.set(run.ad_account_id, run.started_at);
   }
-  const queue = ((accounts ?? []) as ActivityAccount[]).sort(
-    (a, b) => (lastRun.get(a.id) ?? "").localeCompare(lastRun.get(b.id) ?? ""),
+  // Contas ligadas a clientes primeiro; dentro de cada grupo, a sincronizada há mais tempo.
+  const queue = ((accounts ?? []) as Array<ActivityAccount & { client_id: string | null }>).sort(
+    (a, b) =>
+      Number(!a.client_id) - Number(!b.client_id) || (lastRun.get(a.id) ?? "").localeCompare(lastRun.get(b.id) ?? ""),
   );
 
   const outcomes = await syncAccountsHistory(db as never, queue, { trigger: "cron", budgetMs: BUDGET_MS, maxDays: MAX_DAYS_PER_ACCOUNT });

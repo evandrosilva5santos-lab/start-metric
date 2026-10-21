@@ -430,3 +430,17 @@ test("token vencido falha a execução", async () => {
   assert.equal(r.status, "failed");
   assert.equal(r.errorCode, "expired");
 });
+
+test("orçamento de tempo acaba no meio de um dia grande: para parcial e não marca o dia como completo", async () => {
+  let clock = 0;
+  const f = fakeDeps((since, until, after) => {
+    clock += 20_000;
+    if (until - since > 6 * 3600) return { events: [], after: after ? null : "next" };
+    return { events: rawWindow.slice(0, 2), after: null };
+  });
+  const deps = { ...f.deps, now: () => clock };
+  const r = await syncAccountActivity(deps, ACCOUNT, { days: ["2026-10-13"], budgetMs: 30_000, maxPagesPerWindow: 1, startMetricAppId: null });
+  assert.equal(r.status, "partial");
+  assert.equal(r.errorCode, "budget");
+  assert.equal(f.coverage.length, 0);
+});

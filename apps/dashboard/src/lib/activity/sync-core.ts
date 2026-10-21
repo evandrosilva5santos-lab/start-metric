@@ -49,6 +49,7 @@ const URL_IN_TEXT = /https?:[^"\s]*/g;
 
 class TooManyEventsError extends Error {}
 class StaleRunError extends Error {}
+class BudgetExceededError extends Error {}
 
 const clip = (text: string | null | undefined, max: number) => (text ? text.slice(0, max) : null);
 
@@ -107,6 +108,7 @@ export async function syncAccountActivity(deps: SyncDeps, account: SyncAccount, 
     let after: string | null = null;
     let pages = 0;
     do {
+      if (deps.now() - startedAt > options.budgetMs) throw new BudgetExceededError("tempo da execução esgotado");
       const page: ActivityPage = await deps.fetchActivities(account.externalId, window.since, window.until, after);
       events.push(...page.events);
       after = page.after;
@@ -160,6 +162,7 @@ export async function syncAccountActivity(deps: SyncDeps, account: SyncAccount, 
         continue;
       }
       if (err instanceof StaleRunError) return finish("failed", "stale", err.message);
+      if (err instanceof BudgetExceededError) return finish("partial", "budget", err.message);
       const kind = deps.failureKind(err);
       const message = err instanceof Error ? err.message : "erro desconhecido";
       return kind === "expired" ? finish("failed", "expired", message) : finish("partial", kind, message);

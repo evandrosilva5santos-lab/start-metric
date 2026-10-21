@@ -10,8 +10,9 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-const BUDGET_MS = 40_000;
-const MAX_DAYS_PER_ACCOUNT = 10;
+// A função tem teto de 60 s na Vercel: sobra folga para fechar a execução e responder.
+const BUDGET_MS = 30_000;
+const MAX_DAYS_PER_ACCOUNT = 6;
 
 type Params = Promise<{ id: string }>;
 
