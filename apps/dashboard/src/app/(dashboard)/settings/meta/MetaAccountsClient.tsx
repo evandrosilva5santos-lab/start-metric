@@ -137,6 +137,8 @@ export default function MetaAccountsClient({ accounts, flashConnected, flashErro
     }
   }
 
+  const expiredCount = localAccounts.filter((account) => account.status === "expired").length;
+
   return (
     <div className="space-y-8">
       <AnimatePresence mode="wait">
@@ -190,6 +192,32 @@ export default function MetaAccountsClient({ accounts, flashConnected, flashErro
           </motion.div>
         )}
       </AnimatePresence>
+
+      {expiredCount > 0 && (
+        <div
+          role="status"
+          className="flex flex-col gap-3 rounded-panel border border-warning/30 bg-warning-tint p-4 md:flex-row md:items-center md:justify-between"
+        >
+          <div className="flex items-start gap-3 text-sm">
+            <AlertCircle size={18} className="mt-0.5 shrink-0 text-warning" aria-hidden="true" />
+            <p className="text-fg">
+              <span className="font-semibold">
+                {expiredCount === 1 ? "1 conta está" : `${expiredCount} contas estão`} com a conexão da Meta vencida.
+              </span>{" "}
+              <span className="text-fg-muted">
+                Uma única reconexão renova o acesso de todas as contas que o seu usuário da Meta enxerga.
+              </span>
+            </p>
+          </div>
+          <a
+            href="/api/meta/oauth"
+            className="inline-flex h-11 shrink-0 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-sm font-semibold text-primary-fg transition-colors hover:bg-primary-hover"
+          >
+            <RefreshCw size={16} aria-hidden="true" />
+            Reconectar todas
+          </a>
+        </div>
+      )}
 
       {/* Action Area */}
       <div className="relative group">
