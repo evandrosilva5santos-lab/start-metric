@@ -14,7 +14,8 @@ Registrar tudo o que foi feito para cada cliente (Meta + painel + manual) e gera
 - [x] **T2 Figma** — telas do Histórico, detalhe, registrar/anotar, gerador, página do relatório, Prestação de contas e estados, em 1440 e 390. Entregue em https://www.figma.com/design/eMb5uMXmHSR7zOVa6TlZ3o (arquivo próprio: o do Start Control está no limite de 3 páginas do plano Starter e usa a direção antiga). → Verify: **aguardando sua aprovação**.
 
 **Fase B — banco (só com sua aprovação da migration)**
-- [ ] **T3a** `…_activity_events.sql` — eventos, `activity_event_raw`, revisões, vínculos com backfill, gatilhos (D23–D28, D35), RPCs insert/void/reassign/reclassify. → Verify: PGlite — duplicado = 1; UPDATE/DELETE/TRUNCATE barrados até para service role; RPC com id de outra org aborta.
+- [x] **T3a aplicada em 21/10/2026** com autorização (`20261022000000_activity_events.sql`, commit `8d716391`): 23 testes no PGlite, validação sem efeito no schema real, conferência pós-aplicação (tabelas, 5 vínculos presumidos, gatilho ok, desligar/religar conta ok em ROLLBACK).
+- [ ] **T3a (descrição original)** `…_activity_events.sql` — eventos, `activity_event_raw`, revisões, vínculos com backfill, gatilhos (D23–D28, D35), RPCs insert/void/reassign/reclassify. → Verify: PGlite — duplicado = 1; UPDATE/DELETE/TRUNCATE barrados até para service role; RPC com id de outra org aborta.
 - [ ] **T3b** `…_activity_sync.sql` — cobertura, execuções, `acquire_activity_sync_run`. → Verify: PGlite — segunda trava = "em andamento"; `stale` sem heartbeat; cobertura não regride.
 - [ ] **T3c** `…_client_reports.sql` — relatórios + `activity_summary` (itens de trabalho por gaps-and-islands). → Verify: PGlite — final imutável; resumo de outra org vazio.
 

@@ -16,6 +16,8 @@ import type {
 
 export type NormalizeContext = { accountExternalId: string; startMetricAppId: string | null };
 
+// A Meta assina as próprias ações com actor_id "0"; o nome pode vir traduzido.
+const META_ACTOR_ID = "0";
 const META_ACTOR_NAME = "Meta";
 
 // Nomes legados da Meta: CAMPAIGN_GROUP = campanha, CAMPAIGN = conjunto, ADGROUP = anúncio.
@@ -54,6 +56,7 @@ function objectLevelOf(raw: RawMetaActivity): ObjectLevel {
 }
 
 function actorKindOf(raw: RawMetaActivity, ctx: NormalizeContext): ActorKind {
+  if (raw.actor_id === META_ACTOR_ID) return "platform";
   if (ctx.startMetricAppId && raw.application_id === ctx.startMetricAppId) return "integration";
   if (raw.actor_name === META_ACTOR_NAME && !raw.application_id) return "platform";
   return raw.actor_id ? "person" : "unknown";

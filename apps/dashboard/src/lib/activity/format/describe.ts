@@ -85,13 +85,17 @@ function budgetText(n: NormalizedActivity): ActivityDescription {
 function statusText(n: NormalizedActivity, action: string): ActivityDescription {
   const level = LEVEL_NOUN[n.objectLevel] ?? { noun: "Item", feminine: false };
   const ending = level.feminine ? "a" : "o";
-  const verb = action.endsWith(".paused")
-    ? `pausad${ending}`
-    : action.endsWith(".activated")
-      ? `ativad${ending}`
+  const afterReview = action.endsWith(".status_after_review_set");
+  const afterLabel = isStatus(n.after) ? (n.after.label ?? "") : "";
+  const verb = action.endsWith(".paused") || (afterReview && /inativ|paus/i.test(afterLabel))
+    ? `pausad${ending}${afterReview ? " após a análise" : ""}`
+    : action.endsWith(".activated") || (afterReview && /ativ/i.test(afterLabel))
+      ? `ativad${ending}${afterReview ? " após a análise" : ""}`
       : action.endsWith(".review_transition")
         ? "em análise pela Meta"
-        : "com status alterado";
+        : action.endsWith(".disapproved")
+          ? `reprovad${ending} pela Meta`
+          : "com status alterado";
   const before = isStatus(n.before) ? n.before.label : null;
   const after = isStatus(n.after) ? n.after.label : null;
   const change = before && after ? `de ${before} para ${after}` : after;

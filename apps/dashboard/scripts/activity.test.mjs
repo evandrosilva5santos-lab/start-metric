@@ -276,6 +276,157 @@ test("event_time inválido é recusado, nunca inventado", () => {
   assert.throws(() => one("create_ad", "ADGROUP", {}, { event_time: "ontem" }), /event_time inválido/);
 });
 
+// Casos reais encontrados no protótipo da semana do Moving (13–19/10/2026).
+test("actor_id 0 é a Meta, mesmo quando o nome vem traduzido", () => {
+  const n = one("update_ad_run_status", "ADGROUP", { run_status: { old_value: 9, new_value: 1 }, old_value: "Análise pendente", new_value: "Ativo", type: "run_status" }, { actor_id: "0", actor_name: "Plataforma Meta", application_id: undefined });
+  assert.equal(n.actorKind, "platform");
+  assert.equal(classifyActivity(n).countsAsWork, false);
+});
+
+test("inativo tem código diferente por nível e é pausa", () => {
+  const ad = one("update_ad_run_status", "ADGROUP", { run_status: { old_value: 1, new_value: 8 }, old_value: "Ativo", new_value: "Inativo", type: "run_status" });
+  const adSet = one("update_ad_set_run_status", "CAMPAIGN", { run_status: { old_value: 1, new_value: 7 }, old_value: "Ativo", new_value: "Inativo", type: "run_status" });
+  assert.equal(classifyActivity(ad).action, "ad.paused");
+  assert.equal(classifyActivity(adSet).action, "ad_set.paused");
+  assert.equal(describeActivity(ad).title, "Anúncio pausado");
+});
+
+test("reprovação é da Meta e não conta; 'atualização necessária' é estado de revisão", () => {
+  const rejected = one("update_ad_run_status", "ADGROUP", { run_status: { old_value: 1, new_value: 4 }, old_value: "Ativo", new_value: "Não aprovado", type: "run_status" }, { actor_id: "0", application_id: undefined });
+  assert.equal(classifyActivity(rejected).countsAsWork, false);
+  assert.equal(describeActivity(rejected).title, "Anúncio reprovado pela Meta");
+  const update = one("update_ad_run_status", "ADGROUP", { run_status: { old_value: 17, new_value: 18 }, old_value: "Processo pendente", new_value: "Atualização necessária", type: "run_status" });
+  assert.equal(classifyActivity(update).countsAsWork, false);
+});
+
+test("decidir o status pós-análise é pausa feita pela pessoa", () => {
+  const n = one("update_ad_run_status_to_be_set_after_review", "ADGROUP", { old_value: "Ativo", new_value: "Inativo", type: "run_status_to_set_after_review" });
+  assert.equal(classifyActivity(n).countsAsWork, true);
+  assert.equal(describeActivity(n).title, "Anúncio pausado após a análise");
+});
+
 test("direcionamento mostra só o que mudou", () => {
   assert.equal(desc("update_ad_set_target_spec").detail, "Público frio POA · Localização: Cidade Exemplo (+40 km) → Cidade Exemplo (+80 km)");
+});
+
+// ── Janelas, rajadas e sincronização (T4) ───────────────────────────────────
+const { zonedDayStartUtc, dayWindow, splitWindow, localDay, planSyncDays } = await import("../src/lib/activity/meta/window.ts");
+const { groupBursts } = await import("../src/lib/activity/group.ts");
+const { syncAccountActivity } = await import("../src/lib/activity/sync-core.ts");
+
+test("início do dia respeita o fuso da conta", () => {
+  assert.equal(new Date(zonedDayStartUtc("2026-10-13", "America/Sao_Paulo") * 1000).toISOString(), "2026-10-13T03:00:00.000Z");
+  assert.equal(new Date(zonedDayStartUtc("2026-10-13", "UTC") * 1000).toISOString(), "2026-10-13T00:00:00.000Z");
+});
+
+test("janela do dia termina 1 s antes do dia seguinte (since/until da Meta são inclusivos)", () => {
+  const w = dayWindow("2026-10-13", "America/Sao_Paulo");
+  assert.equal(w.until - w.since, 86399);
+  assert.equal(localDay(w.since, "America/Sao_Paulo"), "2026-10-13");
+  assert.equal(localDay(w.until, "America/Sao_Paulo"), "2026-10-13");
+});
+
+test("dividir janela não sobrepõe nem perde segundos; janela de 1 h não divide", () => {
+  const w = dayWindow("2026-10-13", "UTC");
+  const [a, b] = splitWindow(w);
+  assert.equal(a.since, w.since);
+  assert.equal(b.until, w.until);
+  assert.equal(b.since, a.until + 1);
+  assert.equal(splitWindow({ since: 0, until: 3599 }), null);
+});
+
+test("plano de dias: hoje e ontem sempre; depois os dias sem cobertura completa, do mais novo ao mais antigo", () => {
+  const days = planSyncDays({ today: "2026-10-21", lookbackDays: 5, completeDays: new Set(["2026-10-18"]), maxDays: 4 });
+  assert.deepEqual(days, ["2026-10-21", "2026-10-20", "2026-10-19", "2026-10-17"]);
+});
+
+test("rajada: mesmo ator e mesma ação com até 5 min de intervalo viram um item", () => {
+  const ev = (min, actor, action) => ({ occurredAt: new Date(Date.UTC(2026, 9, 15, 14, min)).toISOString(), actorKey: actor, action });
+  const groups = groupBursts([ev(0, "a", "ad.paused"), ev(3, "a", "ad.paused"), ev(7, "a", "ad.paused"), ev(20, "a", "ad.paused"), ev(4, "b", "ad.paused"), ev(5, "a", "campaign.paused")]);
+  assert.deepEqual(groups.map((g) => [g.first.actorKey, g.first.action, g.events.length]), [
+    ["a", "ad.paused", 1],
+    ["a", "campaign.paused", 1],
+    ["b", "ad.paused", 1],
+    ["a", "ad.paused", 3],
+  ]);
+});
+
+function fakeDeps(pages) {
+  const inserted = new Set();
+  const coverage = [];
+  const calls = [];
+  return {
+    calls, coverage, inserted,
+    deps: {
+      fetchActivities: async (_act, since, until, after) => {
+        calls.push([since, until, after]);
+        return pages(since, until, after);
+      },
+      insertRows: async (rows) => {
+        let n = 0;
+        for (const r of rows) if (!inserted.has(r.dedupe_key)) { inserted.add(r.dedupe_key); n++; }
+        return { inserted: n, skipped: rows.length - n };
+      },
+      recordCoverage: async (day, status, events) => coverage.push([day, status, events]),
+      heartbeat: async () => true,
+      now: () => 0,
+      failureKind: (err) => err.kind ?? "error",
+    },
+  };
+}
+const ACCOUNT = { id: "00000000-0000-0000-0000-0000000acc0a", externalId: "act_700000000000001", timezone: "UTC" };
+const rawWindow = parseGraphText(fixture("window-a.json")).data;
+
+test("sincronização grava a janela inteira e marca o dia como completo; repetir não duplica", async () => {
+  const f = fakeDeps(() => ({ events: rawWindow, after: null }));
+  const opts = { days: ["2026-10-13"], budgetMs: 10_000, maxPagesPerWindow: 5, startMetricAppId: STARTMETRIC_APP_ID };
+  const first = await syncAccountActivity(f.deps, ACCOUNT, opts);
+  assert.equal(first.status, "succeeded");
+  assert.equal(first.inserted, rawWindow.length);
+  assert.deepEqual(f.coverage.at(-1), ["2026-10-13", "complete", rawWindow.length]);
+  const again = await syncAccountActivity(f.deps, ACCOUNT, opts);
+  assert.equal(again.inserted, 0);
+  assert.equal(again.duplicates, rawWindow.length);
+});
+
+test("linhas gravadas trazem classificação, título e nenhuma URL", async () => {
+  let captured = [];
+  const f = fakeDeps(() => ({ events: rawWindow, after: null }));
+  const deps = { ...f.deps, insertRows: async (rows) => { captured = rows; return { inserted: rows.length, skipped: 0 }; } };
+  await syncAccountActivity(deps, ACCOUNT, { days: ["2026-10-13"], budgetMs: 10_000, maxPagesPerWindow: 5, startMetricAppId: STARTMETRIC_APP_ID });
+  const budget = captured.find((r) => r.event_type === "update_ad_set_budget");
+  assert.equal(budget.title, "Orçamento diário alterado");
+  assert.equal(budget.counts_as_work, true);
+  assert.equal(budget.category, "budget");
+  assert.equal(budget.ad_account_id, ACCOUNT.id);
+  assert.equal(budget.account_external_id, ACCOUNT.externalId);
+  assert.ok(!JSON.stringify(captured).includes("fbcdn"));
+  const platform = captured.find((r) => r.event_type === "first_delivery_event");
+  assert.equal(platform.raw, null);
+});
+
+test("dia acima do teto de páginas é dividido em janelas menores", async () => {
+  const f = fakeDeps((since, until, after) => {
+    if (until - since > 6 * 3600) return { events: [], after: after ? null : "next" };
+    return { events: [], after: null };
+  });
+  const r = await syncAccountActivity(f.deps, ACCOUNT, { days: ["2026-10-13"], budgetMs: 10_000, maxPagesPerWindow: 1, startMetricAppId: null });
+  assert.equal(r.status, "succeeded");
+  assert.ok(f.calls.length > 2);
+  assert.deepEqual(f.coverage.at(-1), ["2026-10-13", "complete", 0]);
+});
+
+test("limite da Meta para a conta, marca parcial e não inventa cobertura", async () => {
+  const f = fakeDeps(() => { throw Object.assign(new Error("limite"), { kind: "rate_limited" }); });
+  const r = await syncAccountActivity(f.deps, ACCOUNT, { days: ["2026-10-13", "2026-10-12"], budgetMs: 10_000, maxPagesPerWindow: 5, startMetricAppId: null });
+  assert.equal(r.status, "partial");
+  assert.equal(r.errorCode, "rate_limited");
+  assert.equal(f.coverage.length, 0);
+});
+
+test("token vencido falha a execução", async () => {
+  const f = fakeDeps(() => { throw Object.assign(new Error("expirado"), { kind: "expired" }); });
+  const r = await syncAccountActivity(f.deps, ACCOUNT, { days: ["2026-10-13"], budgetMs: 10_000, maxPagesPerWindow: 5, startMetricAppId: null });
+  assert.equal(r.status, "failed");
+  assert.equal(r.errorCode, "expired");
 });

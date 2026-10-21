@@ -8,9 +8,15 @@ import { WhatsAppConnectionPanel } from "@/components/whatsapp/WhatsAppConnectio
 import { ShareLinkButton } from "@/components/clients/ShareLinkButton";
 import { ClientAccountsPanel } from "@/components/clients/ClientAccountsPanel";
 import { ClientEditButton } from "@/components/clients/ClientEditButton";
+import { ClientHistoryTab } from "@/components/clients/ClientHistoryTab";
 
 type Params = Promise<{ id: string }>;
-type SearchParams = Promise<{ buscar?: string }>;
+type SearchParams = Promise<{ buscar?: string; tab?: string }>;
+
+const TABS = [
+  { id: "visao", label: "Visão geral" },
+  { id: "historico", label: "Histórico" },
+] as const;
 
 export const metadata: Metadata = {
   title: "Cliente | Start Metric",
@@ -24,7 +30,8 @@ export default async function ClientDetailsPage({
   params: Params;
   searchParams: SearchParams;
 }) {
-  const [{ id }, { buscar }] = await Promise.all([params, searchParams]);
+  const [{ id }, { buscar, tab }] = await Promise.all([params, searchParams]);
+  const activeTab = tab === "historico" ? "historico" : "visao";
   const session = await getDashboardSession();
 
   if (!session.isAuthorized) redirect("/auth");
@@ -72,6 +79,24 @@ export default async function ClientDetailsPage({
         </div>
       </div>
 
+      <nav aria-label="Seções do cliente" className="flex gap-6 border-b border-border">
+        {TABS.map((t) => (
+          <Link
+            key={t.id}
+            href={t.id === "visao" ? `/clients/${client.id}` : `/clients/${client.id}?tab=${t.id}`}
+            aria-current={activeTab === t.id ? "page" : undefined}
+            className={`-mb-px border-b-2 pb-2.5 text-sm font-medium transition-colors ${
+              activeTab === t.id ? "border-primary font-semibold text-primary" : "border-transparent text-text-secondary hover:text-text-primary"
+            }`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </nav>
+
+      {activeTab === "historico" ? (
+        <ClientHistoryTab clientId={client.id} />
+      ) : (
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
         <aside className="space-y-6 xl:col-span-1">
           <section className="rounded-lg border border-border bg-card p-4 md:p-5">
@@ -110,6 +135,7 @@ export default async function ClientDetailsPage({
           </section>
         </div>
       </div>
+      )}
     </div>
   );
 }

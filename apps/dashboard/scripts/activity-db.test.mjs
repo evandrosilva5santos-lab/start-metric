@@ -6,7 +6,9 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 
-const MIGRATION = readFileSync(new URL("../supabase/migrations/20261022000000_activity_events.sql", import.meta.url), "utf8");
+const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql"].map((file) =>
+  readFileSync(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"),
+);
 
 // Mínimo do Supabase que a migration usa.
 const STUBS = `
@@ -62,7 +64,7 @@ before(async () => {
       ('${ACC_ORPHAN}', '${ORG_A}', NULL, 'act_2', 'Conta sem cliente'),
       ('${ACC_B}', '${ORG_B}', '${CLIENT_B1}', 'act_3', 'Conta B');
   `);
-  await db.exec(MIGRATION);
+  for (const sql of MIGRATIONS) await db.exec(sql);
 });
 
 const metaRow = (over = {}) => ({
@@ -286,4 +288,62 @@ test("usuário autenticado não executa as funções de escrita", async () => {
   } finally {
     await db.exec("ROLLBACK");
   }
+});
+
+// ── Sincronização: trava, batimento e cobertura (T3b) ───────────────────────
+const acquire = async (org, account, trigger = "cron") =>
+  (await db.query("SELECT * FROM public.acquire_activity_sync_run($1, $2, $3)", [org, account, trigger])).rows[0];
+
+test("só uma sincronização por conta por vez", async () => {
+  const first = await acquire(ORG_A, ACC_A);
+  assert.equal(first.reason, "acquired");
+  assert.ok(first.run_id);
+  const second = await acquire(ORG_A, ACC_A);
+  assert.deepEqual(second, { run_id: null, reason: "running" });
+  const done = await db.query("SELECT public.finish_activity_sync_run($1, 'succeeded', 10, 8, 2, NULL, NULL) AS ok", [first.run_id]);
+  assert.equal(done.rows[0].ok, true);
+  assert.equal((await acquire(ORG_A, ACC_A)).reason, "acquired");
+});
+
+test("execução sem batimento há 3 min vira stale e libera a conta", async () => {
+  const running = (await db.query("SELECT id FROM public.activity_sync_runs WHERE ad_account_id = $1 AND status = 'running'", [ACC_A])).rows[0];
+  await db.query("UPDATE public.activity_sync_runs SET heartbeat_at = now() - interval '4 minutes' WHERE id = $1", [running.id]);
+  const next = await acquire(ORG_A, ACC_A);
+  assert.equal(next.reason, "acquired");
+  const old = (await db.query("SELECT status FROM public.activity_sync_runs WHERE id = $1", [running.id])).rows[0];
+  assert.equal(old.status, "stale");
+  const late = await db.query("SELECT public.finish_activity_sync_run($1, 'succeeded', 0, 0, 0, NULL, NULL) AS ok", [running.id]);
+  assert.equal(late.rows[0].ok, false);
+  await db.query("SELECT public.finish_activity_sync_run($1, 'succeeded', 0, 0, 0, NULL, NULL)", [next.run_id]);
+});
+
+test("batimento mantém a execução viva", async () => {
+  const run = await acquire(ORG_A, ACC_ORPHAN);
+  const hb = await db.query("SELECT public.heartbeat_activity_sync_run($1, 100, 90, 10) AS ok", [run.run_id]);
+  assert.equal(hb.rows[0].ok, true);
+  const row = (await db.query("SELECT fetched, inserted, duplicates FROM public.activity_sync_runs WHERE id = $1", [run.run_id])).rows[0];
+  assert.deepEqual(row, { fetched: 100, inserted: 90, duplicates: 10 });
+  await db.query("SELECT public.finish_activity_sync_run($1, 'partial', 100, 90, 10, 'rate_limited', 'limite da Meta')", [run.run_id]);
+});
+
+test("sincronização manual: no máximo uma a cada 5 min por conta", async () => {
+  const first = await acquire(ORG_A, ACC_ORPHAN, "manual");
+  assert.equal(first.reason, "acquired");
+  await db.query("SELECT public.finish_activity_sync_run($1, 'succeeded', 0, 0, 0, NULL, NULL)", [first.run_id]);
+  assert.deepEqual(await acquire(ORG_A, ACC_ORPHAN, "manual"), { run_id: null, reason: "rate_limited" });
+  assert.equal((await acquire(ORG_A, ACC_ORPHAN, "cron")).reason, "acquired");
+});
+
+test("conta de outra org não sincroniza", async () => {
+  await assert.rejects(() => acquire(ORG_A, ACC_B), /ACCOUNT_NOT_IN_ORG/);
+});
+
+test("cobertura do dia nunca regride de completo para parcial", async () => {
+  const cov = (status, events) => db.query("SELECT public.record_activity_coverage($1, $2, '2026-10-13', $3, $4)", [ORG_A, ACC_A, status, events]);
+  await cov("partial", 50);
+  await cov("complete", 120);
+  await cov("partial", 30);
+  const row = (await db.query("SELECT status, events FROM public.activity_sync_coverage WHERE ad_account_id = $1 AND day = '2026-10-13'", [ACC_A])).rows[0];
+  assert.deepEqual(row, { status: "complete", events: 120 });
+  await assert.rejects(() => db.query("SELECT public.record_activity_coverage($1, $2, '2026-10-13', 'complete', 1)", [ORG_A, ACC_B]), /ACCOUNT_NOT_IN_ORG/);
 });

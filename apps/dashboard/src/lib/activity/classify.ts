@@ -8,10 +8,12 @@ import type { ActivityCategory, ActivityClassification, NormalizedActivity, Obje
 /** Suba a versão quando mudar uma regra: eventos já gravados podem ser reclassificados. */
 export const CLASSIFIER_VERSION = 1;
 
-// run_status da Meta: 1 = ativo, 15 = inativo/pausado, 9 = análise pendente, 17 = processo pendente.
+// run_status da Meta (vistos em produção): 1 = ativo; inativo = 15 (campanha), 7 (conjunto), 8 (anúncio);
+// 4 = não aprovado; 9 = análise pendente, 17 = processo pendente, 18 = atualização necessária.
 const ACTIVE = 1;
-const PAUSED = new Set([2, 15]);
-const REVIEW_STATES = new Set([9, 17]);
+const PAUSED = new Set([2, 7, 8, 15]);
+const DISAPPROVED = 4;
+const REVIEW_STATES = new Set([9, 17, 18]);
 
 const STATUS_EVENTS = new Set(["update_campaign_run_status", "update_ad_set_run_status", "update_ad_run_status"]);
 
@@ -63,6 +65,7 @@ function classifyStatus(n: NormalizedActivity): ActivityClassification {
   if ((from !== null && REVIEW_STATES.has(from)) || (to !== null && REVIEW_STATES.has(to))) {
     return { category: human ? "status" : "platform", action: `${level}.review_transition`, countsAsWork: false };
   }
+  if (to === DISAPPROVED) return { category: "platform", action: `${level}.disapproved`, countsAsWork: false };
   const action = to === ACTIVE ? `${level}.activated` : to !== null && PAUSED.has(to) ? `${level}.paused` : `${level}.status_changed`;
   return human ? { category: "status", action, countsAsWork: true } : { category: "platform", action, countsAsWork: false };
 }
