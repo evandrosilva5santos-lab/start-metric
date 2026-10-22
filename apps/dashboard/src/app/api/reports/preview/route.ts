@@ -52,12 +52,12 @@ export async function POST(request: NextRequest) {
       const clientName = await clientNameFor(db, orgId, input.clientId ?? null);
       if (clientName === undefined) return jsonError(404, "Cliente não encontrado");
       const period = resolvePeriod(periodInput, now, input.timezone);
-      const { text, missing } = renderTemplate(
+      const { text, missing, errors } = renderTemplate(
         input.body,
         { clientName: clientName ?? undefined, startDate: period.startDate, endDate: period.endDate, timezone: input.timezone, now },
         "preview",
       );
-      return NextResponse.json({ data: { text, missing, warnings: [] } });
+      return NextResponse.json({ data: { text, missing, warnings: errors ?? [] } });
     }
 
     const target = await resolveTarget(db, orgId, input);

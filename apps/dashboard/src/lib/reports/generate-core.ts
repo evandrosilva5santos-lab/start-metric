@@ -259,7 +259,7 @@ export async function renderLivePart(input: RenderPartInput, source: PartDataSou
   const live = await loadLiveData(input.body, input.accounts, range, source);
   const channels = mergeMetrics(aggregateDailyMetrics(rows), aggregateGoogleRows(googleRows), live.metrics);
   const result = resultTexts(channels);
-  const { text, missing } = renderTemplate(
+  const { text, missing, errors } = renderTemplate(
     input.body,
     {
       clientName: input.clientName ?? undefined,
@@ -275,7 +275,7 @@ export async function renderLivePart(input: RenderPartInput, source: PartDataSou
     },
     "live",
   );
-  return { text, missing, skipped: false, warnings: live.warnings };
+  return { text, missing, skipped: false, warnings: [...live.warnings, ...(errors ?? [])] };
 }
 
 function unionMissing(results: readonly RenderPartResult[]): string[] {

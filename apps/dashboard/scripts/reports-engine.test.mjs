@@ -478,3 +478,43 @@ test("Google: taxa por interação ignora dias sincronizados antes de existir a 
   close(m.google_all_conversions_from_interactions_rate, 6); // 12 / 200
   assert.equal(m.google_conversions, 15);
 });
+
+// ---------------------------------------------------------------- condicionais
+
+test("condicional: escolhe o trecho pela métrica e renderiza as variáveis de dentro", () => {
+  const tpl = "{{#se meta_roas > 3}}Ótimo: ROAS {{meta_roas}}{{senão}}Atenção: ROAS {{meta_roas}}{{/se}}";
+  assert.equal(plain(renderTemplate(tpl, { metrics: { meta_roas: 4 } }, "live").text), "Ótimo: ROAS 4");
+  assert.equal(plain(renderTemplate(tpl, { metrics: { meta_roas: 2 } }, "live").text), "Atenção: ROAS 2");
+  assert.equal(renderTemplate("A{{#se meta_ctr >= 1,5}} bom{{/se}}.", { metrics: { meta_ctr: 1.2 } }, "live").text, "A.");
+});
+
+test("condicional: os seis operadores", () => {
+  const run = (op, v) => renderTemplate(`{{#se meta_spend ${op} 100}}s{{senão}}n{{/se}}`, { metrics: { meta_spend: v } }, "live").text;
+  assert.deepEqual([run("<", 99), run(">", 101), run("<=", 100), run(">=", 100), run("==", 100), run("!=", 100)], ["s", "s", "s", "s", "s", "n"]);
+});
+
+test("condicional: aninhada e com sinônimos em inglês", () => {
+  const tpl = "{{#if meta_spend > 0}}gastou{{#se meta_conv == 0}} sem conversão{{/se}}{{else}}parado{{/if}}";
+  assert.equal(renderTemplate(tpl, { metrics: { meta_spend: 10, meta_conv: 0 } }, "live").text, "gastou sem conversão");
+  assert.equal(renderTemplate(tpl, { metrics: { meta_spend: 10, meta_conv: 2 } }, "live").text, "gastou");
+  assert.equal(renderTemplate(tpl, { metrics: { meta_spend: 0 } }, "live").text, "parado");
+});
+
+test("condicional: métrica sem dado vai para o 'senão' e é reportada", () => {
+  const r = renderTemplate("{{#se google_roas > 2}}a{{senão}}b{{/se}}", { metrics: {} }, "live");
+  assert.equal(r.text, "b");
+  assert.deepEqual(r.missing, ["google_roas"]);
+});
+
+test("condicional: na prévia usa o valor de exemplo do catálogo", () => {
+  // meta_roas tem exemplo 4,82
+  assert.equal(renderTemplate("{{#se meta_roas > 3}}sim{{senão}}não{{/se}}", {}, "preview").text, "sim");
+});
+
+test("condicional mal fechada não some com o texto e vira erro legível", () => {
+  const r = renderTemplate("Olá {{#se meta_roas > 3}}bom", { metrics: { meta_roas: 4 } }, "live");
+  assert.equal(r.text, "Olá {{#se meta_roas > 3}}bom");
+  assert.match(r.errors.join(" "), /fechamento/i);
+  assert.match(renderTemplate("x{{/se}}", {}, "live").errors.join(" "), /sem abertura/i);
+  assert.deepEqual(renderTemplate("{{meta_spend}}", { metrics: { meta_spend: 1 } }, "live").errors, []);
+});

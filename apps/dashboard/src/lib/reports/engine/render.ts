@@ -1,4 +1,5 @@
 import { VARIABLE_BY_SLUG } from "./catalog";
+import { applyConditionals, compare } from "./conditionals";
 import type { VariableReturnType } from "./types";
 
 // preview: editor/pré-visualização, pode usar valores de exemplo.
@@ -31,6 +32,18 @@ export interface RenderContext {
 export interface RenderResult {
   text: string;
   missing: string[];
+  /** Condicionais mal fechadas ({{#se}} sem {{/se}} etc.); o texto volta sem mudança. */
+  errors?: string[];
+}
+
+/** "R$ 1.624,30" → 1624.3; "4,82" → 4.82 (valores de exemplo do catálogo, em pt-BR). */
+function parseLocaleNumber(value: string | number | undefined): number | null {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (!value) return null;
+  const cleaned = value.replace(/[^\d,.-]/g, "");
+  const normalized = cleaned.includes(",") ? cleaned.replace(/\./g, "").replace(",", ".") : cleaned;
+  const parsed = Number(normalized);
+  return normalized !== "" && Number.isFinite(parsed) ? parsed : null;
 }
 
 const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g;
@@ -214,7 +227,7 @@ function contextTexts(ctx: RenderContext): Record<string, string> {
 }
 
 export function renderTemplate(template: string, ctx: RenderContext = {}, mode: RenderMode = "preview"): RenderResult {
-  if (!template) return { text: "", missing: [] };
+  if (!template) return { text: "", missing: [], errors: [] };
 
   const clock = clockValues(ctx.now ?? new Date(), ctx.timezone ?? DEFAULT_TIMEZONE);
   const texts = contextTexts(ctx);
@@ -254,12 +267,27 @@ export function renderTemplate(template: string, ctx: RenderContext = {}, mode: 
     return null;
   };
 
-  const text = template.replace(PLACEHOLDER, (_match, slug: string) => {
+  const numeric = (slug: string): number | null => {
+    const metric = ctx.metrics?.[slug];
+    if (typeof metric === "number") return Number.isFinite(metric) ? metric : null;
+    if (typeof metric === "string" && metric.trim() !== "" && Number.isFinite(Number(metric))) return Number(metric);
+    return mode === "preview" ? parseLocaleNumber(VARIABLE_BY_SLUG.get(slug)?.exampleValue) : null;
+  };
+  const conditional = applyConditionals(template, (slug, operator, threshold) => {
+    const value = numeric(slug);
+    if (value === null) {
+      missing.add(slug);
+      return false;
+    }
+    return compare(value, operator, threshold);
+  });
+
+  const text = conditional.text.replace(PLACEHOLDER, (_match, slug: string) => {
     const value = resolve(slug);
     if (value !== null) return value;
     missing.add(slug);
     return EMPTY;
   });
 
-  return { text, missing: [...missing] };
+  return { text, missing: [...missing], errors: conditional.errors };
 }
