@@ -30,7 +30,7 @@ export function useMetaAccounts() {
     queryKey: ACCOUNTS_KEY,
     queryFn: async ({ signal }) => {
       const json = await readJson<ContasResponse>(await fetch("/api/meta/contas", { signal }));
-      return { contas: json.contas ?? [], clientes: json.clientes ?? [] };
+      return { contas: json.contas ?? [], clientes: json.clientes ?? [], clientesTodos: json.clientesTodos ?? json.clientes ?? [] };
     },
     staleTime: 5 * 60 * 1000,
   });
@@ -68,7 +68,10 @@ export function useMetaAccounts() {
     }
   }, [accounts, accountId, clientId, platform, query.isSuccess, setOperationalScope]);
 
-  return { ...query, accounts, clients, clientAccounts };
+  // Clientes com conta em qualquer plataforma (Visão geral "Google" e "Meta + Google").
+  const allClients: ClientRef[] = useMemo(() => query.data?.clientesTodos ?? [], [query.data]);
+
+  return { ...query, accounts, clients, allClients, clientAccounts };
 }
 
 function dadosKey(clientId: string, platform: string, accountId: string, range: string): QueryKey {

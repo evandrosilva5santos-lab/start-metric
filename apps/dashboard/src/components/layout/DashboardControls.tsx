@@ -57,6 +57,15 @@ export type ScopeChange = { clientId: string; accountId: string; range: string }
 
 export const ALL_ACCOUNTS = "all";
 
+/** Plataforma da Visão geral: só Meta, só Google ou as duas lado a lado. */
+export type OverviewPlatform = "meta" | "google" | "all";
+
+const OVERVIEW_PLATFORMS: ReadonlyArray<{ value: OverviewPlatform; label: string }> = [
+  { value: "meta", label: "Meta Ads" },
+  { value: "google", label: "Google Ads" },
+  { value: "all", label: "Meta + Google" },
+];
+
 function LiveBadge({
   live,
   isError,
@@ -146,6 +155,10 @@ type DashboardControlsProps = {
   rangeValue?: string;
   customRangeLabel?: string | null;
   onScopeChange?: (change: ScopeChange) => void;
+  /** Só na Visão geral: escolha entre Meta, Google e Meta + Google. */
+  platformValue?: OverviewPlatform;
+  onPlatformChange?: (platform: OverviewPlatform) => void;
+  clientValue?: string;
 };
 
 export function DashboardControls({
@@ -155,8 +168,13 @@ export function DashboardControls({
   rangeValue,
   customRangeLabel,
   onScopeChange,
+  platformValue,
+  onPlatformChange,
+  clientValue,
 }: DashboardControlsProps) {
-  const { accounts, clients, clientAccounts, isLoading: accountsLoading } = useMetaAccounts();
+  const { accounts, clients, allClients, clientAccounts, isLoading: accountsLoading } = useMetaAccounts();
+  const crossChannel = Boolean(platformValue && platformValue !== "meta");
+  const clientOptions = crossChannel ? allClients : clients;
   const clientId = useDashboardFilters((s) => s.clientId);
   const platform = useDashboardFilters((s) => s.platform);
   const accountId = useDashboardFilters((s) => s.accountId);
@@ -178,6 +196,10 @@ export function DashboardControls({
   }
 
   function chooseClient(nextClientId: string) {
+    if (crossChannel) {
+      onScopeChange?.({ clientId: nextClientId, accountId: ALL_ACCOUNTS, range: shownRange });
+      return;
+    }
     const next = firstAccountOf(nextClientId, platform);
     setOperationalScope({ clientId: nextClientId, platform, accountId: next?.id ?? "" });
     onScopeChange?.({ clientId: nextClientId, accountId: offersAll ? ALL_ACCOUNTS : (next?.id ?? ""), range: shownRange });
@@ -209,40 +231,71 @@ export function DashboardControls({
     <div className="flex min-w-0 flex-wrap items-center gap-2">
       <AccountCombobox
         label="Cliente"
-        value={clientId}
+        value={clientValue ?? clientId}
         onValueChange={chooseClient}
-        items={clients.map((client) => ({
+        items={clientOptions.map((client) => ({
           id: client.id,
           label: client.name,
-          description: `${accounts.filter((account) => clientOf(account) === client.id).length} conta(s)`,
+          description: crossChannel
+            ? undefined
+            : `${accounts.filter((account) => clientOf(account) === client.id).length} conta(s)`,
         }))}
         placeholder={accountsLoading ? "Carregando…" : "Selecione o cliente"}
         searchPlaceholder="Buscar cliente…"
         emptyText="Nenhum cliente com conta autorizada."
-        disabled={accountsLoading || clients.length === 0}
+        disabled={accountsLoading || clientOptions.length === 0}
         className="w-[min(12rem,44vw)]"
       />
 
-      <select
-        value={platform}
-        onChange={(event) => choosePlatform(event.target.value as AdsPlatform)}
-        aria-label="Plataforma de anúncios"
-        className={`${selectClass} min-w-[104px]`}
-      >
-        <option value="meta">Meta Ads</option>
-      </select>
+      {onPlatformChange ? (
+        <select
+          value={platformValue ?? "meta"}
+          onChange={(event) => onPlatformChange(event.target.value as OverviewPlatform)}
+          aria-label="Plataforma de anúncios"
+          className={`${selectClass} min-w-[104px]`}
+        >
+          {OVERVIEW_PLATFORMS.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <select
+          value={platform}
+          onChange={(event) => choosePlatform(event.target.value as AdsPlatform)}
+          aria-label="Plataforma de anúncios"
+          className={`${selectClass} min-w-[104px]`}
+        >
+          <option value="meta">Meta Ads</option>
+        </select>
+      )}
 
-      <AccountCombobox
-        label="Conta de anúncios"
-        value={accountValue ?? accountId}
-        onValueChange={chooseAccount}
-        items={offersAll ? [{ id: ALL_ACCOUNTS, label: allAccountsLabel ?? "" }, ...accountItems] : accountItems}
-        placeholder={accountsLoading ? "Carregando contas…" : "Selecione a conta"}
-        searchPlaceholder="Buscar conta por nome ou ID…"
-        emptyText="Este cliente não possui conta autorizada."
-        disabled={accountsLoading || !clientId || clientAccounts.length === 0}
-        className="w-[min(14rem,50vw)]"
-      />
+      {crossChannel ? (
+        <AccountCombobox
+          label="Conta de anúncios"
+          value={ALL_ACCOUNTS}
+          onValueChange={() => undefined}
+          items={[{ id: ALL_ACCOUNTS, label: "Todas as contas do cliente" }]}
+          placeholder="Todas as contas do cliente"
+          searchPlaceholder=""
+          emptyText=""
+          disabled
+          className="w-[min(14rem,50vw)]"
+        />
+      ) : (
+        <AccountCombobox
+          label="Conta de anúncios"
+          value={accountValue ?? accountId}
+          onValueChange={chooseAccount}
+          items={offersAll ? [{ id: ALL_ACCOUNTS, label: allAccountsLabel ?? "" }, ...accountItems] : accountItems}
+          placeholder={accountsLoading ? "Carregando contas…" : "Selecione a conta"}
+          searchPlaceholder="Buscar conta por nome ou ID…"
+          emptyText="Este cliente não possui conta autorizada."
+          disabled={accountsLoading || !clientId || clientAccounts.length === 0}
+          className="w-[min(14rem,50vw)]"
+        />
+      )}
 
       <select
         value={shownRange}

@@ -9,8 +9,18 @@ import { getClientCards, type ClientCardsModel } from "@/lib/dashboard/cards/loa
 import type { ActionTotals } from "@/lib/dashboard/funnel";
 import type { DashboardData, DashboardFilters } from "@/lib/dashboard/types";
 import { buildOverviewModel } from "@/lib/dashboard/overview";
-import { RANGE_PRESETS, isIsoDate, previousRange, shortDate, todayInTimezone } from "@/lib/dashboard/overview-range";
+import {
+  DEFAULT_PRESET,
+  RANGE_PRESETS,
+  isIsoDate,
+  previousRange,
+  resolvePreset,
+  shortDate,
+  todayInTimezone,
+} from "@/lib/dashboard/overview-range";
 import { DashboardClient } from "@/components/dashboard/DashboardClient";
+import { ChannelOverview } from "@/components/dashboard/ChannelOverview";
+import { GoogleAdsDashboard } from "@/components/google/GoogleAdsDashboard";
 import { OverviewStamp } from "@/components/dashboard/OverviewStamp";
 import { SyncNowButton, type SyncScopeAccount } from "@/components/dashboard/SyncNowButton";
 import { MetaSkeleton } from "@/components/meta/MetaUi";
@@ -249,8 +259,46 @@ function OverviewFallback() {
   );
 }
 
+function ChannelSection({ platform, filters }: { platform: "google" | "all"; filters: DashboardFilters }) {
+  if (!filters.clientId) {
+    return (
+      <Notice
+        tone="neutral"
+        title="Escolha um cliente no topo"
+        description="A visão Google e a visão Meta + Google mostram os números de um cliente por vez."
+      />
+    );
+  }
+  const today = todayInTimezone(NOTICE_TIMEZONE);
+  const range =
+    filters.from && filters.to
+      ? { from: filters.from, to: filters.to }
+      : (resolvePreset(filters.rangePreset ?? DEFAULT_PRESET, today) ?? { from: today, to: today });
+  return platform === "all" ? (
+    <ChannelOverview clientId={filters.clientId} from={range.from} to={range.to} />
+  ) : (
+    <GoogleAdsDashboard controlled={{ clientId: filters.clientId, from: range.from, to: range.to }} />
+  );
+}
+
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const filters = parseFilters(await searchParams);
+  const raw = await searchParams;
+  const filters = parseFilters(raw);
+  const platform = getParam(raw, "platform");
+
+  if (platform === "google" || platform === "all") {
+    return (
+      <div className="space-y-6">
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-bold tracking-tight text-foreground md:text-3xl">Visão geral</h1>
+          <p className="mt-1 truncate text-sm text-text-secondary">
+            {platform === "all" ? "Meta Ads e Google Ads lado a lado" : "Como o Google Ads está indo no período"}
+          </p>
+        </div>
+        <ChannelSection platform={platform} filters={filters} />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

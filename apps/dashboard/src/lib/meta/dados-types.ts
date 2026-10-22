@@ -14,6 +14,8 @@ export type ClientRef = { id: string; name: string };
 export type ContasResponse = {
   contas?: MetaAccount[];
   clientes?: ClientRef[];
+  /** Clientes com conta em qualquer plataforma (Meta ou Google). */
+  clientesTodos?: ClientRef[];
   error?: string;
 };
 

@@ -15,8 +15,13 @@ export async function GET(): Promise<NextResponse> {
   }
 
   try {
-    const inventory = await listOperationalAccounts(session.supabase, session.orgId, "meta");
+    const [inventory, everyPlatform] = await Promise.all([
+      listOperationalAccounts(session.supabase, session.orgId, "meta"),
+      listOperationalAccounts(session.supabase, session.orgId),
+    ]);
     const authorizedClientIds = new Set(inventory.accounts.map((account) => account.client_id));
+    // Visão geral "Google" e "Meta + Google": clientes com conta em qualquer plataforma.
+    const anyPlatformClientIds = new Set(everyPlatform.accounts.map((account) => account.client_id));
 
     return NextResponse.json({
       contas: inventory.accounts.map((account) => ({
@@ -31,6 +36,9 @@ export async function GET(): Promise<NextResponse> {
       })),
       clientes: inventory.clients
         .filter((client) => authorizedClientIds.has(client.id))
+        .map((client) => ({ id: client.id, name: client.name })),
+      clientesTodos: everyPlatform.clients
+        .filter((client) => anyPlatformClientIds.has(client.id))
         .map((client) => ({ id: client.id, name: client.name })),
       total: inventory.accounts.length,
       timestamp: new Date().toISOString(),

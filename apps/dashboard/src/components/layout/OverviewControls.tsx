@@ -6,14 +6,19 @@ import { useMetaAccounts } from "@/hooks/useMetaDashboard";
 import { useDashboardFilters } from "@/store/dashboard-filters";
 import { useOverviewStatus } from "@/store/overview-status";
 import { shortDate } from "@/lib/dashboard/overview-range";
-import { ALL_ACCOUNTS, DashboardControls, type ScopeChange } from "@/components/layout/DashboardControls";
+import { ALL_ACCOUNTS, DashboardControls, type OverviewPlatform, type ScopeChange } from "@/components/layout/DashboardControls";
 
 const CUSTOM_RANGE = "custom";
 
 type CustomRange = { from: string; to: string } | null;
 
-function overviewHref(change: ScopeChange, custom: CustomRange): string {
+function parsePlatform(value: string | null): OverviewPlatform {
+  return value === "google" || value === "all" ? value : "meta";
+}
+
+function overviewHref(change: ScopeChange, custom: CustomRange, platform: OverviewPlatform): string {
   const params = new URLSearchParams();
+  if (platform !== "meta") params.set("platform", platform);
   if (change.clientId) params.set("client", change.clientId);
   if (change.accountId && change.accountId !== ALL_ACCOUNTS) params.set("account", change.accountId);
   if (custom && change.range === CUSTOM_RANGE) {
@@ -42,17 +47,18 @@ export function OverviewControls() {
   const urlRange = searchParams.get("range");
   const urlFrom = searchParams.get("from");
   const urlTo = searchParams.get("to");
+  const urlPlatform = parsePlatform(searchParams.get("platform"));
   const custom: CustomRange = useMemo(
     () => (!urlRange && urlFrom && urlTo ? { from: urlFrom, to: urlTo } : null),
     [urlFrom, urlRange, urlTo],
   );
 
   const navigate = useCallback(
-    (change: ScopeChange, replace = false) => {
-      const href = overviewHref(change, custom);
+    (change: ScopeChange, replace = false, platform: OverviewPlatform = urlPlatform) => {
+      const href = overviewHref(change, custom, platform);
       startTransition(() => (replace ? router.replace(href, { scroll: false }) : router.push(href, { scroll: false })));
     },
-    [custom, router],
+    [custom, router, urlPlatform],
   );
 
   const refresh = useCallback(() => startTransition(() => router.refresh()), [router]);
@@ -87,6 +93,15 @@ export function OverviewControls() {
       rangeValue={urlRange ?? (custom ? CUSTOM_RANGE : range)}
       customRangeLabel={custom ? `${shortDate(custom.from)} → ${shortDate(custom.to)}` : null}
       onScopeChange={(change) => navigate(change)}
+      platformValue={urlPlatform}
+      clientValue={urlPlatform === "meta" ? undefined : (urlClient ?? clientId)}
+      onPlatformChange={(platform) =>
+        navigate(
+          { clientId: urlClient ?? clientId, accountId: ALL_ACCOUNTS, range: urlRange ?? (custom ? CUSTOM_RANGE : range) },
+          false,
+          platform,
+        )
+      }
       status={{
         isFetching: isPending,
         isError: false,
