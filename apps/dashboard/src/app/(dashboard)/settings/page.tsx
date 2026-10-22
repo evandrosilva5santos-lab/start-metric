@@ -101,6 +101,21 @@ export default async function SettingsPage() {
               </p>
             </Link>
 
+            <Link
+              href="/settings/taxonomy"
+              className="glass rounded-2xl p-5 hover:border-primary/30 transition-all duration-200 group relative overflow-hidden"
+            >
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-tint border border-primary/20 flex items-center justify-center">
+                  <Database className="w-5 h-5 text-primary" />
+                </div>
+                <div className="font-semibold text-fg group-hover:text-primary transition-colors">Segmentos e produtos</div>
+              </div>
+              <p className="text-xs text-fg-muted">
+                Etiquetas para organizar a Carteira: o ramo de cada cliente e o que a agência entrega para ele.
+              </p>
+            </Link>
+
             <div className="glass rounded-2xl p-5 border-success/20 bg-success-tint relative overflow-hidden">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">

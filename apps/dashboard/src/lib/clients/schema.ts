@@ -42,6 +42,15 @@ const whatsappField = z
   .nullable()
   .optional();
 
+/** Segmento/produto: uuid de um item da org; "" (seletor em "Nenhum") vira null. */
+const optionalId = z
+  .string()
+  .uuid("Opção inválida")
+  .or(z.literal(""))
+  .transform((v) => (v === "" ? null : v))
+  .nullable()
+  .optional();
+
 export const clientFieldsSchema = z.object({
   name: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100),
   email: z
@@ -64,6 +73,8 @@ export const clientFieldsSchema = z.object({
     .nullable()
     .optional(),
   notes: optionalText(2000),
+  segment_id: optionalId,
+  product_id: optionalId,
 });
 
 export const createClientSchema = clientFieldsSchema;

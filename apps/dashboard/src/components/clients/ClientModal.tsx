@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import Link from "next/link";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
 import { clientFieldsSchema, formatWhatsapp } from "@/lib/clients/schema";
 
 export type EditableClient = {
@@ -14,6 +16,8 @@ export type EditableClient = {
   niche?: string | null;
   logo_url: string | null;
   notes: string | null;
+  segment_id?: string | null;
+  product_id?: string | null;
 };
 
 type Props = {
@@ -31,6 +35,8 @@ type FormState = {
   email: string;
   logo_url: string;
   notes: string;
+  segment_id: string;
+  product_id: string;
 };
 
 const NICHE_SUGGESTIONS = [
@@ -55,6 +61,8 @@ function toForm(client?: EditableClient | null): FormState {
     email: client?.email ?? "",
     logo_url: client?.logo_url ?? "",
     notes: client?.notes ?? "",
+    segment_id: client?.segment_id ?? "",
+    product_id: client?.product_id ?? "",
   };
 }
 
@@ -77,6 +85,8 @@ export function ClientModal({ isOpen, onClose, client, onSaved }: Props) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const baseId = useId();
   const isEditing = Boolean(client);
+  const segments = useTaxonomy("segments");
+  const products = useTaxonomy("products");
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -249,6 +259,42 @@ export function ClientModal({ isOpen, onClose, client, onSaved }: Props) {
               />
               {errorText("email")}
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            {(
+              [
+                ["segment_id", "Segmento", segments.data],
+                ["product_id", "Produto", products.data],
+              ] as const
+            ).map(([key, label, options]) => (
+              <div key={key}>
+                <label htmlFor={`${baseId}-${key}`} className="mb-1.5 block text-sm font-medium text-text-primary">
+                  {label}
+                </label>
+                <select
+                  {...field(key)}
+                  value={form[key]}
+                  onChange={(e) => update(key, e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="">Nenhum</option>
+                  {(options ?? []).map((o) => (
+                    <option key={o.id} value={o.id}>
+                      {o.name}
+                    </option>
+                  ))}
+                </select>
+                {errorText(key)}
+              </div>
+            ))}
+            <p className="text-xs text-text-muted sm:col-span-2">
+              Crie e edite as opções em{" "}
+              <Link href="/settings/taxonomy" className="font-semibold text-primary hover:underline">
+                Segmentos e produtos
+              </Link>
+              .
+            </p>
           </div>
 
           <div>

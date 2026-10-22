@@ -40,7 +40,7 @@ export default async function ClientDetailsPage({
 
   const { data: client } = await supabase
     .from("clients")
-    .select("id, name, email, phone, whatsapp, niche, logo_url, notes, created_at")
+    .select("id, name, email, phone, whatsapp, niche, logo_url, notes, segment_id, product_id, created_at")
     .eq("id", id)
     .eq("org_id", session.orgId)
     .is("archived_at", null)

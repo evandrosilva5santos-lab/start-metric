@@ -7,6 +7,15 @@ import { Plus, Search, Users } from "lucide-react";
 import { Button, EmptyState } from "@/components/ui";
 import { ClientModal } from "@/components/clients/ClientModal";
 import { ClientCard, type ClientCardData } from "@/components/clients/ClientCard";
+import { useTaxonomy } from "@/hooks/useTaxonomy";
+import type { TaxonomyItem } from "@/lib/clients/taxonomy";
+
+const filterClass =
+  "h-11 rounded-lg border border-border bg-input px-3 text-sm text-text-primary outline-none hover:border-white-hairline-strong focus-visible:ring-2 focus-visible:ring-ring";
+
+function byId(items: readonly TaxonomyItem[] | undefined): Map<string, TaxonomyItem> {
+  return new Map((items ?? []).map((item) => [item.id, item]));
+}
 
 export function ClientsPageClient() {
   const router = useRouter();
@@ -17,6 +26,12 @@ export function ClientsPageClient() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<ClientCardData | null>(null);
   const [search, setSearch] = useState("");
+  const [segmentFilter, setSegmentFilter] = useState("");
+  const [productFilter, setProductFilter] = useState("");
+  const segments = useTaxonomy("segments");
+  const products = useTaxonomy("products");
+  const segmentById = useMemo(() => byId(segments.data), [segments.data]);
+  const productById = useMemo(() => byId(products.data), [products.data]);
 
   const fetchClients = useCallback(async () => {
     setError(null);
@@ -38,9 +53,13 @@ export function ClientsPageClient() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return clients;
-    return clients.filter((c) => c.name.toLowerCase().includes(q) || (c.niche ?? "").toLowerCase().includes(q));
-  }, [clients, search]);
+    return clients.filter(
+      (c) =>
+        (!q || c.name.toLowerCase().includes(q) || (c.niche ?? "").toLowerCase().includes(q)) &&
+        (!segmentFilter || c.segment_id === segmentFilter) &&
+        (!productFilter || c.product_id === productFilter),
+    );
+  }, [clients, search, segmentFilter, productFilter]);
 
   function openCreate() {
     setEditing(null);
@@ -86,17 +105,39 @@ export function ClientsPageClient() {
       </div>
 
       {clients.length > 0 && (
-        <label className="relative block max-w-sm">
-          <span className="sr-only">Buscar cliente</span>
-          <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Buscar por nome ou nicho…"
-            className="h-11 w-full rounded-lg border border-border bg-input pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted hover:border-white-hairline-strong focus-visible:ring-2 focus-visible:ring-ring"
-          />
-        </label>
+        <div className="flex flex-wrap gap-2">
+          <label className="relative block w-full max-w-sm">
+            <span className="sr-only">Buscar cliente</span>
+            <Search size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
+            <input
+              type="search"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome ou nicho…"
+              className="h-11 w-full rounded-lg border border-border bg-input pl-9 pr-3 text-sm text-text-primary outline-none placeholder:text-text-muted hover:border-white-hairline-strong focus-visible:ring-2 focus-visible:ring-ring"
+            />
+          </label>
+          {(segments.data?.length ?? 0) > 0 && (
+            <select aria-label="Filtrar por segmento" value={segmentFilter} onChange={(e) => setSegmentFilter(e.target.value)} className={filterClass}>
+              <option value="">Todos os segmentos</option>
+              {segments.data?.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          )}
+          {(products.data?.length ?? 0) > 0 && (
+            <select aria-label="Filtrar por produto" value={productFilter} onChange={(e) => setProductFilter(e.target.value)} className={filterClass}>
+              <option value="">Todos os produtos</option>
+              {products.data?.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.name}
+                </option>
+              ))}
+            </select>
+          )}
+        </div>
       )}
 
       {loading ? (
@@ -120,13 +161,15 @@ export function ClientsPageClient() {
           action={{ label: "Cadastrar cliente", onClick: openCreate }}
         />
       ) : filtered.length === 0 ? (
-        <p className="py-10 text-center text-sm text-text-muted">Nenhum cliente com esse nome ou nicho.</p>
+        <p className="py-10 text-center text-sm text-text-muted">Nenhum cliente com esse filtro.</p>
       ) : (
         <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {filtered.map((client) => (
             <ClientCard
               key={client.id}
               client={client}
+              segment={client.segment_id ? segmentById.get(client.segment_id) : null}
+              product={client.product_id ? productById.get(client.product_id) : null}
               onEdit={(c) => {
                 setEditing(c);
                 setModalOpen(true);

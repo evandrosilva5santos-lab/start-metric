@@ -3,8 +3,11 @@
 import Link from "next/link";
 import { Archive, MessageCircle, Pencil, Tag } from "lucide-react";
 import { formatWhatsapp } from "@/lib/clients/schema";
+import type { TaxonomyItem } from "@/lib/clients/taxonomy";
 
 export type ClientCardData = {
+  segment_id?: string | null;
+  product_id?: string | null;
   id: string;
   name: string;
   email: string | null;
@@ -34,12 +37,25 @@ function initials(name: string) {
 const iconButton =
   "flex h-11 w-11 items-center justify-center rounded-lg text-text-secondary transition-colors hover:bg-surface-2 hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
+function TagChip({ item }: { item: TaxonomyItem }) {
+  return (
+    <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border px-2 py-0.5 text-[11px] font-medium text-text-secondary">
+      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: item.color }} aria-hidden="true" />
+      <span className="truncate">{item.name}</span>
+    </span>
+  );
+}
+
 export function ClientCard({
   client,
+  segment,
+  product,
   onEdit,
   onArchive,
 }: {
   client: ClientCardData;
+  segment?: TaxonomyItem | null;
+  product?: TaxonomyItem | null;
   onEdit: (client: ClientCardData) => void;
   onArchive: (clientId: string) => void;
 }) {
@@ -66,6 +82,12 @@ export function ClientCard({
             <Tag size={12} className="shrink-0" />
             {client.niche || "—"}
           </p>
+          {(segment || product) && (
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {segment && <TagChip item={segment} />}
+              {product && <TagChip item={product} />}
+            </div>
+          )}
         </div>
         <div className="-mr-2 -mt-2 flex shrink-0">
           <button type="button" onClick={() => onEdit(client)} aria-label={`Editar ${client.name}`} className={iconButton}>

@@ -77,6 +77,7 @@ const EXTRA_TITLES: Array<{ prefix: string; title: string }> = [
   { prefix: "/clients/", title: "Cliente 360°" },
   { prefix: "/settings/profile", title: "Meu perfil" },
   { prefix: "/settings/google", title: "Integrações" },
+  { prefix: "/settings/taxonomy", title: "Segmentos e produtos" },
   { prefix: "/accounts", title: "Contas de anúncio" },
   { prefix: "/garimpo/", title: "Garimpo" },
 ];

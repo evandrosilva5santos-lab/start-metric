@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 
-const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql", "20261022000500_google_ads_extra_metrics.sql"].map((file) =>
+const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql", "20261022000500_google_ads_extra_metrics.sql", "20261022000600_client_taxonomy.sql"].map((file) =>
   readFileSync(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"),
 );
 
@@ -404,5 +404,38 @@ test("usuário autenticado lê métricas só da própria org e nunca lê as cone
     await assert.rejects(() => db.query("SELECT * FROM public.google_ads_connections"), /permission denied/);
   } finally {
     await db.exec("ROLLBACK");
+  }
+});
+
+// ── Segmentos e produtos dos clientes ──────────────────────────────────────
+const SEG_A = "00000000-0000-0000-0000-00000000500a";
+const SEG_B = "00000000-0000-0000-0000-00000000500b";
+const PROD_A = "00000000-0000-0000-0000-00000000700a";
+
+test("segmento e produto: um nome por org (sem diferença de maiúsculas) e cor em hexadecimal", async () => {
+  await db.query("INSERT INTO public.client_segments (id, org_id, name, color) VALUES ($1, $2, 'Imobiliário', '#0f766e')", [SEG_A, ORG_A]);
+  await db.query("INSERT INTO public.client_segments (id, org_id, name) VALUES ($1, $2, 'Imobiliário')", [SEG_B, ORG_B]);
+  await db.query("INSERT INTO public.client_products (id, org_id, name) VALUES ($1, $2, 'Tráfego + Social')", [PROD_A, ORG_A]);
+  await assert.rejects(() => db.query("INSERT INTO public.client_segments (org_id, name) VALUES ($1, ' imobiliário ')", [ORG_A]), /duplicate key/);
+  await assert.rejects(() => db.query("INSERT INTO public.client_products (org_id, name, color) VALUES ($1, 'X', 'verde')", [ORG_A]), /check constraint/);
+  await assert.rejects(() => db.query("INSERT INTO public.client_products (org_id, name) VALUES ($1, '  ')", [ORG_A]), /check constraint/);
+});
+
+test("cliente só usa segmento/produto da própria org; apagar o segmento deixa o cliente sem segmento", async () => {
+  await db.query("UPDATE public.clients SET segment_id = $1, product_id = $2 WHERE id = $3", [SEG_A, PROD_A, CLIENT_A1]);
+  await assert.rejects(() => db.query("UPDATE public.clients SET segment_id = $1 WHERE id = $2", [SEG_B, CLIENT_A1]), /violates foreign key/);
+  await db.query("DELETE FROM public.client_segments WHERE id = $1", [SEG_A]);
+  const row = (await db.query("SELECT segment_id, product_id FROM public.clients WHERE id = $1", [CLIENT_A1])).rows[0];
+  assert.deepEqual(row, { segment_id: null, product_id: PROD_A });
+});
+
+test("segmentos: usuário autenticado só enxerga e grava os da própria org", async () => {
+  await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub', '${USER_A}', false);`);
+  try {
+    const seen = (await db.query("SELECT org_id FROM public.client_segments")).rows;
+    assert.ok(seen.every((r) => r.org_id === ORG_A));
+    await assert.rejects(() => db.query("INSERT INTO public.client_products (org_id, name) VALUES ($1, 'Invasor')", [ORG_B]), /row-level security/);
+  } finally {
+    await db.exec("RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false);");
   }
 });

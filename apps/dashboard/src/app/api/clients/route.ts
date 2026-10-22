@@ -12,6 +12,8 @@ type ClientListRow = {
   niche: string | null;
   logo_url: string | null;
   notes: string | null;
+  segment_id?: string | null;
+  product_id?: string | null;
   created_at: string;
   updated_at: string;
   ad_accounts: { count: number | null }[] | null;
@@ -42,6 +44,8 @@ export async function GET() {
         niche,
         logo_url,
         notes,
+        segment_id,
+        product_id,
         archived_at,
         created_at,
         updated_at,
@@ -65,6 +69,8 @@ export async function GET() {
           niche,
           logo_url,
           notes,
+          segment_id,
+          product_id,
           archived_at,
           created_at,
           updated_at
@@ -197,10 +203,15 @@ export async function POST(request: NextRequest) {
         niche: validatedData.niche ?? null,
         logo_url: validatedData.logo_url ?? null,
         notes: validatedData.notes ?? null,
+        segment_id: validatedData.segment_id ?? null,
+        product_id: validatedData.product_id ?? null,
       })
       .select()
       .single();
 
+    if (clientError?.code === "23503") {
+      return NextResponse.json({ error: "Segmento ou produto inválido para esta organização" }, { status: 400 });
+    }
     if (clientError) {
       console.error("Erro ao criar cliente:", clientError);
       return NextResponse.json({ error: "Erro ao criar cliente" }, { status: 500 });

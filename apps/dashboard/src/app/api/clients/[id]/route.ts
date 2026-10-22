@@ -31,6 +31,8 @@ export async function GET(
         niche,
         logo_url,
         notes,
+        segment_id,
+        product_id,
         archived_at,
         created_at,
         updated_at,
@@ -83,6 +85,9 @@ export async function PATCH(
       .select()
       .single();
 
+    if (error?.code === "23503") {
+      return NextResponse.json({ error: "Segmento ou produto inválido para esta organização" }, { status: 400 });
+    }
     if (error || !client) {
       return NextResponse.json({ error: "Cliente não encontrado" }, { status: 404 });
     }
