@@ -105,7 +105,7 @@ async function credentialFor(db: Db, connection: GoogleConnection, config: Googl
   return { mode: "oauth", refreshToken: await decryptToken(connection.refresh_token_encrypted, db as never) };
 }
 
-async function apiContext(db: Db, orgId: string): Promise<ApiContext> {
+export async function apiContext(db: Db, orgId: string): Promise<ApiContext> {
   const config = readGoogleAdsConfig();
   if (!config.developerToken) throw new GoogleAdsApiError("Falta GOOGLE_ADS_DEVELOPER_TOKEN na Vercel.", "config");
   const connection = await getConnection(db, orgId);
