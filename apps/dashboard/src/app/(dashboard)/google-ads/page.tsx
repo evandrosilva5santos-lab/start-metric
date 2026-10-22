@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { getDashboardSession } from "@/lib/auth/session";
-import { GoogleAdsDashboard } from "@/components/google/GoogleAdsDashboard";
+import { Suspense } from "react";
+import { GoogleAdsWorkspace } from "@/components/google/GoogleAdsWorkspace";
 
 export const metadata = {
   title: "Google Ads | Start Metric",
@@ -12,5 +13,9 @@ export const metadata = {
 export default async function GoogleAdsPage() {
   const session = await getDashboardSession();
   if (!session.isAuthorized) redirect("/auth");
-  return <GoogleAdsDashboard />;
+  return (
+    <Suspense fallback={null}>
+      <GoogleAdsWorkspace />
+    </Suspense>
+  );
 }

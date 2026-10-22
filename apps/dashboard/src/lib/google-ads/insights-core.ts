@@ -1,6 +1,9 @@
 // Núcleo das abas de análise do Google Ads: indicadores derivados, ordenação, busca, CSV e estados de célula.
 // Módulo puro (sem rede nem banco) para ser testado com `node --test`.
 
+export const INSIGHT_KINDS = ["keywords", "search_terms", "devices", "gender", "age", "locations", "visibility"] as const;
+export type InsightKind = (typeof INSIGHT_KINDS)[number];
+
 export type RawMetrics = {
   costMicros: number;
   impressions: number;

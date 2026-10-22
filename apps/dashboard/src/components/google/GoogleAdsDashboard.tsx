@@ -35,19 +35,8 @@ import {
   formatRatio,
 } from "@/lib/format";
 import type { MetricSummary } from "@/lib/google-ads/gaql";
+import { PRESETS, rangeFor, type Preset } from "@/lib/google-ads/period";
 import type { GoogleReport } from "@/lib/google-ads/report";
-
-type Preset = "7d" | "14d" | "30d" | "month" | "last_month";
-
-const PRESETS: Array<{ id: Preset; label: string }> = [
-  { id: "7d", label: "7 dias" },
-  { id: "14d", label: "14 dias" },
-  { id: "30d", label: "30 dias" },
-  { id: "month", label: "Este mês" },
-  { id: "last_month", label: "Mês passado" },
-];
-
-const TIMEZONE = "America/Sao_Paulo";
 
 const CHANNEL: Record<string, string> = {
   SEARCH: "Pesquisa",
@@ -65,41 +54,6 @@ const STATUS: Record<string, { label: string; className: string }> = {
   ENABLED: { label: "Ativa", className: "bg-success-tint text-success" },
   PAUSED: { label: "Pausada", className: "bg-muted text-muted-foreground" },
 };
-
-function todayIn(timezone: string): string {
-  return new Intl.DateTimeFormat("en-CA", {
-    timeZone: timezone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  }).format(new Date());
-}
-
-function shiftDay(day: string, delta: number): string {
-  const [y, m, d] = day.split("-").map(Number);
-  return new Date(Date.UTC(y, m - 1, d + delta)).toISOString().slice(0, 10);
-}
-
-function rangeFor(preset: Preset): { from: string; to: string } {
-  const today = todayIn(TIMEZONE);
-  const yesterday = shiftDay(today, -1);
-  const monthStart = `${today.slice(0, 8)}01`;
-  switch (preset) {
-    case "14d":
-      return { from: shiftDay(yesterday, -13), to: yesterday };
-    case "30d":
-      return { from: shiftDay(yesterday, -29), to: yesterday };
-    case "month":
-      return { from: monthStart, to: today };
-    case "last_month":
-      return {
-        from: `${shiftDay(monthStart, -1).slice(0, 8)}01`,
-        to: shiftDay(monthStart, -1),
-      };
-    default:
-      return { from: shiftDay(yesterday, -6), to: yesterday };
-  }
-}
 
 function variation(
   current: number | null,
@@ -174,14 +128,16 @@ const show = (value: number | null, format: (v: number) => string): string =>
   value === null ? "—" : format(value);
 
 /** Na Visão geral, cliente e período vêm do topo; na página /google-ads, dos filtros da própria tela. */
-type Controlled = { clientId: string; from: string; to: string };
+type Controlled = { clientId: string; from: string; to: string; accountId?: string };
 
 export function GoogleAdsDashboard({
   controlled,
 }: { controlled?: Controlled } = {}) {
   const [preset, setPreset] = useState<Preset>("7d");
   const [ownClientId, setClientId] = useState("");
-  const [accountId, setAccountId] = useState("");
+  const [ownAccountId, setAccountId] = useState("");
+  const accountId = controlled?.accountId ?? ownAccountId;
+  const accountControlled = controlled?.accountId !== undefined;
   const clientId = controlled?.clientId ?? ownClientId;
   const range = controlled
     ? { from: controlled.from, to: controlled.to }
@@ -261,19 +217,21 @@ export function GoogleAdsDashboard({
               ))}
             </select>
           )}
-          <select
-            aria-label="Conta"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            className="min-h-11 max-w-[240px] rounded-md border border-border bg-input px-2 text-sm text-fg lg:min-h-9"
-          >
-            <option value="">Todas as contas</option>
-            {accountOptions.map((a) => (
-              <option key={a.id} value={a.id}>
-                {a.name}
-              </option>
-            ))}
-          </select>
+          {!accountControlled && (
+            <select
+              aria-label="Conta"
+              value={accountId}
+              onChange={(e) => setAccountId(e.target.value)}
+              className="min-h-11 max-w-[240px] rounded-md border border-border bg-input px-2 text-sm text-fg lg:min-h-9"
+            >
+              <option value="">Todas as contas</option>
+              {accountOptions.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.name}
+                </option>
+              ))}
+            </select>
+          )}
         </div>
       </div>
 

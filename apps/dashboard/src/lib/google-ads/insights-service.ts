@@ -4,6 +4,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { searchAll } from "./client";
 import { normalizeCustomerId } from "./gaql";
+import { INSIGHT_KINDS, type InsightKind } from "./insights-core";
 import {
   ageKey,
   ageQuery,
@@ -28,8 +29,7 @@ import {
 } from "./insights-queries";
 import { apiContext } from "./service";
 
-export const INSIGHT_KINDS = ["keywords", "search_terms", "devices", "gender", "age", "locations", "visibility"] as const;
-export type InsightKind = (typeof INSIGHT_KINDS)[number];
+export { INSIGHT_KINDS, type InsightKind };
 
 export type InsightParams = {
   orgId: string;
