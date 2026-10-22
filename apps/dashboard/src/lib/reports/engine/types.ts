@@ -24,4 +24,6 @@ export interface VariableDefinition {
   aggregatable: boolean;
   description?: string;
   exampleValue?: string | number;
+  /** "soon": depende de uma integração que ainda não existe; "per_campaign": só se preenche no modo por campanha. */
+  availability?: "soon" | "per_campaign";
 }

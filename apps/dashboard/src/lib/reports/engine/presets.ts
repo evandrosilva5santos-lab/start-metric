@@ -197,7 +197,7 @@ Impressões: {{google_impressions}}
 Cliques: {{google_clicks}}
 Conversões: {{google_conversions}}
 Custo por conversão: {{google_cost_per_conversion}}
-Valor de conversão: {{google_conversion_value}}
+Valor de conversão: {{google_conversions_value}}
 ROAS: {{google_roas}}
 Valor investido: {{google_spend}}`,
   },

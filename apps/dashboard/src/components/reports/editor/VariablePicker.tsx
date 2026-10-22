@@ -2,7 +2,7 @@
 
 import { useEffect, useId, useMemo, useState, type KeyboardEvent } from "react";
 import { Search, X } from "lucide-react";
-import { FULL_VARIABLE_CATALOG } from "@/lib/reports/engine/catalog";
+import { reportPickerVariables } from "@/lib/reports/engine/catalog";
 import type { VariableCategory, VariableDefinition } from "@/lib/reports/engine/types";
 import { cn } from "@/lib/utils";
 
@@ -17,9 +17,7 @@ const CATEGORY_LABEL: Partial<Record<VariableCategory, string>> = {
   metadata: "Rankings",
 };
 
-const REPORT_VARIABLES: readonly VariableDefinition[] = FULL_VARIABLE_CATALOG.filter(
-  (v) => v.channel !== "google" && v.scope !== "alert" && v.scope !== "lead",
-);
+const REPORT_VARIABLES: readonly VariableDefinition[] = reportPickerVariables();
 
 const CATEGORIES = (Object.keys(CATEGORY_LABEL) as VariableCategory[]).filter((c) =>
   REPORT_VARIABLES.some((v) => v.category === c),

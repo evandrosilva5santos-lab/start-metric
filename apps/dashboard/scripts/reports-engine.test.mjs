@@ -13,7 +13,7 @@ registerHooks({
   },
 });
 
-const { FULL_VARIABLE_CATALOG, VARIABLE_BY_SLUG } = await import("../src/lib/reports/engine/catalog.ts");
+const { FULL_VARIABLE_CATALOG, VARIABLE_BY_SLUG, reportPickerVariables } = await import("../src/lib/reports/engine/catalog.ts");
 const { renderTemplate } = await import("../src/lib/reports/engine/render.ts");
 const { REPORT_PRESETS, ALERT_PRESETS, LEAD_PRESETS } = await import("../src/lib/reports/engine/presets.ts");
 const { aggregateDailyMetrics, mergeMetrics, normalizeActionType, toFiniteNumber } = await import("../src/lib/reports/engine/metrics.ts");
@@ -26,10 +26,87 @@ const MORNING_SP = new Date("2026-10-16T12:30:00Z");
 test("catálogo tem slugs únicos e cobre conversões geradas por action_type", () => {
   const slugs = FULL_VARIABLE_CATALOG.map((v) => v.slug);
   assert.equal(new Set(slugs).size, slugs.length);
-  assert.equal(slugs.length, 174);
+  assert.equal(slugs.length, 247);
   assert.ok(VARIABLE_BY_SLUG.has("meta_actions.purchase"));
   assert.ok(VARIABLE_BY_SLUG.has("meta_cost_per_action.lead"));
   assert.ok(VARIABLE_BY_SLUG.has("lead_name"));
+});
+
+// Catálogo público do Metrifiquei (v2.metrifiquei.com.br/app/variables, out/2026), canal Google.
+// Saldo da conta fica de fora: a API do Google Ads não informa saldo de conta pré-paga.
+const METRIFIQUEI_GOOGLE = [
+  "google_clicks", "google_cpc", "google_cpm", "google_ctr", "google_spend", "google_impressions",
+  "google_search_impression_share", "google_content_budget_lost_impression_share",
+  "google_search_budget_lost_impression_share", "google_search_rank_lost_impression_share",
+  "google_quality_score", "google_top_impression_percentage", "google_absolute_top_impression_percentage",
+  "google_conversions", "google_roas", "google_all_roas", "google_conversions_from_interactions_rate",
+  "google_all_conversions_from_interactions_rate", "google_all_conversions", "google_conversions_value",
+  "google_all_conversions_value", "google_cost_per_conversion", "google_cost_per_all_conversions",
+  "google_trueview_average_cpv", "google_video_trueview_view_rate", "google_video_trueview_views",
+  "google_campaign_id", "google_ad_id", "google_adset_id", "google_campaign_name", "google_account_name",
+  "google_ad_name", "google_adset_name", "google_currency", "google_all_keywords_simple",
+  "google_all_keywords_ranking", "google_top_1_keywords_ranking", "google_top_3_keywords_ranking",
+  "google_top_5_keywords_ranking",
+];
+
+const METRIFIQUEI_META_EXTRA = [
+  "meta_campaign_id", "meta_adset_id", "meta_ad_id", "meta_objective", "meta_daily_budget", "meta_spend_cap",
+  "meta_result_type", "meta_result_value", "meta_conv", "meta_all_creatives_simple",
+];
+
+// Variáveis "(total)": somam ou escolhem entre os canais do cliente; não pertencem a um canal.
+const TOTALS = [
+  "spend", "impressions", "clicks", "reach", "roas", "cpc", "cpm", "ctr", "currency",
+  "account_name", "campaign_name", "campaign_id", "adset_name", "adset_id", "ad_name", "ad_id",
+];
+
+const INSTAGRAM = [
+  "instagram_gender_female_pct", "instagram_gender_male_pct", "instagram_gender_unknown_pct", "instagram_reach",
+  "instagram_audience_age_gender", "instagram_comments", "instagram_shares", "instagram_accounts_engaged",
+  "instagram_likes", "instagram_followers_gained", "instagram_impressions", "instagram_engagement",
+  "instagram_media_count", "instagram_posts", "instagram_saves", "instagram_followers_count",
+  "instagram_follows_count", "instagram_engagement_rate", "instagram_top_cities", "instagram_profile_views",
+  "instagram_username", "instagram_post_id", "instagram_post_caption",
+];
+
+test("catálogo cobre o Google Ads e os extras da Meta do Metrifiquei", () => {
+  for (const slug of METRIFIQUEI_GOOGLE) {
+    assert.equal(VARIABLE_BY_SLUG.get(slug)?.channel, "google", slug);
+  }
+  for (const slug of METRIFIQUEI_META_EXTRA) {
+    assert.equal(VARIABLE_BY_SLUG.get(slug)?.channel, "meta", slug);
+  }
+});
+
+test("valor de conversão do Google usa o mesmo nome do dado sincronizado", () => {
+  assert.ok(VARIABLE_BY_SLUG.has("google_conversions_value"));
+  assert.equal(VARIABLE_BY_SLUG.has("google_conversion_value"), false);
+});
+
+test("variáveis totais não pertencem a um canal", () => {
+  for (const slug of TOTALS) {
+    const def = VARIABLE_BY_SLUG.get(slug);
+    assert.ok(def, slug);
+    assert.equal(def.channel, undefined, slug);
+  }
+});
+
+test("Instagram fica no catálogo como 'em breve' até a conexão existir", () => {
+  for (const slug of INSTAGRAM) {
+    const def = VARIABLE_BY_SLUG.get(slug);
+    assert.equal(def?.channel, "instagram", slug);
+    assert.equal(def.availability, "soon", slug);
+  }
+});
+
+test("seletor de relatório oferece Google e totais, esconde 'em breve', alerta e lead", () => {
+  const offered = new Set(reportPickerVariables().map((v) => v.slug));
+  for (const slug of ["google_spend", "google_conversions_value", "spend", "account_name", "meta_spend"]) {
+    assert.ok(offered.has(slug), slug);
+  }
+  for (const slug of ["instagram_reach", "current_value", "lead_name"]) {
+    assert.equal(offered.has(slug), false, slug);
+  }
 });
 
 test("preview usa o valor de exemplo; live nunca usa e lista o que faltou", () => {

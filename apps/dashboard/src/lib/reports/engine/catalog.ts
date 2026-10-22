@@ -82,10 +82,20 @@ export const META_CORE_METRICS: VariableDefinition[] = [
 
 export const META_METADATA_AND_RANKINGS: VariableDefinition[] = [
   { slug: "meta_account_name", label: "Nome da Conta", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, exampleValue: "BM Start - Principal" },
-  { slug: "meta_campaign_name", label: "Nome da Campanha", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, exampleValue: "Vendas - Black Friday" },
-  { slug: "meta_adset_name", label: "Nome do Conjunto", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, exampleValue: "Público Quente - Remarketing" },
-  { slug: "meta_ad_name", label: "Nome do Anúncio", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, exampleValue: "Vídeo 01 - Prova Social" },
+  { slug: "meta_campaign_name", label: "Nome da Campanha", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Vendas - Black Friday" },
+  { slug: "meta_campaign_id", label: "ID da Campanha", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000001" },
+  { slug: "meta_adset_name", label: "Nome do Conjunto", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Público Quente - Remarketing" },
+  { slug: "meta_adset_id", label: "ID do Conjunto", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000002" },
+  { slug: "meta_ad_name", label: "Nome do Anúncio", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Vídeo 01 - Prova Social" },
+  { slug: "meta_ad_id", label: "ID do Anúncio", category: "identification", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000003" },
   { slug: "meta_currency", label: "Moeda da Conta", category: "metadata", scope: "channel", channel: "meta", returns: "text", aggregatable: false, exampleValue: "BRL" },
+  { slug: "meta_objective", label: "Objetivo da Campanha", category: "metadata", scope: "channel", channel: "meta", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Vendas" },
+  { slug: "meta_daily_budget", label: "Orçamento Diário", category: "metadata", scope: "channel", channel: "meta", returns: "currency", aggregatable: false, availability: "per_campaign", exampleValue: "R$ 150,00" },
+  { slug: "meta_spend_cap", label: "Limite de Gasto da Campanha", category: "metadata", scope: "channel", channel: "meta", returns: "currency", aggregatable: false, availability: "per_campaign", exampleValue: "R$ 3.000,00" },
+  { slug: "meta_result_type", label: "Tipo do Resultado", category: "metadata", scope: "channel", channel: "meta", returns: "text", aggregatable: false, description: "O resultado principal do período (compras, cadastros, mensagens...)", exampleValue: "Cadastros" },
+  { slug: "meta_result_value", label: "Valor do Resultado", category: "metadata", scope: "channel", channel: "meta", returns: "number", aggregatable: true, description: "Quantidade do resultado principal do período", exampleValue: "142" },
+  { slug: "meta_conv", label: "Conversões (Meta)", category: "conversions", scope: "channel", channel: "meta", returns: "number", aggregatable: true, description: "Total de conversões registradas pela Meta no período", exampleValue: "142" },
+  { slug: "meta_all_creatives_simple", label: "Ranking de Criativos (simples)", category: "metadata", scope: "channel", channel: "meta", returns: "block", aggregatable: false, description: "Só posição e nome dos criativos (até 10)" },
   { slug: "meta_all_creatives_ranking", label: "Ranking Completo de Criativos", category: "metadata", scope: "channel", channel: "meta", returns: "block", aggregatable: false, description: "Posição, nome, resultado e CPA dos criativos (até 10)" },
   { slug: "meta_top_1_creatives_ranking", label: "Top 1 Melhor Criativo", category: "metadata", scope: "channel", channel: "meta", returns: "block", aggregatable: false },
   { slug: "meta_top_3_creatives_ranking", label: "Top 3 Melhores Criativos", category: "metadata", scope: "channel", channel: "meta", returns: "block", aggregatable: false },
@@ -111,18 +121,93 @@ export const GOOGLE_ADS_METRICS: VariableDefinition[] = [
   { slug: "google_cpc", label: "CPC Médio (Google)", category: "metrics", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 1,12" },
   { slug: "google_cpm", label: "CPM (Google)", category: "metrics", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 58,00" },
   { slug: "google_spend", label: "Valor Investido (Google)", category: "metrics", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 3.147,20" },
-  { slug: "google_search_impression_share", label: "Parcela de Impressões na Rede de Pesquisa", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "74,2%" },
+  { slug: "google_search_impression_share", label: "Parcela de Impressões (Pesquisa)", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, description: "Das vezes em que o anúncio podia aparecer na Pesquisa, quantas apareceu", exampleValue: "74,2%" },
+  { slug: "google_search_budget_lost_impression_share", label: "Parcela Perdida por Orçamento (Pesquisa)", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "12,4%" },
+  { slug: "google_search_rank_lost_impression_share", label: "Parcela Perdida por Classificação (Pesquisa)", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "13,4%" },
+  { slug: "google_content_budget_lost_impression_share", label: "Parcela Perdida por Orçamento (Display)", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "8,1%" },
+  { slug: "google_top_impression_percentage", label: "Impressões no Topo", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, description: "Quanto das impressões apareceu acima dos resultados orgânicos", exampleValue: "61,0%" },
+  { slug: "google_absolute_top_impression_percentage", label: "Impressões na 1ª Posição", category: "metrics", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "28,5%" },
+  { slug: "google_quality_score", label: "Índice de Qualidade Médio", category: "metrics", scope: "channel", channel: "google", returns: "number", aggregatable: false, description: "Média do índice de qualidade (1 a 10) das palavras-chave com gasto no período", exampleValue: "7,2" },
   { slug: "google_conversions", label: "Conversões (Google)", category: "conversions", scope: "channel", channel: "google", returns: "number", aggregatable: true, exampleValue: "184" },
+  { slug: "google_conversions_value", label: "Valor de Conversões (Google)", category: "conversions", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 14.890,00" },
+  { slug: "google_all_conversions", label: "Todas as Conversões (Google)", category: "conversions", scope: "channel", channel: "google", returns: "number", aggregatable: true, description: "Inclui conversões que não entram na coluna principal (ex.: visitas à loja, cliques para ligar)", exampleValue: "231" },
+  { slug: "google_all_conversions_value", label: "Valor de Todas as Conversões (Google)", category: "conversions", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 16.420,00" },
+  { slug: "google_roas", label: "ROAS (Google)", category: "conversions", scope: "channel", channel: "google", returns: "number", aggregatable: false, exampleValue: "4,73" },
+  { slug: "google_all_roas", label: "ROAS de Todas as Conversões (Google)", category: "conversions", scope: "channel", channel: "google", returns: "number", aggregatable: false, exampleValue: "5,22" },
+  { slug: "google_conversions_from_interactions_rate", label: "Taxa de Conversão por Interação (Google)", category: "conversions", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "6,55%" },
+  { slug: "google_all_conversions_from_interactions_rate", label: "Taxa de Todas as Conversões por Interação (Google)", category: "conversions", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "8,22%" },
   { slug: "google_cost_per_conversion", label: "Custo por Conversão (Google)", category: "costs", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 17,10" },
-  { slug: "google_conversion_value", label: "Valor Total de Conversão (Google)", category: "conversions", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 14.890,00" },
-  { slug: "google_roas", label: "ROAS (Google)", category: "metrics", scope: "channel", channel: "google", returns: "number", aggregatable: false, exampleValue: "4,73" },
+  { slug: "google_cost_per_all_conversions", label: "Custo por Todas as Conversões (Google)", category: "costs", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 13,62" },
+  { slug: "google_video_trueview_views", label: "Visualizações de Vídeo (Google)", category: "video", scope: "channel", channel: "google", returns: "number", aggregatable: true, exampleValue: "12.300" },
+  { slug: "google_video_trueview_view_rate", label: "Taxa de Visualização de Vídeo (Google)", category: "video", scope: "channel", channel: "google", returns: "percent", aggregatable: false, exampleValue: "31,4%" },
+  { slug: "google_trueview_average_cpv", label: "Custo Médio por Visualização (Google)", category: "video", scope: "channel", channel: "google", returns: "currency", aggregatable: false, exampleValue: "R$ 0,08" },
+  { slug: "google_account_name", label: "Nome da Conta (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, exampleValue: "Go English" },
+  { slug: "google_campaign_name", label: "Nome da Campanha (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Pesquisa - Marca" },
+  { slug: "google_campaign_id", label: "ID da Campanha (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "21534567890" },
+  { slug: "google_adset_name", label: "Nome do Grupo de Anúncios (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Curso de inglês online" },
+  { slug: "google_adset_id", label: "ID do Grupo de Anúncios (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "158734567890" },
+  { slug: "google_ad_name", label: "Nome do Anúncio (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "RSA - Matrícula aberta" },
+  { slug: "google_ad_id", label: "ID do Anúncio (Google)", category: "identification", scope: "channel", channel: "google", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "689012345678" },
+  { slug: "google_currency", label: "Moeda da Conta (Google)", category: "metadata", scope: "channel", channel: "google", returns: "text", aggregatable: false, exampleValue: "BRL" },
+  { slug: "google_all_keywords_ranking", label: "Ranking de Palavras-chave", category: "metadata", scope: "channel", channel: "google", returns: "block", aggregatable: false, description: "Posição, palavra, conversões e custo por conversão (até 10)" },
+  { slug: "google_all_keywords_simple", label: "Ranking de Palavras-chave (simples)", category: "metadata", scope: "channel", channel: "google", returns: "block", aggregatable: false, description: "Só posição e palavra (até 10)" },
+  { slug: "google_top_1_keywords_ranking", label: "Top 1 Palavra-chave", category: "metadata", scope: "channel", channel: "google", returns: "block", aggregatable: false },
+  { slug: "google_top_3_keywords_ranking", label: "Top 3 Palavras-chave", category: "metadata", scope: "channel", channel: "google", returns: "block", aggregatable: false },
+  { slug: "google_top_5_keywords_ranking", label: "Top 5 Palavras-chave", category: "metadata", scope: "channel", channel: "google", returns: "block", aggregatable: false },
   { slug: "google_app_installs", label: "Instalações de App (Google)", category: "conversions", scope: "channel", channel: "google", returns: "number", aggregatable: true, exampleValue: "420" },
   { slug: "google_cost_per_app_install", label: "Custo por Instalação (Google)", category: "costs", scope: "channel", channel: "google", returns: "currency", aggregatable: true, exampleValue: "R$ 7,50" },
 ];
 
 // Valores de alerta chegam já formatados pelo motor de alertas (moeda, % ou número conforme a condição)
+// "(total)": soma (métricas) ou junta (identificação) os canais do cliente na parte do relatório.
+// cpc, cpm e ctr totais ficam em CALCULATED_VARIABLES, que já não pertencem a um canal.
+export const TOTAL_VARIABLES: VariableDefinition[] = [
+  { slug: "spend", label: "Valor Investido (total)", category: "metrics", scope: "calculated", returns: "currency", aggregatable: true, description: "Meta + Google", exampleValue: "R$ 4.771,50" },
+  { slug: "impressions", label: "Impressões (total)", category: "metrics", scope: "calculated", returns: "number", aggregatable: true, description: "Meta + Google", exampleValue: "143.400" },
+  { slug: "clicks", label: "Cliques (total)", category: "metrics", scope: "calculated", returns: "number", aggregatable: true, description: "Meta + Google", exampleValue: "6.190" },
+  { slug: "reach", label: "Alcance (total)", category: "metrics", scope: "calculated", returns: "number", aggregatable: false, description: "Alcance da Meta (o Google não informa alcance)", exampleValue: "42.850" },
+  { slug: "roas", label: "ROAS (total)", category: "conversions", scope: "calculated", returns: "number", aggregatable: false, description: "Receita Meta + valor de conversões Google ÷ investimento total", exampleValue: "4,78" },
+  { slug: "currency", label: "Moeda da Conta (total)", category: "metadata", scope: "calculated", returns: "text", aggregatable: false, exampleValue: "BRL" },
+  { slug: "account_name", label: "Nome da Conta (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, description: "Nomes das contas da parte, separados por vírgula", exampleValue: "BM Start - Captação" },
+  { slug: "campaign_name", label: "Nome da Campanha (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Vendas - Black Friday" },
+  { slug: "campaign_id", label: "ID da Campanha (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000001" },
+  { slug: "adset_name", label: "Nome do Conjunto/Grupo (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Público Quente" },
+  { slug: "adset_id", label: "ID do Conjunto/Grupo (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000002" },
+  { slug: "ad_name", label: "Nome do Anúncio (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "Vídeo 01 - Prova Social" },
+  { slug: "ad_id", label: "ID do Anúncio (total)", category: "identification", scope: "calculated", returns: "text", aggregatable: false, availability: "per_campaign", exampleValue: "120210000000000003" },
+];
+
+const SOON = "Requer a conexão do Instagram (em breve)";
+
+// Perfil orgânico do Instagram. Ficam no catálogo para os modelos já poderem citá-las; o seletor
+// só as mostra quando a integração existir.
+export const INSTAGRAM_VARIABLES: VariableDefinition[] = [
+  { slug: "instagram_followers_count", label: "Seguidores", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: false, availability: "soon", description: SOON, exampleValue: "18.420" },
+  { slug: "instagram_follows_count", label: "Seguindo", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: false, availability: "soon", description: SOON, exampleValue: "612" },
+  { slug: "instagram_followers_gained", label: "Ganho de Seguidores (período)", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "340" },
+  { slug: "instagram_reach", label: "Alcance (Instagram)", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: false, availability: "soon", description: SOON, exampleValue: "25.100" },
+  { slug: "instagram_impressions", label: "Impressões (Instagram)", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "61.800" },
+  { slug: "instagram_profile_views", label: "Visualizações do Perfil", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "2.140" },
+  { slug: "instagram_accounts_engaged", label: "Contas Engajadas", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: false, availability: "soon", description: SOON, exampleValue: "1.930" },
+  { slug: "instagram_engagement", label: "Interações Totais", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "4.870" },
+  { slug: "instagram_engagement_rate", label: "Taxa de Engajamento", category: "metrics", scope: "channel", channel: "instagram", returns: "percent", aggregatable: false, availability: "soon", description: SOON, exampleValue: "3,8%" },
+  { slug: "instagram_likes", label: "Curtidas", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "3.920" },
+  { slug: "instagram_comments", label: "Comentários", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "214" },
+  { slug: "instagram_shares", label: "Compartilhamentos", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "380" },
+  { slug: "instagram_saves", label: "Salvamentos", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "356" },
+  { slug: "instagram_posts", label: "Posts Publicados (período)", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: true, availability: "soon", description: SOON, exampleValue: "12" },
+  { slug: "instagram_media_count", label: "Posts (total da conta)", category: "metrics", scope: "channel", channel: "instagram", returns: "number", aggregatable: false, availability: "soon", description: SOON, exampleValue: "486" },
+  { slug: "instagram_gender_female_pct", label: "% Feminino", category: "metrics", scope: "channel", channel: "instagram", returns: "percent", aggregatable: false, availability: "soon", description: SOON, exampleValue: "62,0%" },
+  { slug: "instagram_gender_male_pct", label: "% Masculino", category: "metrics", scope: "channel", channel: "instagram", returns: "percent", aggregatable: false, availability: "soon", description: SOON, exampleValue: "36,5%" },
+  { slug: "instagram_gender_unknown_pct", label: "% Não Informado", category: "metrics", scope: "channel", channel: "instagram", returns: "percent", aggregatable: false, availability: "soon", description: SOON, exampleValue: "1,5%" },
+  { slug: "instagram_audience_age_gender", label: "Audiência por Idade e Gênero", category: "metrics", scope: "channel", channel: "instagram", returns: "block", aggregatable: false, availability: "soon", description: SOON },
+  { slug: "instagram_top_cities", label: "Top 5 Cidades", category: "metrics", scope: "channel", channel: "instagram", returns: "block", aggregatable: false, availability: "soon", description: SOON },
+  { slug: "instagram_username", label: "@ do Perfil", category: "identification", scope: "channel", channel: "instagram", returns: "text", aggregatable: false, availability: "soon", description: SOON, exampleValue: "@goenglish" },
+  { slug: "instagram_post_id", label: "ID do Post", category: "identification", scope: "channel", channel: "instagram", returns: "text", aggregatable: false, availability: "soon", description: SOON, exampleValue: "17912345678901234" },
+  { slug: "instagram_post_caption", label: "Legenda do Post", category: "identification", scope: "channel", channel: "instagram", returns: "text", aggregatable: false, availability: "soon", description: SOON, exampleValue: "Matrículas abertas!" },
+];
+
 export const ALERT_VARIABLES: VariableDefinition[] = [
-  { slug: "account_name", label: "Nome da Conta no Alerta", category: "alert", scope: "alert", returns: "text", aggregatable: false, exampleValue: "BM Start - Captação" },
   { slug: "account_type", label: "Tipo de Conta (Pré/Pós-paga)", category: "alert", scope: "alert", returns: "text", aggregatable: false, exampleValue: "Pré-paga" },
   { slug: "account_status", label: "Status da Conta", category: "alert", scope: "alert", returns: "text", aggregatable: false, exampleValue: "Ativa" },
   { slug: "alert_type", label: "Tipo de Alerta", category: "alert", scope: "alert", returns: "text", aggregatable: false, exampleValue: "Saldo Crítico" },
@@ -161,6 +246,8 @@ export const FULL_VARIABLE_CATALOG: readonly VariableDefinition[] = [
   ...META_VIDEO_METRICS,
   ...buildActionTypeVariables(),
   ...GOOGLE_ADS_METRICS,
+  ...TOTAL_VARIABLES,
+  ...INSTAGRAM_VARIABLES,
   ...ALERT_VARIABLES,
   ...LEAD_VARIABLES,
 ];
@@ -168,3 +255,8 @@ export const FULL_VARIABLE_CATALOG: readonly VariableDefinition[] = [
 export const VARIABLE_BY_SLUG: ReadonlyMap<string, VariableDefinition> = new Map(
   FULL_VARIABLE_CATALOG.map((v) => [v.slug, v]),
 );
+
+/** O que o editor de relatório oferece: sem variáveis de alerta/lead e sem as que dependem de integração futura. */
+export function reportPickerVariables(): VariableDefinition[] {
+  return FULL_VARIABLE_CATALOG.filter((v) => v.availability !== "soon" && v.scope !== "alert" && v.scope !== "lead");
+}
