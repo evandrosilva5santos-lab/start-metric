@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useSessionIdentity, type SessionIdentity } from "@/hooks/useSessionIdentity";
 import { useDiagnosticCount } from "@/hooks/useMetaDashboard";
 import { cn } from "@/lib/utils";
+import { BrandSymbol, BrandWordmark } from "@/components/brand/BrandLogo";
 import { DIAGNOSTIC_HREF, NAV_GROUPS, activeNavHref, type NavItem } from "@/components/layout/nav-items";
 
 const ICON_STROKE = 1.75;
@@ -17,12 +18,7 @@ export function BrandMark({ compact = false }: { compact?: boolean }) {
       aria-label="Start Metric, ir para a Visão Geral"
       className="flex min-h-8 items-center gap-2 rounded-control px-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
-      <span aria-hidden="true" className="size-[22px] shrink-0 rounded-control bg-primary" />
-      {!compact && (
-        <span className="whitespace-nowrap text-[16px] font-semibold leading-[1.2] text-sidebar-foreground">
-          Start Metric
-        </span>
-      )}
+      {compact ? <BrandSymbol className="h-7 shrink-0" /> : <BrandWordmark className="h-7 shrink-0" />}
     </Link>
   );
 }

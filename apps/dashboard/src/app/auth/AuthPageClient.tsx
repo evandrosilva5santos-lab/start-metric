@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Eye, EyeOff, TrendingUp, BarChart3, Zap, ArrowRight, Loader2, Check, X, ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { BrandWordmark } from "@/components/brand/BrandLogo";
 
 const MIN_PASSWORD_LENGTH = 8;
 
@@ -279,8 +280,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           animate={{ opacity: 1, y: 0 }}
           className="flex items-center gap-3 z-10"
         >
-          <span aria-hidden="true" className="size-7 rounded-control bg-primary" />
-          <span className="font-display text-[20px] font-bold text-sidebar-strong">Start Metric</span>
+          <BrandWordmark alt="Metriika" className="h-9" />
         </motion.div>
 
         <motion.div
@@ -345,8 +345,7 @@ export default function AuthPageClient({ nextParam, errorParam, messageParam }: 
           className="w-full max-w-md z-10 py-8"
         >
           <div className="flex items-center gap-2 mb-10 lg:hidden">
-            <span aria-hidden="true" className="size-[22px] rounded-control bg-primary" />
-            <span className="font-display text-[16px] font-bold text-fg">Start Metric</span>
+            <BrandWordmark alt="Metriika" className="h-8" />
           </div>
 
           <AnimatePresence mode="wait">
