@@ -10,7 +10,7 @@ import {
   type GoogleDailyRow,
   type MetricValues,
 } from "./engine/metrics";
-import { renderTemplate, type CreativeRow } from "./engine/render";
+import { renderTemplate, type CreativeRow, type KeywordRow } from "./engine/render";
 import { resolvePeriod, type PeriodInput, type ReportPeriod } from "./period";
 
 export interface DateRange {
@@ -50,6 +50,12 @@ export interface PartDataSource {
   loadGoogleRows(accountIds: readonly string[], range: DateRange): Promise<GoogleDailyRow[]>;
   loadInsightMetrics(account: AccountInfo, range: DateRange): Promise<MetricValues>;
   loadTopCreatives(account: AccountInfo, range: DateRange): Promise<CreativeRow[]>;
+  loadGoogleKeywords(account: AccountInfo, range: DateRange): Promise<GoogleKeywordSummary>;
+}
+
+export interface GoogleKeywordSummary {
+  ranking: KeywordRow[];
+  qualityScore: number | null;
 }
 
 export interface RenderPartInput {
@@ -94,14 +100,16 @@ export type GenerationResult =
 const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g;
 const ACCOUNT_INSIGHT_SLUG = /^(meta_(reach|frequency|video_)|reach$)/;
 const CREATIVE_RANKING_SLUG = /^meta_((top_\d+|all)_creatives_ranking|all_creatives_simple)$/;
+const KEYWORD_SLUG = /^google_((top_\d+|all)_keywords_ranking|all_keywords_simple|quality_score)$/;
 const MAX_ERROR_LENGTH = 1000;
 const NO_DATA_MESSAGE = "Sem dados no período para nenhuma parte.";
 
-export function templateNeeds(body: string): { accountInsights: boolean; creatives: boolean } {
+export function templateNeeds(body: string): { accountInsights: boolean; creatives: boolean; keywords: boolean } {
   const slugs = [...body.matchAll(PLACEHOLDER)].map((m) => m[1]);
   return {
     accountInsights: slugs.some((s) => ACCOUNT_INSIGHT_SLUG.test(s)),
     creatives: slugs.some((s) => CREATIVE_RANKING_SLUG.test(s)),
+    keywords: slugs.some((s) => KEYWORD_SLUG.test(s)),
   };
 }
 
@@ -134,6 +142,7 @@ export function selectPartAccounts(
 interface LiveData {
   metrics: MetricValues;
   creatives: CreativeRow[];
+  keywords: KeywordRow[];
   warnings: string[];
 }
 
@@ -146,6 +155,50 @@ async function attempt<T>(label: string, load: () => Promise<T>, warnings: strin
   }
 }
 
+async function loadMetaLive(
+  needs: ReturnType<typeof templateNeeds>,
+  accounts: readonly AccountInfo[],
+  range: DateRange,
+  source: PartDataSource,
+  warnings: string[],
+): Promise<{ metrics: MetricValues; creatives: CreativeRow[] }> {
+  if (!needs.accountInsights && !needs.creatives) return { metrics: {}, creatives: [] };
+  const metaAccounts = accounts.filter((a) => a.platform === "meta");
+  if (metaAccounts.length !== 1) {
+    warnings.push(
+      `Alcance, frequência, vídeo e ranking de criativos exigem uma única conta Meta; a parte usa ${metaAccounts.length} contas.`,
+    );
+    return { metrics: {}, creatives: [] };
+  }
+  const [account] = metaAccounts;
+  const [metrics, creatives] = await Promise.all([
+    needs.accountInsights ? attempt("Insights da Meta indisponível", () => source.loadInsightMetrics(account, range), warnings) : null,
+    needs.creatives ? attempt("Ranking de criativos indisponível", () => source.loadTopCreatives(account, range), warnings) : null,
+  ]);
+  return { metrics: metrics ?? {}, creatives: creatives ?? [] };
+}
+
+async function loadGoogleLive(
+  needs: ReturnType<typeof templateNeeds>,
+  accounts: readonly AccountInfo[],
+  range: DateRange,
+  source: PartDataSource,
+  warnings: string[],
+): Promise<{ metrics: MetricValues; keywords: KeywordRow[] }> {
+  if (!needs.keywords) return { metrics: {}, keywords: [] };
+  const googleAccounts = accounts.filter((a) => a.platform === "google");
+  if (googleAccounts.length !== 1) {
+    warnings.push(`Palavras-chave e índice de qualidade exigem uma única conta Google; a parte usa ${googleAccounts.length} contas.`);
+    return { metrics: {}, keywords: [] };
+  }
+  const summary = await attempt("Palavras-chave do Google indisponíveis", () => source.loadGoogleKeywords(googleAccounts[0], range), warnings);
+  if (!summary) return { metrics: {}, keywords: [] };
+  return {
+    metrics: summary.qualityScore === null ? {} : { google_quality_score: summary.qualityScore },
+    keywords: summary.ranking,
+  };
+}
+
 async function loadLiveData(
   body: string,
   accounts: readonly AccountInfo[],
@@ -154,22 +207,11 @@ async function loadLiveData(
 ): Promise<LiveData> {
   const needs = templateNeeds(body);
   const warnings: string[] = [];
-  if (!needs.accountInsights && !needs.creatives) return { metrics: {}, creatives: [], warnings };
-
-  const metaAccounts = accounts.filter((a) => a.platform === "meta");
-  if (metaAccounts.length !== 1) {
-    warnings.push(
-      `Alcance, frequência, vídeo e ranking de criativos exigem uma única conta Meta; a parte usa ${metaAccounts.length} contas.`,
-    );
-    return { metrics: {}, creatives: [], warnings };
-  }
-
-  const [account] = metaAccounts;
-  const [metrics, creatives] = await Promise.all([
-    needs.accountInsights ? attempt("Insights da Meta indisponível", () => source.loadInsightMetrics(account, range), warnings) : null,
-    needs.creatives ? attempt("Ranking de criativos indisponível", () => source.loadTopCreatives(account, range), warnings) : null,
+  const [meta, google] = await Promise.all([
+    loadMetaLive(needs, accounts, range, source, warnings),
+    loadGoogleLive(needs, accounts, range, source, warnings),
   ]);
-  return { metrics: metrics ?? {}, creatives: creatives ?? [], warnings };
+  return { metrics: mergeMetrics(meta.metrics, google.metrics), creatives: meta.creatives, keywords: google.keywords, warnings };
 }
 
 function joinUnique(values: ReadonlyArray<string | null | undefined>): string | undefined {
@@ -226,6 +268,7 @@ export async function renderLivePart(input: RenderPartInput, source: PartDataSou
       metrics: mergeMetrics(channels, totalMetrics(channels), result.metrics),
       texts: { ...accountTexts(input.accounts), ...result.texts },
       creatives: live.creatives,
+      keywords: live.keywords,
       currency: input.accounts[0]?.currency ?? undefined,
       timezone: input.timezone,
       now: input.now,

@@ -62,7 +62,9 @@ function actionMessage(action: Action, data: Record<string, unknown>): string {
     const failed = (data.failed as Array<{ account: string; message: string }> | undefined) ?? [];
     const base = `${data.synced ?? 0} de ${data.accounts ?? 0} contas sincronizadas · ${data.campaigns ?? 0} campanhas · ${data.metricRows ?? 0} linhas de métricas`;
     const budget = data.stoppedByBudget ? " · o restante continua na sincronização automática" : "";
-    return failed.length ? `${base}${budget}. Falhou: ${failed[0].account} — ${failed[0].message}` : `${base}${budget}.`;
+    const warnings = (data.warnings as string[] | undefined) ?? [];
+    const warning = warnings.length ? ` Aviso: ${warnings[0]}` : "";
+    return failed.length ? `${base}${budget}. Falhou: ${failed[0].account} — ${failed[0].message}${warning}` : `${base}${budget}.${warning}`;
   }
   return `${data.found ?? 0} contas encontradas no Google Ads, ${data.created ?? 0} novas no painel.`;
 }

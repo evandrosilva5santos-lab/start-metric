@@ -133,3 +133,52 @@ test("JWT da conta de serviço tem escopo adwords, validade de 1 h e assinatura 
   const ok = createVerify("RSA-SHA256").update(`${h}.${p}`).verify(publicKey, Buffer.from(s, "base64url"));
   assert.equal(ok, true);
 });
+
+// ── Métricas extras e palavras-chave ───────────────────────────────────────
+test("consulta extra: só campos da v26, período validado e só linhas com impressão", () => {
+  const q = gaql.extraMetricsQuery("2026-10-01", "2026-10-21");
+  for (const field of [
+    "metrics.interactions", "metrics.all_conversions", "metrics.all_conversions_value",
+    "metrics.search_impression_share", "metrics.search_budget_lost_impression_share",
+    "metrics.search_rank_lost_impression_share", "metrics.content_budget_lost_impression_share",
+    "metrics.top_impression_percentage", "metrics.absolute_top_impression_percentage",
+    "metrics.video_trueview_views", "metrics.video_trueview_view_rate",
+  ]) assert.ok(q.includes(field), field);
+  assert.match(q, /BETWEEN '2026-10-01' AND '2026-10-21'/);
+  assert.match(q, /metrics\.impressions > 0/);
+  assert.throws(() => gaql.extraMetricsQuery("ontem", "2026-10-21"), /data inválida/);
+});
+
+test("métrica extra: parcela ausente fica nula (não é zero); contagens ausentes valem zero", () => {
+  const m = gaql.mapExtraMetric({
+    campaign: { id: "22001" },
+    segments: { date: "2026-10-13" },
+    metrics: { interactions: "40", allConversions: 3.5, searchImpressionShare: 0.62, topImpressionPercentage: "0.5" },
+  });
+  assert.deepEqual(m, {
+    campaignId: "22001", date: "2026-10-13", interactions: 40, allConversions: 3.5, allConversionsValue: 0,
+    searchImpressionShare: 0.62, searchBudgetLostImpressionShare: null, searchRankLostImpressionShare: null,
+    contentBudgetLostImpressionShare: null, topImpressionPercentage: 0.5, absoluteTopImpressionPercentage: null,
+    videoViews: 0, videoViewRate: null,
+  });
+});
+
+test("palavras-chave: consulta limitada e ranking junta a mesma palavra de grupos diferentes", () => {
+  const q = gaql.keywordsQuery("2026-10-01", "2026-10-21");
+  assert.match(q, /FROM keyword_view/);
+  assert.match(q, /ad_group_criterion\.quality_info\.quality_score/);
+  assert.match(q, /LIMIT \d+/);
+
+  const rows = [
+    { adGroupCriterion: { keyword: { text: "curso de inglês" }, qualityInfo: { qualityScore: 8 } }, metrics: { impressions: "1000", clicks: "50", conversions: 4, costMicros: "40000000" } },
+    { adGroupCriterion: { keyword: { text: "curso de inglês" }, qualityInfo: { qualityScore: 6 } }, metrics: { impressions: "1000", clicks: "30", conversions: 2, costMicros: "20000000" } },
+    { adGroupCriterion: { keyword: { text: "inglês online" } }, metrics: { impressions: "2000", clicks: "10", conversions: 0, costMicros: "5000000" } },
+  ];
+  const s = gaql.summarizeKeywords(rows, 10);
+  assert.deepEqual(s.ranking.map((k) => k.keyword), ["curso de inglês", "inglês online"]);
+  assert.deepEqual(s.ranking[0], { keyword: "curso de inglês", conversions: 6, clicks: 80, cost: 60, costPerConversion: 10 });
+  assert.equal(s.ranking[1].costPerConversion, null);
+  // média ponderada por impressão, só onde há índice: (8×1000 + 6×1000) / 2000
+  assert.equal(s.qualityScore, 7);
+  assert.deepEqual(gaql.summarizeKeywords([], 10), { ranking: [], qualityScore: null });
+});

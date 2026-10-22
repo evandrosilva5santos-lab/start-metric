@@ -155,11 +155,12 @@ test("schema: preview live exige cliente ou conta; entrega aceita só os 3 passo
 // ---------------------------------------------------------------- núcleo de geração
 
 test("templateNeeds: só chama a Meta quando o texto usa alcance, frequência, vídeo ou ranking", () => {
-  assert.deepEqual(templateNeeds("{{meta_spend}} {{meta_ctr}}"), { accountInsights: false, creatives: false });
-  assert.deepEqual(templateNeeds("{{ meta_reach }}"), { accountInsights: true, creatives: false });
-  assert.deepEqual(templateNeeds("{{meta_video_p25.video_view}}"), { accountInsights: true, creatives: false });
-  assert.deepEqual(templateNeeds("{{meta_top_3_creatives_ranking}}"), { accountInsights: false, creatives: true });
-  assert.deepEqual(templateNeeds("{{meta_all_creatives_ranking}}"), { accountInsights: false, creatives: true });
+  assert.deepEqual(templateNeeds("{{meta_spend}} {{meta_ctr}}"), { accountInsights: false, creatives: false, keywords: false });
+  assert.deepEqual(templateNeeds("{{ meta_reach }}"), { accountInsights: true, creatives: false, keywords: false });
+  assert.deepEqual(templateNeeds("{{meta_video_p25.video_view}}"), { accountInsights: true, creatives: false, keywords: false });
+  assert.deepEqual(templateNeeds("{{meta_top_3_creatives_ranking}}"), { accountInsights: false, creatives: true, keywords: false });
+  assert.deepEqual(templateNeeds("{{meta_all_creatives_ranking}}"), { accountInsights: false, creatives: true, keywords: false });
+  assert.deepEqual(templateNeeds("{{google_quality_score}} {{google_top_3_keywords_ranking}}"), { accountInsights: false, creatives: false, keywords: true });
 });
 
 test("redactSecrets remove token da Meta de mensagens de erro", () => {
@@ -711,4 +712,38 @@ test("renderLivePart: tipo e valor do resultado principal da Meta", async () => 
     source,
   );
   assert.equal(r.text, "9 Cadastros (9)");
+});
+
+test("renderLivePart: palavras-chave e índice de qualidade vêm ao vivo de uma conta Google", async () => {
+  const keywordCalls = [];
+  const source = googleSource({
+    async loadGoogleKeywords(account, range) {
+      keywordCalls.push({ account: account.id, range });
+      return { ranking: [{ keyword: "curso de inglês", conversions: 6, clicks: 80, cost: 60, costPerConversion: 10 }], qualityScore: 7.25 };
+    },
+  });
+  const r = await renderLivePart(
+    {
+      body: "QS {{google_quality_score}} | {{google_all_keywords_simple}}",
+      period: { period: "yesterday" },
+      accounts: [ACC_GOOGLE],
+      clientName: null,
+      timezone: "America/Sao_Paulo",
+      now: NOW,
+      sendWithoutData: false,
+    },
+    source,
+  );
+  assert.equal(plain(r.text), "QS 7,25 | 🥇 1. curso de inglês");
+  assert.deepEqual(keywordCalls.map((c) => c.account), ["acc-g"]);
+});
+
+test("renderLivePart: sem palavra-chave no texto não chama a API do Google", async () => {
+  let called = false;
+  const source = googleSource({ async loadGoogleKeywords() { called = true; return { ranking: [], qualityScore: null }; } });
+  await renderLivePart(
+    { body: "{{google_spend}}", period: { period: "yesterday" }, accounts: [ACC_GOOGLE], clientName: null, timezone: "America/Sao_Paulo", now: NOW, sendWithoutData: false },
+    source,
+  );
+  assert.equal(called, false);
 });

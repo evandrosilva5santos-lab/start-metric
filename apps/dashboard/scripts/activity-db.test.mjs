@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 
-const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql"].map((file) =>
+const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql", "20261022000500_google_ads_extra_metrics.sql"].map((file) =>
   readFileSync(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"),
 );
 
@@ -360,6 +360,25 @@ test("conta Google entra em ad_accounts e métricas fazem upsert idempotente", a
   await db.query(up, [ORG_A, GOOGLE_ACC, 15_000_000]);
   const rows = (await db.query("SELECT cost_micros::text AS c FROM public.google_ads_daily_metrics WHERE ad_account_id = $1", [GOOGLE_ACC])).rows;
   assert.deepEqual(rows, [{ c: "15000000" }]);
+});
+
+test("métricas extras do Google: upsert parcial não apaga as principais; parcela fora de 0–1 é recusada", async () => {
+  await db.query(
+    `INSERT INTO public.google_ads_daily_metrics (org_id, ad_account_id, campaign_id, date, interactions, all_conversions, search_impression_share, video_view_rate)
+     VALUES ($1, $2, '22001', '2026-10-13', 50, 3.5, 0.62, NULL)
+     ON CONFLICT (ad_account_id, campaign_id, date) DO UPDATE SET interactions = EXCLUDED.interactions,
+       all_conversions = EXCLUDED.all_conversions, search_impression_share = EXCLUDED.search_impression_share`,
+    [ORG_A, GOOGLE_ACC],
+  );
+  const row = (await db.query(
+    "SELECT cost_micros::text AS c, interactions::text AS i, search_impression_share::text AS s, video_views::text AS v FROM public.google_ads_daily_metrics WHERE ad_account_id = $1 AND campaign_id = '22001'",
+    [GOOGLE_ACC],
+  )).rows[0];
+  assert.deepEqual(row, { c: "15000000", i: "50", s: "0.62000", v: "0" });
+  await assert.rejects(
+    () => db.query("UPDATE public.google_ads_daily_metrics SET search_impression_share = 1.5 WHERE ad_account_id = $1", [GOOGLE_ACC]),
+    /check constraint/,
+  );
 });
 
 test("métrica do Google com conta de outra org é recusada", async () => {

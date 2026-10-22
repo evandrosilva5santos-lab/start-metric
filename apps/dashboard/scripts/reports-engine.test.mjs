@@ -429,3 +429,41 @@ test("ranking simples de criativos mostra só posição e nome", () => {
   const { text } = renderTemplate("{{meta_all_creatives_simple}}", { creatives }, "live");
   assert.equal(text, "🥇 1. Ad 1\n🥈 2. Ad 2");
 });
+
+test("Google: extras com parcelas ponderadas por impressão e taxas por interação", () => {
+  const base = { cost_micros: 0, clicks: 0, conversions: 0, conversions_value: 0 };
+  const m = aggregateGoogleRows([
+    { ...base, cost_micros: 10000000, impressions: 1000, conversions: 4, interactions: 100, all_conversions: 6, all_conversions_value: 60,
+      search_impression_share: 0.8, search_budget_lost_impression_share: 0.1, top_impression_percentage: 0.5, video_views: 100, video_view_rate: 0.3 },
+    { ...base, cost_micros: 30000000, impressions: 3000, conversions: 6, interactions: 300, all_conversions: 14, all_conversions_value: 140,
+      search_impression_share: 0.4, search_budget_lost_impression_share: null, top_impression_percentage: null, video_views: 0, video_view_rate: null },
+  ]);
+  close(m.google_search_impression_share, 50); // (0,8×1000 + 0,4×3000) / 4000
+  close(m.google_search_budget_lost_impression_share, 10); // só a linha que tem valor
+  close(m.google_top_impression_percentage, 50);
+  assert.equal("google_absolute_top_impression_percentage" in m, false);
+  close(m.google_conversions_from_interactions_rate, 2.5); // 10 / 400
+  close(m.google_all_conversions_from_interactions_rate, 5); // 20 / 400
+  assert.equal(m.google_all_conversions, 20);
+  close(m.google_all_conversions_value, 200);
+  close(m.google_all_roas, 5); // 200 / 40
+  close(m.google_cost_per_all_conversions, 2);
+  assert.equal(m.google_video_trueview_views, 100);
+  close(m.google_video_trueview_view_rate, 30);
+  close(m.google_trueview_average_cpv, 0.1); // custo só das linhas com vídeo: 10 / 100
+  for (const slug of Object.keys(m)) assert.ok(VARIABLE_BY_SLUG.has(slug), slug);
+});
+
+test("ranking de palavras-chave: completo, simples e top N", () => {
+  const keywords = [
+    { keyword: "curso de inglês", conversions: 6, clicks: 80, cost: 60, costPerConversion: 10 },
+    { keyword: "inglês online", conversions: 0, clicks: 10, cost: 5, costPerConversion: null },
+  ];
+  const full = renderTemplate("{{google_top_1_keywords_ranking}}", { keywords }, "live").text;
+  assert.equal(plain(full), "🥇 1. curso de inglês\nConversões: 6 | Custo/conv.: R$ 10,00 | Cliques: 80");
+  const simple = renderTemplate("{{google_all_keywords_simple}}", { keywords }, "live").text;
+  assert.equal(simple, "🥇 1. curso de inglês\n🥈 2. inglês online");
+  const all = renderTemplate("{{google_all_keywords_ranking}}", { keywords }, "live").text;
+  assert.match(plain(all), /Custo\/conv\.: — \| Cliques: 10/);
+  assert.deepEqual(renderTemplate("{{google_top_3_keywords_ranking}}", {}, "live").missing, ["google_top_3_keywords_ranking"]);
+});

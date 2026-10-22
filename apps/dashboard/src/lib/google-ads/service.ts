@@ -16,11 +16,16 @@ import {
   accountsQuery,
   campaignsQuery,
   dailyMetricsQuery,
+  extraMetricsQuery,
   formatCustomerId,
+  keywordsQuery,
   mapCampaign,
   mapCustomerClient,
   mapDailyMetric,
+  mapExtraMetric,
+  summarizeKeywords,
   type GoogleAdsAccount,
+  type KeywordSummary,
 } from "./gaql";
 
 // As tabelas do Google ainda não estão nos tipos gerados do Supabase.
@@ -227,7 +232,12 @@ async function upsertChunks(db: Db, table: string, rows: Record<string, unknown>
   }
 }
 
-async function syncAccount(db: Db, ctx: ApiContext, account: GoogleAccountRow, days: number): Promise<{ campaigns: number; metricRows: number }> {
+async function syncAccount(
+  db: Db,
+  ctx: ApiContext,
+  account: GoogleAccountRow,
+  days: number,
+): Promise<{ campaigns: number; metricRows: number; warning: string | null }> {
   const options = {
     accessToken: ctx.accessToken,
     developerToken: ctx.developerToken,
@@ -276,8 +286,70 @@ async function syncAccount(db: Db, ctx: ApiContext, account: GoogleAccountRow, d
     "ad_account_id,campaign_id,date",
   );
 
+  const extrasWarning = await syncExtraMetrics(db, account, options, from, today, now);
+
   await db.from("ad_accounts").update({ last_synced_at: now }).eq("org_id", account.org_id).eq("id", account.id);
-  return { campaigns: campaigns.length, metricRows: metrics.length };
+  return { campaigns: campaigns.length, metricRows: metrics.length, warning: extrasWarning };
+}
+
+/** Segunda consulta, tolerante: se a API recusar algum campo, o sync principal já está salvo. */
+async function syncExtraMetrics(
+  db: Db,
+  account: GoogleAccountRow,
+  options: { accessToken: string; developerToken: string; loginCustomerId: string },
+  from: string,
+  to: string,
+  now: string,
+): Promise<string | null> {
+  try {
+    const extras = (await searchAll(account.external_id, extraMetricsQuery(from, to), options))
+      .map(mapExtraMetric)
+      .filter((m) => m.campaignId && m.date);
+    await upsertChunks(
+      db,
+      "google_ads_daily_metrics",
+      extras.map((m) => ({
+        org_id: account.org_id,
+        ad_account_id: account.id,
+        campaign_id: m.campaignId,
+        date: m.date,
+        interactions: m.interactions,
+        all_conversions: m.allConversions,
+        all_conversions_value: m.allConversionsValue,
+        search_impression_share: m.searchImpressionShare,
+        search_budget_lost_impression_share: m.searchBudgetLostImpressionShare,
+        search_rank_lost_impression_share: m.searchRankLostImpressionShare,
+        content_budget_lost_impression_share: m.contentBudgetLostImpressionShare,
+        top_impression_percentage: m.topImpressionPercentage,
+        absolute_top_impression_percentage: m.absoluteTopImpressionPercentage,
+        video_views: m.videoViews,
+        video_view_rate: m.videoViewRate,
+        updated_at: now,
+      })),
+      "ad_account_id,campaign_id,date",
+    );
+    return null;
+  } catch (err) {
+    return `${account.name ?? formatCustomerId(account.external_id)}: métricas extras indisponíveis (${googleErrorMessage(err)})`;
+  }
+}
+
+const KEYWORD_RANKING_LIMIT = 10;
+
+/** Ranking de palavras-chave e índice de qualidade médio, buscados ao vivo para o relatório. */
+export async function fetchKeywordSummary(
+  db: Db,
+  orgId: string,
+  customerId: string,
+  range: { since: string; until: string },
+): Promise<KeywordSummary> {
+  const ctx = await apiContext(db, orgId);
+  const rows = await searchAll(customerId, keywordsQuery(range.since, range.until), {
+    accessToken: ctx.accessToken,
+    developerToken: ctx.developerToken,
+    loginCustomerId: ctx.connection.login_customer_id ?? customerId,
+  });
+  return summarizeKeywords(rows, KEYWORD_RANKING_LIMIT);
 }
 
 export type GoogleSyncSummary = {
@@ -287,6 +359,7 @@ export type GoogleSyncSummary = {
   campaigns: number;
   metricRows: number;
   stoppedByBudget: boolean;
+  warnings: string[];
 };
 
 export async function syncGoogleOrg(
@@ -308,7 +381,15 @@ export async function syncGoogleOrg(
   if (error) throw new Error(`contas: ${error.message}`);
 
   const accounts = (data ?? []) as GoogleAccountRow[];
-  const summary: GoogleSyncSummary = { accounts: accounts.length, synced: 0, failed: [], campaigns: 0, metricRows: 0, stoppedByBudget: false };
+  const summary: GoogleSyncSummary = {
+    accounts: accounts.length,
+    synced: 0,
+    failed: [],
+    campaigns: 0,
+    metricRows: 0,
+    stoppedByBudget: false,
+    warnings: [],
+  };
   for (const account of accounts) {
     if (Date.now() - startedAt > options.budgetMs) {
       summary.stoppedByBudget = true;
@@ -319,6 +400,7 @@ export async function syncGoogleOrg(
       summary.synced++;
       summary.campaigns += result.campaigns;
       summary.metricRows += result.metricRows;
+      if (result.warning) summary.warnings.push(result.warning);
     } catch (err) {
       summary.failed.push({
         account: account.name ?? formatCustomerId(account.external_id),

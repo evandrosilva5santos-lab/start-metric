@@ -45,6 +45,34 @@ export function dailyMetricsQuery(from: string, to: string): string {
   ].join(" ");
 }
 
+/**
+ * Métricas que a v26 só devolve para parte das campanhas (parcela de impressões só na Pesquisa/Display,
+ * vídeo só em campanhas de vídeo). Fica numa consulta separada para que um campo recusado nunca
+ * derrube a sincronização principal.
+ */
+export function extraMetricsQuery(from: string, to: string): string {
+  return [
+    "SELECT campaign.id, segments.date, metrics.interactions, metrics.all_conversions, metrics.all_conversions_value,",
+    "metrics.search_impression_share, metrics.search_budget_lost_impression_share,",
+    "metrics.search_rank_lost_impression_share, metrics.content_budget_lost_impression_share,",
+    "metrics.top_impression_percentage, metrics.absolute_top_impression_percentage,",
+    "metrics.video_trueview_views, metrics.video_trueview_view_rate",
+    `FROM campaign WHERE segments.date BETWEEN '${assertDay(from)}' AND '${assertDay(to)}' AND metrics.impressions > 0`,
+  ].join(" ");
+}
+
+const KEYWORD_ROWS_LIMIT = 1000;
+
+/** Palavras-chave com impressão no período, as mais vistas primeiro (base do ranking e do índice de qualidade). */
+export function keywordsQuery(from: string, to: string): string {
+  return [
+    "SELECT ad_group_criterion.keyword.text, ad_group_criterion.quality_info.quality_score,",
+    "metrics.impressions, metrics.clicks, metrics.conversions, metrics.cost_micros",
+    `FROM keyword_view WHERE segments.date BETWEEN '${assertDay(from)}' AND '${assertDay(to)}' AND metrics.impressions > 0`,
+    `ORDER BY metrics.impressions DESC LIMIT ${KEYWORD_ROWS_LIMIT}`,
+  ].join(" ");
+}
+
 type Row = Record<string, Record<string, unknown> | undefined>;
 
 const text = (v: unknown): string | null => (typeof v === "string" && v !== "" ? v : null);
@@ -124,6 +152,90 @@ export function mapDailyMetric(row: Row): GoogleAdsDailyMetric {
     conversions: num(m.conversions),
     conversionsValue: num(m.conversionsValue),
   };
+}
+
+export type GoogleAdsExtraMetric = {
+  campaignId: string;
+  date: string;
+  interactions: number;
+  allConversions: number;
+  allConversionsValue: number;
+  /** Frações de 0 a 1; null quando a API não informa para a campanha. */
+  searchImpressionShare: number | null;
+  searchBudgetLostImpressionShare: number | null;
+  searchRankLostImpressionShare: number | null;
+  contentBudgetLostImpressionShare: number | null;
+  topImpressionPercentage: number | null;
+  absoluteTopImpressionPercentage: number | null;
+  videoViews: number;
+  videoViewRate: number | null;
+};
+
+const fraction = (v: unknown): number | null => {
+  if (v === undefined || v === null || v === "") return null;
+  const n = typeof v === "number" ? v : Number(v);
+  return Number.isFinite(n) ? n : null;
+};
+
+export function mapExtraMetric(row: Row): GoogleAdsExtraMetric {
+  const m = row.metrics ?? {};
+  return {
+    campaignId: String(row.campaign?.id ?? ""),
+    date: String(row.segments?.date ?? ""),
+    interactions: num(m.interactions),
+    allConversions: num(m.allConversions),
+    allConversionsValue: num(m.allConversionsValue),
+    searchImpressionShare: fraction(m.searchImpressionShare),
+    searchBudgetLostImpressionShare: fraction(m.searchBudgetLostImpressionShare),
+    searchRankLostImpressionShare: fraction(m.searchRankLostImpressionShare),
+    contentBudgetLostImpressionShare: fraction(m.contentBudgetLostImpressionShare),
+    topImpressionPercentage: fraction(m.topImpressionPercentage),
+    absoluteTopImpressionPercentage: fraction(m.absoluteTopImpressionPercentage),
+    videoViews: num(m.videoTrueviewViews),
+    videoViewRate: fraction(m.videoTrueviewViewRate),
+  };
+}
+
+export type KeywordRanking = {
+  keyword: string;
+  conversions: number;
+  clicks: number;
+  cost: number;
+  costPerConversion: number | null;
+};
+
+export type KeywordSummary = { ranking: KeywordRanking[]; qualityScore: number | null };
+
+/** Junta a mesma palavra de grupos diferentes; índice de qualidade = média ponderada pelas impressões. */
+export function summarizeKeywords(rows: readonly Row[], limit: number): KeywordSummary {
+  const byText = new Map<string, { conversions: number; clicks: number; costMicros: number }>();
+  let weighted = 0;
+  let weight = 0;
+  for (const row of rows) {
+    const criterion = row.adGroupCriterion ?? {};
+    const keyword = text((criterion.keyword as Record<string, unknown> | undefined)?.text);
+    if (!keyword) continue;
+    const m = row.metrics ?? {};
+    const current = byText.get(keyword) ?? { conversions: 0, clicks: 0, costMicros: 0 };
+    byText.set(keyword, {
+      conversions: current.conversions + num(m.conversions),
+      clicks: current.clicks + num(m.clicks),
+      costMicros: current.costMicros + num(m.costMicros),
+    });
+    const quality = fraction((criterion.qualityInfo as Record<string, unknown> | undefined)?.qualityScore);
+    if (quality !== null) {
+      weighted += quality * num(m.impressions);
+      weight += num(m.impressions);
+    }
+  }
+  const ranking = [...byText.entries()]
+    .map(([keyword, t]) => {
+      const cost = t.costMicros / 1_000_000;
+      return { keyword, conversions: t.conversions, clicks: t.clicks, cost, costPerConversion: t.conversions > 0 ? cost / t.conversions : null };
+    })
+    .sort((a, b) => b.conversions - a.conversions || b.clicks - a.clicks)
+    .slice(0, limit);
+  return { ranking, qualityScore: weight > 0 ? weighted / weight : null };
 }
 
 export type MetricTotals = Pick<GoogleAdsDailyMetric, "costMicros" | "impressions" | "clicks" | "conversions" | "conversionsValue">;

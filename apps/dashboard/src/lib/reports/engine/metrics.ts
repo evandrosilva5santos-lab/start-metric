@@ -131,12 +131,77 @@ export interface GoogleDailyRow {
   clicks: NumericInput;
   conversions: NumericInput;
   conversions_value: NumericInput;
+  interactions?: NumericInput;
+  all_conversions?: NumericInput;
+  all_conversions_value?: NumericInput;
+  /** Frações 0–1 vindas da API; nulas quando a campanha não tem a métrica. */
+  search_impression_share?: NumericInput;
+  search_budget_lost_impression_share?: NumericInput;
+  search_rank_lost_impression_share?: NumericInput;
+  content_budget_lost_impression_share?: NumericInput;
+  top_impression_percentage?: NumericInput;
+  absolute_top_impression_percentage?: NumericInput;
+  video_views?: NumericInput;
+  video_view_rate?: NumericInput;
 }
 
 const MICROS = 1_000_000;
 
 function sumGoogle(rows: readonly GoogleDailyRow[], field: keyof GoogleDailyRow): number {
   return rows.reduce((total, row) => total + (toFiniteNumber(row[field]) ?? 0), 0);
+}
+
+type ShareField =
+  | "search_impression_share"
+  | "search_budget_lost_impression_share"
+  | "search_rank_lost_impression_share"
+  | "content_budget_lost_impression_share"
+  | "top_impression_percentage"
+  | "absolute_top_impression_percentage"
+  | "video_view_rate";
+
+/** Média das frações ponderada pelas impressões de cada linha, em pontos percentuais. */
+function weightedShare(rows: readonly GoogleDailyRow[], field: ShareField): number | undefined {
+  let weighted = 0;
+  let weight = 0;
+  for (const row of rows) {
+    const share = toFiniteNumber(row[field]);
+    const impressions = toFiniteNumber(row.impressions) ?? 0;
+    if (share === null || impressions <= 0) continue;
+    weighted += share * impressions;
+    weight += impressions;
+  }
+  return weight > 0 ? (weighted / weight) * 100 : undefined;
+}
+
+const GOOGLE_SHARES: ReadonlyArray<readonly [ShareField, string]> = [
+  ["search_impression_share", "google_search_impression_share"],
+  ["search_budget_lost_impression_share", "google_search_budget_lost_impression_share"],
+  ["search_rank_lost_impression_share", "google_search_rank_lost_impression_share"],
+  ["content_budget_lost_impression_share", "google_content_budget_lost_impression_share"],
+  ["top_impression_percentage", "google_top_impression_percentage"],
+  ["absolute_top_impression_percentage", "google_absolute_top_impression_percentage"],
+  ["video_view_rate", "google_video_trueview_view_rate"],
+];
+
+function googleExtras(rows: readonly GoogleDailyRow[], spend: number, conversions: number): Array<readonly [string, number | undefined]> {
+  const interactions = sumGoogle(rows, "interactions");
+  const allConversions = sumGoogle(rows, "all_conversions");
+  const allValue = sumGoogle(rows, "all_conversions_value");
+  const videoRows = rows.filter((row) => (toFiniteNumber(row.video_views) ?? 0) > 0);
+  const videoViews = sumGoogle(videoRows, "video_views");
+  const videoSpend = sumGoogle(videoRows, "cost_micros") / MICROS;
+  return [
+    ["google_all_conversions", allConversions > 0 ? allConversions : undefined],
+    ["google_all_conversions_value", allValue > 0 ? allValue : undefined],
+    ["google_all_roas", allValue > 0 ? ratio(allValue, spend) : undefined],
+    ["google_cost_per_all_conversions", ratio(spend, allConversions)],
+    ["google_conversions_from_interactions_rate", ratio(conversions, interactions, 100)],
+    ["google_all_conversions_from_interactions_rate", ratio(allConversions, interactions, 100)],
+    ["google_video_trueview_views", videoViews > 0 ? videoViews : undefined],
+    ["google_trueview_average_cpv", ratio(videoSpend, videoViews)],
+    ...GOOGLE_SHARES.map(([field, slug]) => [slug, weightedShare(rows, field)] as const),
+  ];
 }
 
 export function aggregateGoogleRows(rows: readonly GoogleDailyRow[]): Record<string, number> {
@@ -157,6 +222,7 @@ export function aggregateGoogleRows(rows: readonly GoogleDailyRow[]): Record<str
     ["google_cpm", ratio(spend, impressions, 1000)],
     ["google_cost_per_conversion", ratio(spend, conversions)],
     ["google_roas", ratio(value, spend)],
+    ...googleExtras(rows, spend, conversions),
   ]);
 }
 

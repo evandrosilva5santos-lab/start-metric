@@ -21,6 +21,7 @@ export interface RenderContext {
   metrics?: Readonly<Record<string, number | string>>;
   texts?: Readonly<Record<string, string>>;
   creatives?: readonly CreativeRow[];
+  keywords?: readonly KeywordRow[];
   currency?: string;
   timezone?: string;
   now?: Date;
@@ -47,6 +48,31 @@ const RANKING_LIMITS: Readonly<Record<string, number>> = {
 const SIMPLE_RANKING_LIMITS: Readonly<Record<string, number>> = {
   meta_all_creatives_simple: 10,
 };
+
+export interface KeywordRow {
+  keyword: string;
+  conversions: number;
+  clicks: number;
+  cost: number;
+  costPerConversion: number | null;
+}
+
+const KEYWORD_RANKING_LIMITS: Readonly<Record<string, number>> = {
+  google_top_1_keywords_ranking: 1,
+  google_top_3_keywords_ranking: 3,
+  google_top_5_keywords_ranking: 5,
+  google_all_keywords_ranking: 10,
+};
+
+const KEYWORD_SIMPLE_LIMITS: Readonly<Record<string, number>> = {
+  google_all_keywords_simple: 10,
+};
+
+const DEMO_KEYWORDS: readonly KeywordRow[] = [
+  { keyword: "curso de inglês online", conversions: 42, clicks: 610, cost: 520.4, costPerConversion: 12.39 },
+  { keyword: "aulas de inglês", conversions: 18, clicks: 320, cost: 290.1, costPerConversion: 16.12 },
+  { keyword: "inglês para adultos", conversions: 9, clicks: 140, cost: 150.0, costPerConversion: 16.67 },
+];
 
 const MASKS: Partial<Record<VariableReturnType, string>> = {
   currency: "R$ •••••",
@@ -103,6 +129,23 @@ export function formatCreativeRanking(creatives: readonly CreativeRow[], limit: 
       return lines.join("\n");
     })
     .join("\n\n");
+}
+
+export function formatKeywordRanking(keywords: readonly KeywordRow[], limit: number, currency?: string): string {
+  return keywords
+    .slice(0, limit)
+    .map((k, i) => {
+      const cpa = k.costPerConversion === null ? EMPTY : formatCurrency(k.costPerConversion, currency);
+      return `${MEDALS[i] ?? `${i + 1}.`} ${k.keyword}\nConversões: ${formatNumber(k.conversions)} | Custo/conv.: ${cpa} | Cliques: ${formatNumber(k.clicks)}`;
+    })
+    .join("\n\n");
+}
+
+export function formatKeywordSimple(keywords: readonly KeywordRow[], limit: number): string {
+  return keywords
+    .slice(0, limit)
+    .map((k, i) => `${MEDALS[i] ?? `${i + 1}.`} ${k.keyword}`)
+    .join("\n");
 }
 
 export function formatCreativeSimple(creatives: readonly CreativeRow[], limit: number): string {
@@ -190,6 +233,16 @@ export function renderTemplate(template: string, ctx: RenderContext = {}, mode: 
     if (simpleLimit !== undefined) {
       if (ctx.creatives && ctx.creatives.length > 0) return formatCreativeSimple(ctx.creatives, simpleLimit);
       return mode === "preview" ? formatCreativeSimple(DEMO_CREATIVES, simpleLimit) : null;
+    }
+    const keywordLimit = KEYWORD_RANKING_LIMITS[slug];
+    if (keywordLimit !== undefined) {
+      if (ctx.keywords && ctx.keywords.length > 0) return formatKeywordRanking(ctx.keywords, keywordLimit, ctx.currency);
+      return mode === "preview" ? formatKeywordRanking(DEMO_KEYWORDS, keywordLimit, ctx.currency) : null;
+    }
+    const keywordSimple = KEYWORD_SIMPLE_LIMITS[slug];
+    if (keywordSimple !== undefined) {
+      if (ctx.keywords && ctx.keywords.length > 0) return formatKeywordSimple(ctx.keywords, keywordSimple);
+      return mode === "preview" ? formatKeywordSimple(DEMO_KEYWORDS, keywordSimple) : null;
     }
 
     const def = VARIABLE_BY_SLUG.get(slug);

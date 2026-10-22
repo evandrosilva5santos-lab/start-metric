@@ -7,6 +7,7 @@ import { decryptToken } from "@/lib/meta/token";
 import { getOrgMetaToken } from "@/lib/meta/org-token";
 import { fetchAccountInsightMetrics, fetchTopCreatives } from "@/lib/reports/engine/insights";
 import { listOperationalAccounts } from "@/lib/accounts/operational";
+import { fetchKeywordSummary } from "@/lib/google-ads/service";
 import type { DailyMetricRow, GoogleDailyRow } from "@/lib/reports/engine/metrics";
 import type { AccountInfo, DateRange, PartDataSource, PartInput, ReportInput } from "@/lib/reports/generate-core";
 import type { ReportPeriod } from "@/lib/reports/period";
@@ -95,13 +96,20 @@ async function loadDailyRows(db: ReportsDb, orgId: string, accountIds: readonly 
 }
 
 // As tabelas do Google ainda não estão nos tipos gerados do Supabase.
+const GOOGLE_COLUMNS = [
+  "ad_account_id, campaign_id, date, cost_micros, impressions, clicks, conversions, conversions_value",
+  "interactions, all_conversions, all_conversions_value, search_impression_share",
+  "search_budget_lost_impression_share, search_rank_lost_impression_share, content_budget_lost_impression_share",
+  "top_impression_percentage, absolute_top_impression_percentage, video_views, video_view_rate",
+].join(", ");
+
 async function loadGoogleRows(db: ReportsDb, orgId: string, accountIds: readonly string[], range: DateRange): Promise<GoogleDailyRow[]> {
   const rows: GoogleDailyRow[] = [];
   for (let page = 0; page < MAX_PAGES; page++) {
     const from = page * PAGE_SIZE;
     const { data, error } = await (db as unknown as SupabaseClient)
       .from("google_ads_daily_metrics")
-      .select("ad_account_id, campaign_id, date, cost_micros, impressions, clicks, conversions, conversions_value")
+      .select(GOOGLE_COLUMNS)
       .eq("org_id", orgId)
       .in("ad_account_id", [...accountIds])
       .gte("date", range.since)
@@ -110,7 +118,7 @@ async function loadGoogleRows(db: ReportsDb, orgId: string, accountIds: readonly
       .order("campaign_id")
       .range(from, from + PAGE_SIZE - 1);
     if (error) throw new Error(`Falha ao ler métricas do Google: ${error.message}`);
-    rows.push(...((data ?? []) as GoogleDailyRow[]));
+    rows.push(...((data ?? []) as unknown as GoogleDailyRow[]));
     if (!data || data.length < PAGE_SIZE) return rows;
   }
   throw new Error("Período com dados demais para um relatório; reduza o intervalo.");
@@ -149,5 +157,6 @@ export function createPartDataSource(db: ReportsDb, orgId: string): PartDataSour
       fetchAccountInsightMetrics({ accountId: account.externalId, token: await tokenFor(account), ...range }),
     loadTopCreatives: async (account, range) =>
       fetchTopCreatives({ accountId: account.externalId, token: await tokenFor(account), ...range }),
+    loadGoogleKeywords: (account, range) => fetchKeywordSummary(db as never, orgId, account.externalId, range),
   };
 }
