@@ -7,7 +7,7 @@ import { decryptToken } from "@/lib/meta/token";
 import { getOrgMetaToken } from "@/lib/meta/org-token";
 import { fetchAccountInsightMetrics, fetchTopCreatives } from "@/lib/reports/engine/insights";
 import { listOperationalAccounts } from "@/lib/accounts/operational";
-import type { DailyMetricRow } from "@/lib/reports/engine/metrics";
+import type { DailyMetricRow, GoogleDailyRow } from "@/lib/reports/engine/metrics";
 import type { AccountInfo, DateRange, PartDataSource, PartInput, ReportInput } from "@/lib/reports/generate-core";
 import type { ReportPeriod } from "@/lib/reports/period";
 
@@ -15,7 +15,7 @@ export type ReportsDb = SupabaseClient<Database>;
 
 const PAGE_SIZE = 1000;
 const MAX_PAGES = 50;
-type AccountRow = Pick<Database["public"]["Tables"]["ad_accounts"]["Row"], "id" | "external_id" | "client_id" | "platform" | "currency">;
+type AccountRow = Pick<Database["public"]["Tables"]["ad_accounts"]["Row"], "id" | "external_id" | "client_id" | "platform" | "currency" | "name">;
 type PartRow = Database["public"]["Tables"]["report_parts"]["Row"];
 
 export function createReportsAdminDb(): ReportsDb {
@@ -23,7 +23,7 @@ export function createReportsAdminDb(): ReportsDb {
 }
 
 function toAccountInfo(row: AccountRow): AccountInfo {
-  return { id: row.id, externalId: row.external_id, clientId: row.client_id, platform: row.platform, currency: row.currency };
+  return { id: row.id, externalId: row.external_id, clientId: row.client_id, platform: row.platform, currency: row.currency, name: row.name };
 }
 
 export function toPartInput(row: PartRow): PartInput {
@@ -94,6 +94,28 @@ async function loadDailyRows(db: ReportsDb, orgId: string, accountIds: readonly 
   throw new Error("Período com dados demais para um relatório; reduza o intervalo.");
 }
 
+// As tabelas do Google ainda não estão nos tipos gerados do Supabase.
+async function loadGoogleRows(db: ReportsDb, orgId: string, accountIds: readonly string[], range: DateRange): Promise<GoogleDailyRow[]> {
+  const rows: GoogleDailyRow[] = [];
+  for (let page = 0; page < MAX_PAGES; page++) {
+    const from = page * PAGE_SIZE;
+    const { data, error } = await (db as unknown as SupabaseClient)
+      .from("google_ads_daily_metrics")
+      .select("ad_account_id, campaign_id, date, cost_micros, impressions, clicks, conversions, conversions_value")
+      .eq("org_id", orgId)
+      .in("ad_account_id", [...accountIds])
+      .gte("date", range.since)
+      .lte("date", range.until)
+      .order("date")
+      .order("campaign_id")
+      .range(from, from + PAGE_SIZE - 1);
+    if (error) throw new Error(`Falha ao ler métricas do Google: ${error.message}`);
+    rows.push(...((data ?? []) as GoogleDailyRow[]));
+    if (!data || data.length < PAGE_SIZE) return rows;
+  }
+  throw new Error("Período com dados demais para um relatório; reduza o intervalo.");
+}
+
 async function loadAccountToken(db: ReportsDb, orgId: string, accountId: string): Promise<string | null> {
   const { data } = await db
     .from("ad_accounts")
@@ -122,6 +144,7 @@ export function createPartDataSource(db: ReportsDb, orgId: string): PartDataSour
 
   return {
     loadDailyRows: (accountIds, range) => loadDailyRows(db, orgId, accountIds, range),
+    loadGoogleRows: (accountIds, range) => loadGoogleRows(db, orgId, accountIds, range),
     loadInsightMetrics: async (account, range) =>
       fetchAccountInsightMetrics({ accountId: account.externalId, token: await tokenFor(account), ...range }),
     loadTopCreatives: async (account, range) =>

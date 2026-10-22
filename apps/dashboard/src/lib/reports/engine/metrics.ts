@@ -91,8 +91,22 @@ function coreMetrics(t: Totals): Record<string, number> {
     ["meta_cpm", cpm],
     ["cpm", cpm],
     ["meta_roas", ratio(t.revenue, t.spend)],
+    ["meta_conv", t.conversions],
     ["conversion_rate", ratio(t.conversions, t.clicks, 100)],
   ]);
+}
+
+/** Primeiro tipo de ação da lista de prioridade com resultado no período (ex.: compras antes de cadastros). */
+export function primaryResult(
+  metrics: Readonly<Record<string, MetricValue | null | undefined>>,
+  priority: readonly string[],
+): { type: string; value: number } | null {
+  for (const actionType of priority) {
+    const type = normalizeActionType(actionType);
+    const value = metrics[`meta_actions.${type}`];
+    if (typeof value === "number" && value > 0) return { type, value };
+  }
+  return null;
 }
 
 function actionMetrics(rows: readonly DailyMetricRow[], spend: number | null): Record<string, number> {
@@ -108,6 +122,76 @@ function actionMetrics(rows: readonly DailyMetricRow[], spend: number | null): R
 export function aggregateDailyMetrics(rows: readonly DailyMetricRow[]): Record<string, number> {
   const totals = totalsOf(rows);
   return { ...coreMetrics(totals), ...actionMetrics(rows, totals.spend) };
+}
+
+/** Linha de `google_ads_daily_metrics`; o custo vem em micros (1.000.000 = R$ 1). */
+export interface GoogleDailyRow {
+  cost_micros: NumericInput;
+  impressions: NumericInput;
+  clicks: NumericInput;
+  conversions: NumericInput;
+  conversions_value: NumericInput;
+}
+
+const MICROS = 1_000_000;
+
+function sumGoogle(rows: readonly GoogleDailyRow[], field: keyof GoogleDailyRow): number {
+  return rows.reduce((total, row) => total + (toFiniteNumber(row[field]) ?? 0), 0);
+}
+
+export function aggregateGoogleRows(rows: readonly GoogleDailyRow[]): Record<string, number> {
+  if (rows.length === 0) return {};
+  const spend = sumGoogle(rows, "cost_micros") / MICROS;
+  const impressions = sumGoogle(rows, "impressions");
+  const clicks = sumGoogle(rows, "clicks");
+  const conversions = sumGoogle(rows, "conversions");
+  const value = sumGoogle(rows, "conversions_value");
+  return withoutUndefined([
+    ["google_spend", spend],
+    ["google_impressions", impressions],
+    ["google_clicks", clicks],
+    ["google_conversions", conversions],
+    ["google_conversions_value", value],
+    ["google_ctr", ratio(clicks, impressions, 100)],
+    ["google_cpc", ratio(spend, clicks)],
+    ["google_cpm", ratio(spend, impressions, 1000)],
+    ["google_cost_per_conversion", ratio(spend, conversions)],
+    ["google_roas", ratio(value, spend)],
+  ]);
+}
+
+function numberOf(metrics: Readonly<Record<string, MetricValue | null | undefined>>, slug: string): number | null {
+  const value = metrics[slug];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function sumPresent(...values: Array<number | null>): number | null {
+  const present = values.filter((v): v is number => v !== null);
+  return present.length === 0 ? null : present.reduce((a, b) => a + b, 0);
+}
+
+/**
+ * Variáveis "(total)" a partir das métricas já calculadas por canal. A receita da Meta volta de
+ * meta_roas × meta_spend (o ROAS da Meta é exatamente receita ÷ investimento).
+ */
+export function totalMetrics(metrics: Readonly<Record<string, MetricValue | null | undefined>>): Record<string, number> {
+  const metaSpend = numberOf(metrics, "meta_spend");
+  const metaRoas = numberOf(metrics, "meta_roas");
+  const metaRevenue = metaSpend !== null && metaRoas !== null ? metaSpend * metaRoas : null;
+  const spend = sumPresent(metaSpend, numberOf(metrics, "google_spend"));
+  const impressions = sumPresent(numberOf(metrics, "meta_impressions"), numberOf(metrics, "google_impressions"));
+  const clicks = sumPresent(numberOf(metrics, "meta_clicks"), numberOf(metrics, "google_clicks"));
+  const revenue = sumPresent(metaRevenue, numberOf(metrics, "google_conversions_value"));
+  return withoutUndefined([
+    ["spend", spend],
+    ["impressions", impressions],
+    ["clicks", clicks],
+    ["reach", numberOf(metrics, "meta_reach")],
+    ["ctr", ratio(clicks, impressions, 100)],
+    ["cpc", ratio(spend, clicks)],
+    ["cpm", ratio(spend, impressions, 1000)],
+    ["roas", ratio(revenue, spend)],
+  ]);
 }
 
 function isPresent(value: unknown): value is MetricValue {

@@ -624,3 +624,91 @@ test("runDispatch: recupera runs travados e segue mesmo se a recuperação falha
   assert.equal(after.recovered, 0);
   assert.equal(after.generated, 1);
 });
+
+// ---------------------------------------------------------------- Google e totais na parte
+
+const ACC_META_NAMED = { ...ACC_A, name: "BM Loja" };
+const ACC_GOOGLE = { id: "acc-g", externalId: "1973021190", clientId: "client-1", platform: "google", currency: "BRL", name: "Loja Google" };
+
+function googleSource(overrides = {}) {
+  const calls = { google: [] };
+  return {
+    ...fakeSource(),
+    calls: { ...fakeSource().calls, ...calls },
+    async loadGoogleRows(accountIds, range) {
+      calls.google.push({ accountIds, range });
+      return [{ cost_micros: 100000000, impressions: 5000, clicks: 300, conversions: 10, conversions_value: 300 }];
+    },
+    googleCalls: calls.google,
+    ...overrides,
+  };
+}
+
+test("renderLivePart: Meta e Google na mesma parte, com totais e nomes das contas", async () => {
+  const daily = [];
+  const source = googleSource({
+    async loadDailyRows(accountIds) {
+      daily.push(accountIds);
+      return [{ spend: 100, impressions: 10000, clicks: 200, conversions: 4, revenue_attributed: 500 }];
+    },
+  });
+  const r = await renderLivePart(
+    {
+      body: "{{meta_spend}} + {{google_spend}} = {{spend}} | {{account_name}} | {{google_account_name}} | {{currency}}",
+      period: { period: "yesterday" },
+      accounts: [ACC_META_NAMED, ACC_GOOGLE],
+      clientName: "Loja X",
+      timezone: "America/Sao_Paulo",
+      now: NOW,
+      sendWithoutData: false,
+    },
+    source,
+  );
+  assert.equal(plain(r.text), "R$ 100,00 + R$ 100,00 = R$ 200,00 | BM Loja, Loja Google | Loja Google | BRL");
+  assert.deepEqual(r.missing, []);
+  assert.deepEqual(daily, [["acc-a"]]);
+  assert.deepEqual(source.googleCalls.map((c) => c.accountIds), [["acc-g"]]);
+});
+
+test("renderLivePart: parte só com Google e sem dado no período é pulada", async () => {
+  const source = googleSource({ async loadGoogleRows() { return []; } });
+  const r = await renderLivePart(
+    {
+      body: "{{google_spend}}",
+      period: { period: "yesterday" },
+      accounts: [ACC_GOOGLE],
+      clientName: null,
+      timezone: "America/Sao_Paulo",
+      now: NOW,
+      sendWithoutData: false,
+    },
+    source,
+  );
+  assert.equal(r.skipped, true);
+});
+
+test("templateNeeds: alcance total pede Insights; ranking simples pede criativos", () => {
+  assert.equal(templateNeeds("{{reach}}").accountInsights, true);
+  assert.equal(templateNeeds("{{meta_all_creatives_simple}}").creatives, true);
+});
+
+test("renderLivePart: tipo e valor do resultado principal da Meta", async () => {
+  const source = fakeSource({
+    async loadDailyRows() {
+      return [{ spend: 50, impressions: 1000, clicks: 20, conversions: 9, revenue_attributed: 0, actions: { lead: 9 } }];
+    },
+  });
+  const r = await renderLivePart(
+    {
+      body: "{{meta_result_value}} {{meta_result_type}} ({{meta_conv}})",
+      period: { period: "yesterday" },
+      accounts: [ACC_A],
+      clientName: null,
+      timezone: "America/Sao_Paulo",
+      now: NOW,
+      sendWithoutData: false,
+    },
+    source,
+  );
+  assert.equal(r.text, "9 Cadastros (9)");
+});

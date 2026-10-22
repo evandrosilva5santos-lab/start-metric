@@ -16,7 +16,9 @@ registerHooks({
 const { FULL_VARIABLE_CATALOG, VARIABLE_BY_SLUG, reportPickerVariables } = await import("../src/lib/reports/engine/catalog.ts");
 const { renderTemplate } = await import("../src/lib/reports/engine/render.ts");
 const { REPORT_PRESETS, ALERT_PRESETS, LEAD_PRESETS } = await import("../src/lib/reports/engine/presets.ts");
-const { aggregateDailyMetrics, mergeMetrics, normalizeActionType, toFiniteNumber } = await import("../src/lib/reports/engine/metrics.ts");
+const { aggregateDailyMetrics, aggregateGoogleRows, totalMetrics, primaryResult, mergeMetrics, normalizeActionType, toFiniteNumber } = await import(
+  "../src/lib/reports/engine/metrics.ts"
+);
 const { mapAccountInsightRow, mapCreativeRows, describeGraphError } = await import("../src/lib/reports/engine/insights-map.ts");
 
 const plain = (s) => s.replace(/ /g, " ");
@@ -354,4 +356,76 @@ test("Insights: erro da Graph API vira mensagem legível", () => {
   assert.match(describeGraphError({ code: 190, message: "Error validating access token" }), /expirou/i);
   assert.match(describeGraphError({ code: 17, message: "User request limit reached" }), /limite/i);
   assert.match(describeGraphError({ code: 100, message: "Invalid parameter" }), /\(100\).*Invalid parameter/);
+});
+
+// ---------------------------------------------------------------- Google e totais
+
+test("Google: micros viram reais e as taxas saem das somas do período", () => {
+  const m = aggregateGoogleRows([
+    { cost_micros: "150000000", impressions: "10000", clicks: "400", conversions: "20", conversions_value: "900" },
+    { cost_micros: 50000000, impressions: 5000, clicks: 100, conversions: 5, conversions_value: 100 },
+  ]);
+  close(m.google_spend, 200);
+  assert.equal(m.google_impressions, 15000);
+  assert.equal(m.google_clicks, 500);
+  assert.equal(m.google_conversions, 25);
+  close(m.google_conversions_value, 1000);
+  close(m.google_ctr, (500 / 15000) * 100);
+  close(m.google_cpc, 0.4);
+  close(m.google_cpm, (200 / 15000) * 1000);
+  close(m.google_cost_per_conversion, 8);
+  close(m.google_roas, 5);
+  for (const slug of Object.keys(m)) assert.ok(VARIABLE_BY_SLUG.has(slug), slug);
+});
+
+test("Google: sem clique ou conversão não inventa taxa", () => {
+  const m = aggregateGoogleRows([{ cost_micros: 0, impressions: 0, clicks: 0, conversions: 0, conversions_value: 0 }]);
+  assert.equal(m.google_spend, 0);
+  assert.equal("google_ctr" in m, false);
+  assert.equal("google_cpc" in m, false);
+  assert.equal("google_cost_per_conversion" in m, false);
+  assert.deepEqual(aggregateGoogleRows([]), {});
+});
+
+test("Totais somam Meta + Google e recalculam CTR, CPC, CPM e ROAS", () => {
+  const meta = aggregateDailyMetrics([{ spend: 100, impressions: 10000, clicks: 200, conversions: 4, revenue_attributed: 500 }]);
+  const google = aggregateGoogleRows([{ cost_micros: 100000000, impressions: 5000, clicks: 300, conversions: 10, conversions_value: 300 }]);
+  const t = totalMetrics({ ...meta, ...google, meta_reach: 4200 });
+  close(t.spend, 200);
+  assert.equal(t.impressions, 15000);
+  assert.equal(t.clicks, 500);
+  close(t.ctr, (500 / 15000) * 100);
+  close(t.cpc, 0.4);
+  close(t.cpm, (200 / 15000) * 1000);
+  close(t.roas, (500 + 300) / 200);
+  assert.equal(t.reach, 4200);
+});
+
+test("Totais só com Meta repetem os números da Meta", () => {
+  const meta = aggregateDailyMetrics([{ spend: 100, impressions: 10000, clicks: 200, conversions: 4, revenue_attributed: 500 }]);
+  const t = totalMetrics(meta);
+  close(t.spend, 100);
+  close(t.ctr, meta.meta_ctr);
+  close(t.cpc, meta.meta_cpc);
+  close(t.roas, meta.meta_roas);
+  assert.deepEqual(totalMetrics({}), {});
+});
+
+test("Meta: conversões do período e resultado principal pela prioridade", () => {
+  const m = aggregateDailyMetrics([
+    { spend: 10, impressions: 100, clicks: 5, conversions: 3, revenue_attributed: 0, actions: { lead: 7, "offsite_conversion.fb_pixel_purchase": 2 } },
+  ]);
+  assert.equal(m.meta_conv, 3);
+  assert.deepEqual(primaryResult(m, ["purchase", "offsite_conversion.fb_pixel_purchase", "lead"]), { type: "fb_pixel_purchase", value: 2 });
+  assert.deepEqual(primaryResult(m, ["lead"]), { type: "lead", value: 7 });
+  assert.equal(primaryResult(m, ["purchase"]), null);
+});
+
+test("ranking simples de criativos mostra só posição e nome", () => {
+  const creatives = [
+    { name: "Ad 1", results: 3, cpa: 10, ctr: 2 },
+    { name: "Ad 2", results: 2, cpa: 12, ctr: 1 },
+  ];
+  const { text } = renderTemplate("{{meta_all_creatives_simple}}", { creatives }, "live");
+  assert.equal(text, "🥇 1. Ad 1\n🥈 2. Ad 2");
 });

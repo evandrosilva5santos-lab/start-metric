@@ -1,4 +1,15 @@
-import { aggregateDailyMetrics, mergeMetrics, type DailyMetricRow, type MetricValues } from "./engine/metrics";
+import { ACTION_TYPE_TRANSLATIONS } from "./engine/catalog";
+import { DEFAULT_RESULT_ACTION_TYPES } from "./engine/insights-map";
+import {
+  aggregateDailyMetrics,
+  aggregateGoogleRows,
+  mergeMetrics,
+  primaryResult,
+  totalMetrics,
+  type DailyMetricRow,
+  type GoogleDailyRow,
+  type MetricValues,
+} from "./engine/metrics";
 import { renderTemplate, type CreativeRow } from "./engine/render";
 import { resolvePeriod, type PeriodInput, type ReportPeriod } from "./period";
 
@@ -13,6 +24,7 @@ export interface AccountInfo {
   clientId: string | null;
   platform: string;
   currency: string | null;
+  name?: string | null;
 }
 
 export interface PartInput {
@@ -35,6 +47,7 @@ export interface ReportInput {
 
 export interface PartDataSource {
   loadDailyRows(accountIds: readonly string[], range: DateRange): Promise<DailyMetricRow[]>;
+  loadGoogleRows(accountIds: readonly string[], range: DateRange): Promise<GoogleDailyRow[]>;
   loadInsightMetrics(account: AccountInfo, range: DateRange): Promise<MetricValues>;
   loadTopCreatives(account: AccountInfo, range: DateRange): Promise<CreativeRow[]>;
 }
@@ -79,8 +92,8 @@ export type GenerationResult =
   | { skipped: false; runId: string; status: FinalRunStatus; renderedBody: string | null; missing: string[]; warnings: string[] };
 
 const PLACEHOLDER = /\{\{\s*([a-zA-Z0-9_.]+)\s*\}\}/g;
-const ACCOUNT_INSIGHT_SLUG = /^meta_(reach|frequency|video_)/;
-const CREATIVE_RANKING_SLUG = /^meta_(top_\d+|all)_creatives_ranking$/;
+const ACCOUNT_INSIGHT_SLUG = /^(meta_(reach|frequency|video_)|reach$)/;
+const CREATIVE_RANKING_SLUG = /^meta_((top_\d+|all)_creatives_ranking|all_creatives_simple)$/;
 const MAX_ERROR_LENGTH = 1000;
 const NO_DATA_MESSAGE = "Sem dados no período para nenhuma parte.";
 
@@ -159,24 +172,59 @@ async function loadLiveData(
   return { metrics: metrics ?? {}, creatives: creatives ?? [], warnings };
 }
 
+function joinUnique(values: ReadonlyArray<string | null | undefined>): string | undefined {
+  const unique = [...new Set(values.filter((v): v is string => Boolean(v)))];
+  return unique.length > 0 ? unique.join(", ") : undefined;
+}
+
+/** Nomes e moedas das contas da parte, por canal e "(total)". */
+function accountTexts(accounts: readonly AccountInfo[]): Record<string, string> {
+  const of = (platform?: string) => accounts.filter((a) => !platform || a.platform === platform);
+  const entries: Array<[string, string | undefined]> = [
+    ["account_name", joinUnique(of().map((a) => a.name))],
+    ["meta_account_name", joinUnique(of("meta").map((a) => a.name))],
+    ["google_account_name", joinUnique(of("google").map((a) => a.name))],
+    ["currency", joinUnique(of().map((a) => a.currency))],
+    ["meta_currency", joinUnique(of("meta").map((a) => a.currency))],
+    ["google_currency", joinUnique(of("google").map((a) => a.currency))],
+  ];
+  return Object.fromEntries(entries.filter((e): e is [string, string] => e[1] !== undefined));
+}
+
+function resultTexts(metrics: MetricValues): { texts: Record<string, string>; metrics: Record<string, number> } {
+  const result = primaryResult(metrics, DEFAULT_RESULT_ACTION_TYPES);
+  if (!result) return { texts: {}, metrics: {} };
+  return {
+    texts: { meta_result_type: ACTION_TYPE_TRANSLATIONS[result.type] ?? result.type },
+    metrics: { meta_result_value: result.value },
+  };
+}
+
 export async function renderLivePart(input: RenderPartInput, source: PartDataSource): Promise<RenderPartResult> {
   const period = resolvePeriod(input.period, input.now, input.timezone);
   const range = { since: period.since, until: period.until };
-  const accountIds = input.accounts.map((a) => a.id);
-  const rows = accountIds.length > 0 ? await source.loadDailyRows(accountIds, range) : [];
+  const metaIds = input.accounts.filter((a) => a.platform !== "google").map((a) => a.id);
+  const googleIds = input.accounts.filter((a) => a.platform === "google").map((a) => a.id);
+  const [rows, googleRows] = await Promise.all([
+    metaIds.length > 0 ? source.loadDailyRows(metaIds, range) : [],
+    googleIds.length > 0 ? source.loadGoogleRows(googleIds, range) : [],
+  ]);
 
-  if (rows.length === 0 && !input.sendWithoutData) {
+  if (rows.length === 0 && googleRows.length === 0 && !input.sendWithoutData) {
     return { text: "", missing: [], skipped: true, warnings: [] };
   }
 
   const live = await loadLiveData(input.body, input.accounts, range, source);
+  const channels = mergeMetrics(aggregateDailyMetrics(rows), aggregateGoogleRows(googleRows), live.metrics);
+  const result = resultTexts(channels);
   const { text, missing } = renderTemplate(
     input.body,
     {
       clientName: input.clientName ?? undefined,
       startDate: period.startDate,
       endDate: period.endDate,
-      metrics: mergeMetrics(aggregateDailyMetrics(rows), live.metrics),
+      metrics: mergeMetrics(channels, totalMetrics(channels), result.metrics),
+      texts: { ...accountTexts(input.accounts), ...result.texts },
       creatives: live.creatives,
       currency: input.accounts[0]?.currency ?? undefined,
       timezone: input.timezone,

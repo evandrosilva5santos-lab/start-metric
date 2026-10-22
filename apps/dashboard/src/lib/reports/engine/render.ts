@@ -44,6 +44,10 @@ const RANKING_LIMITS: Readonly<Record<string, number>> = {
   meta_all_creatives_ranking: 10,
 };
 
+const SIMPLE_RANKING_LIMITS: Readonly<Record<string, number>> = {
+  meta_all_creatives_simple: 10,
+};
+
 const MASKS: Partial<Record<VariableReturnType, string>> = {
   currency: "R$ •••••",
   percent: "••,•%",
@@ -99,6 +103,13 @@ export function formatCreativeRanking(creatives: readonly CreativeRow[], limit: 
       return lines.join("\n");
     })
     .join("\n\n");
+}
+
+export function formatCreativeSimple(creatives: readonly CreativeRow[], limit: number): string {
+  return creatives
+    .slice(0, limit)
+    .map((c, i) => `${MEDALS[i] ?? `${i + 1}.`} ${c.name}`)
+    .join("\n");
 }
 
 const pad2 = (n: number): string => String(n).padStart(2, "0");
@@ -174,6 +185,11 @@ export function renderTemplate(template: string, ctx: RenderContext = {}, mode: 
     if (limit !== undefined) {
       if (ctx.creatives && ctx.creatives.length > 0) return formatCreativeRanking(ctx.creatives, limit, ctx.currency);
       return mode === "preview" ? formatCreativeRanking(DEMO_CREATIVES, limit, ctx.currency) : null;
+    }
+    const simpleLimit = SIMPLE_RANKING_LIMITS[slug];
+    if (simpleLimit !== undefined) {
+      if (ctx.creatives && ctx.creatives.length > 0) return formatCreativeSimple(ctx.creatives, simpleLimit);
+      return mode === "preview" ? formatCreativeSimple(DEMO_CREATIVES, simpleLimit) : null;
     }
 
     const def = VARIABLE_BY_SLUG.get(slug);
