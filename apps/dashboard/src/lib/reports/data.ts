@@ -157,6 +157,7 @@ export function createPartDataSource(db: ReportsDb, orgId: string): PartDataSour
       fetchAccountInsightMetrics({ accountId: account.externalId, token: await tokenFor(account), ...range }),
     loadTopCreatives: async (account, range) =>
       fetchTopCreatives({ accountId: account.externalId, token: await tokenFor(account), ...range }),
-    loadGoogleKeywords: (account, range) => fetchKeywordSummary(db as never, orgId, account.externalId, range),
+    // A credencial do Google só é legível pelo service role; o orgId vem da sessão já autorizada.
+    loadGoogleKeywords: (account, range) => fetchKeywordSummary(createAdminClient() as never, orgId, account.externalId, range),
   };
 }

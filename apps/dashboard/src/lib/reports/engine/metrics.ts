@@ -184,8 +184,16 @@ const GOOGLE_SHARES: ReadonlyArray<readonly [ShareField, string]> = [
   ["video_view_rate", "google_video_trueview_view_rate"],
 ];
 
-function googleExtras(rows: readonly GoogleDailyRow[], spend: number, conversions: number): Array<readonly [string, number | undefined]> {
-  const interactions = sumGoogle(rows, "interactions");
+/** Interação nunca é menor que clique: linha com clique e sem interação é dia sincronizado antes da coluna existir. */
+function hasInteractions(row: GoogleDailyRow): boolean {
+  return (toFiniteNumber(row.interactions) ?? 0) > 0;
+}
+
+function googleExtras(rows: readonly GoogleDailyRow[], spend: number): Array<readonly [string, number | undefined]> {
+  const withInteractions = rows.filter(hasInteractions);
+  const interactions = sumGoogle(withInteractions, "interactions");
+  const conversions = sumGoogle(withInteractions, "conversions");
+  const allConversionsWithInteractions = sumGoogle(withInteractions, "all_conversions");
   const allConversions = sumGoogle(rows, "all_conversions");
   const allValue = sumGoogle(rows, "all_conversions_value");
   const videoRows = rows.filter((row) => (toFiniteNumber(row.video_views) ?? 0) > 0);
@@ -197,7 +205,7 @@ function googleExtras(rows: readonly GoogleDailyRow[], spend: number, conversion
     ["google_all_roas", allValue > 0 ? ratio(allValue, spend) : undefined],
     ["google_cost_per_all_conversions", ratio(spend, allConversions)],
     ["google_conversions_from_interactions_rate", ratio(conversions, interactions, 100)],
-    ["google_all_conversions_from_interactions_rate", ratio(allConversions, interactions, 100)],
+    ["google_all_conversions_from_interactions_rate", ratio(allConversionsWithInteractions, interactions, 100)],
     ["google_video_trueview_views", videoViews > 0 ? videoViews : undefined],
     ["google_trueview_average_cpv", ratio(videoSpend, videoViews)],
     ...GOOGLE_SHARES.map(([field, slug]) => [slug, weightedShare(rows, field)] as const),
@@ -222,7 +230,7 @@ export function aggregateGoogleRows(rows: readonly GoogleDailyRow[]): Record<str
     ["google_cpm", ratio(spend, impressions, 1000)],
     ["google_cost_per_conversion", ratio(spend, conversions)],
     ["google_roas", ratio(value, spend)],
-    ...googleExtras(rows, spend, conversions),
+    ...googleExtras(rows, spend),
   ]);
 }
 

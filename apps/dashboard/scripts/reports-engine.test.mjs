@@ -467,3 +467,14 @@ test("ranking de palavras-chave: completo, simples e top N", () => {
   assert.match(plain(all), /Custo\/conv\.: — \| Cliques: 10/);
   assert.deepEqual(renderTemplate("{{google_top_3_keywords_ranking}}", {}, "live").missing, ["google_top_3_keywords_ranking"]);
 });
+
+test("Google: taxa por interação ignora dias sincronizados antes de existir a coluna de interações", () => {
+  const m = aggregateGoogleRows([
+    // linha antiga: tem clique mas interação 0 — interação nunca é menor que clique, então é dado ausente
+    { cost_micros: 10000000, impressions: 1000, clicks: 100, conversions: 5, conversions_value: 0, interactions: 0, all_conversions: 0 },
+    { cost_micros: 10000000, impressions: 1000, clicks: 150, conversions: 10, conversions_value: 0, interactions: 200, all_conversions: 12 },
+  ]);
+  close(m.google_conversions_from_interactions_rate, 5); // 10 / 200, não 15 / 200
+  close(m.google_all_conversions_from_interactions_rate, 6); // 12 / 200
+  assert.equal(m.google_conversions, 15);
+});
