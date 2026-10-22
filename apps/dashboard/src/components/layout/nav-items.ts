@@ -14,6 +14,7 @@ import {
   Settings,
   Search,
   Menu,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
 
@@ -54,6 +55,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { icon: Briefcase, label: "Carteira", href: "/clients" },
       { icon: FileText, label: "Relatórios", href: "/reports" },
+      { icon: Zap, label: "Automações", href: "/automacoes" },
     ],
   },
   {
