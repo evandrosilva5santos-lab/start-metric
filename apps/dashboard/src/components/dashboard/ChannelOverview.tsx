@@ -95,6 +95,11 @@ export function ChannelOverview({ clientId, from, to }: { clientId: string; from
                 </tbody>
               </table>
             </div>
+            {data.hasMeta && data.meta.resultLabel && (
+              <p className="mt-3 text-xs text-fg-muted">
+                Na Meta, as campanhas não registram conversões; a linha de resultados conta {data.meta.resultLabel.toLowerCase()}.
+              </p>
+            )}
             {!data.hasMeta && data.accounts.meta > 0 && (
               <p className="mt-3 text-xs text-fg-muted">As contas Meta deste cliente não tiveram gasto no período.</p>
             )}

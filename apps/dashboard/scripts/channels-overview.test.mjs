@@ -59,3 +59,14 @@ test("canal sem dado fica nulo nas taxas e zerado nas somas", () => {
   assert.equal(o.hasMeta, false);
   assert.equal(o.hasGoogle, true);
 });
+
+test("Meta sem conversão na coluna usa o resultado principal (ex.: mensagens iniciadas)", () => {
+  const rows = [
+    { date: "2026-10-14", spend: 100, impressions: 10000, clicks: 200, conversions: 0, revenue_attributed: 0,
+      actions: { "onsite_conversion.messaging_conversation_started_7d": 12, link_click: 200 } },
+  ];
+  const o = buildChannelOverview(rows, [], "2026-10-14", "2026-10-14");
+  assert.equal(o.meta.conversions, 12);
+  assert.equal(o.meta.resultLabel, "Mensagens iniciadas");
+  assert.equal(o.total.conversions, 12);
+});
