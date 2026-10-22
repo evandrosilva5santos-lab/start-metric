@@ -22,7 +22,7 @@ const ROWS: Row[] = [
   { label: "CTR", format: (s) => show(s.ctr, (v) => formatRate(v)) },
   { label: "CPC", format: (s) => show(s.cpc, (v) => formatMoney(v)) },
   { label: "CPM", format: (s) => show(s.cpm, (v) => formatMoney(v)) },
-  { label: "Conversões", format: (s) => formatDecimal(s.conversions, s.conversions % 1 === 0 ? 0 : 1) },
+  { label: "Conversões / resultados", format: (s) => formatDecimal(s.conversions, s.conversions % 1 === 0 ? 0 : 1) },
   { label: "Receita / valor", format: (s) => formatMoney(s.value) },
   { label: "ROAS", format: (s) => show(s.roas, (v) => formatRatio(v)) },
 ];

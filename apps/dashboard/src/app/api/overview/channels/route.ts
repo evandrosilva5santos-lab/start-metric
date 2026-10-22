@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
         : paged<DatedMetaRow>((a, b) =>
             db
               .from("daily_metrics")
-              .select("id, date, spend, impressions, clicks, conversions, revenue_attributed, campaigns!inner(ad_account_id)")
+              .select("id, date, spend, impressions, clicks, conversions, revenue_attributed, actions, campaigns!inner(ad_account_id)")
               .eq("org_id", session.orgId)
               .in("campaigns.ad_account_id", metaIds)
               .gte("date", from)
