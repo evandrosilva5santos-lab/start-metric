@@ -180,6 +180,23 @@ export async function searchAll(customerId: string, query: string, options: Sear
   return rows;
 }
 
+/** Escrita na conta (pausar/ativar campanha, mudar orçamento). Uma operação por chamada no uso atual. */
+export async function mutate(
+  customerId: string,
+  resource: "campaigns" | "campaignBudgets",
+  operations: ReadonlyArray<Record<string, unknown>>,
+  options: SearchOptions,
+): Promise<void> {
+  const res = await fetch(`${API_BASE}/customers/${customerId}/${resource}:mutate`, {
+    method: "POST",
+    headers: headers(options),
+    body: JSON.stringify({ operations }),
+    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
+    cache: "no-store",
+  });
+  if (!res.ok) await throwApiError(res);
+}
+
 export async function listAccessibleCustomers(options: Omit<SearchOptions, "loginCustomerId">): Promise<string[]> {
   const res = await fetch(`${API_BASE}/customers:listAccessibleCustomers`, {
     headers: headers({ ...options, loginCustomerId: null }),

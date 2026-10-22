@@ -7,6 +7,7 @@ import {
   GoogleAdsApiError,
   getAccessToken,
   listAccessibleCustomers,
+  mutate,
   readGoogleAdsConfig,
   searchAll,
   type GoogleAdsConfig,
@@ -332,6 +333,47 @@ async function syncExtraMetrics(
   } catch (err) {
     return `${account.name ?? formatCustomerId(account.external_id)}: métricas extras indisponíveis (${googleErrorMessage(err)})`;
   }
+}
+
+export type GoogleCampaignChange = { status: "PAUSED" | "ENABLED" } | { dailyBudget: number };
+
+/**
+ * Pausa/ativa a campanha ou muda o orçamento diário dela. Orçamento compartilhado é recusado:
+ * mexer nele mudaria outras campanhas também. Devolve o orçamento anterior quando muda o orçamento.
+ */
+export async function mutateGoogleCampaign(
+  db: Db,
+  orgId: string,
+  customerId: string,
+  campaignId: string,
+  change: GoogleCampaignChange,
+): Promise<{ previousBudget: number | null }> {
+  if (!/^\d+$/.test(campaignId)) throw new Error("Campanha inválida");
+  const ctx = await apiContext(db, orgId);
+  const options = { accessToken: ctx.accessToken, developerToken: ctx.developerToken, loginCustomerId: ctx.connection.login_customer_id ?? customerId };
+  const campaignResource = `customers/${customerId}/campaigns/${campaignId}`;
+
+  if ("status" in change) {
+    await mutate(customerId, "campaigns", [{ update: { resourceName: campaignResource, status: change.status }, updateMask: "status" }], options);
+    return { previousBudget: null };
+  }
+
+  const [row] = await searchAll(
+    customerId,
+    `SELECT campaign.campaign_budget, campaign_budget.explicitly_shared, campaign_budget.amount_micros FROM campaign WHERE campaign.id = ${campaignId}`,
+    options,
+  );
+  const budget = row?.campaignBudget ?? {};
+  const budgetResource = typeof row?.campaign?.campaignBudget === "string" ? row.campaign.campaignBudget : null;
+  if (!budgetResource) throw new Error("Campanha sem orçamento próprio no Google Ads");
+  if (budget.explicitlyShared === true) throw new Error("Orçamento compartilhado com outras campanhas; não foi alterado");
+  await mutate(
+    customerId,
+    "campaignBudgets",
+    [{ update: { resourceName: budgetResource, amountMicros: String(Math.round(change.dailyBudget * 1_000_000)) }, updateMask: "amount_micros" }],
+    options,
+  );
+  return { previousBudget: Number(budget.amountMicros ?? 0) / 1_000_000 || null };
 }
 
 const KEYWORD_RANKING_LIMIT = 10;

@@ -81,3 +81,25 @@ test("decide: ativar só campanha pausada; avisar não muda nada na conta", () =
   const notify = rule({ action: "notify" });
   assert.equal(decide(notify, [entity({ status: "PAUSED" })], [], NOW)[0].skipped, null);
 });
+
+const { ruleCreateSchema, ruleUpdateSchema } = await import("../src/lib/automation/schema.ts");
+const ACC = "3b227bba-ce3a-4ff5-b58b-e35ce907e581";
+
+test("schema: regra nova nasce simulando; orçamento exige porcentagem; campanha é id numérico", () => {
+  const ok = ruleCreateSchema.parse({ name: " CPA alto ", adAccountId: ACC, metric: "cpa", operator: "above", value: 50, action: "pause" });
+  assert.equal(ok.name, "CPA alto");
+  assert.equal(ok.period, "last_3d");
+  assert.equal(ok.minSpend, 0);
+  assert.equal("mode" in ok, false);
+  assert.equal(ruleCreateSchema.safeParse({ name: "x", adAccountId: ACC, metric: "roas", operator: "above", value: 3, action: "increase_budget" }).success, false);
+  assert.equal(ruleCreateSchema.safeParse({ name: "x", adAccountId: ACC, metric: "cpa", operator: "above", value: 3, action: "pause", entityExternalId: "act_1" }).success, false);
+  assert.equal(ruleCreateSchema.safeParse({ name: "x", adAccountId: ACC, metric: "cpa", operator: "above", value: -1, action: "pause" }).success, false);
+});
+
+test("schema: ligar o modo executar exige confirmação explícita", () => {
+  assert.equal(ruleUpdateSchema.safeParse({ mode: "execute" }).success, false);
+  assert.equal(ruleUpdateSchema.safeParse({ mode: "execute", confirmExecute: true }).success, true);
+  assert.equal(ruleUpdateSchema.safeParse({ mode: "simulate" }).success, true);
+  assert.equal(ruleUpdateSchema.safeParse({ isActive: false }).success, true);
+  assert.equal(ruleUpdateSchema.safeParse({}).success, false);
+});

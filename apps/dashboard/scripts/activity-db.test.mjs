@@ -6,7 +6,7 @@ import { readFileSync } from "node:fs";
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
 
-const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql", "20261022000500_google_ads_extra_metrics.sql", "20261022000600_client_taxonomy.sql"].map((file) =>
+const MIGRATIONS = ["20261022000000_activity_events.sql", "20261022000100_activity_sync.sql", "20261022000300_google_ads.sql", "20261022000500_google_ads_extra_metrics.sql", "20261022000600_client_taxonomy.sql", "20261022000700_automation_rules.sql"].map((file) =>
   readFileSync(new URL(`../supabase/migrations/${file}`, import.meta.url), "utf8"),
 );
 
@@ -435,6 +435,69 @@ test("segmentos: usuário autenticado só enxerga e grava os da própria org", a
     const seen = (await db.query("SELECT org_id FROM public.client_segments")).rows;
     assert.ok(seen.every((r) => r.org_id === ORG_A));
     await assert.rejects(() => db.query("INSERT INTO public.client_products (org_id, name) VALUES ($1, 'Invasor')", [ORG_B]), /row-level security/);
+  } finally {
+    await db.exec("RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false);");
+  }
+});
+
+// ── Regras automáticas ─────────────────────────────────────────────────────
+const RULE_A = "00000000-0000-0000-0000-0000000a0001";
+
+test("regra automática: nasce simulando; orçamento exige porcentagem; conta de outra org é recusada", async () => {
+  await db.query(
+    `INSERT INTO public.automation_rules (id, org_id, ad_account_id, name, platform, metric, operator, value, action)
+     VALUES ($1, $2, $3, 'CPA alto pausa', 'meta', 'cpa', 'above', 50, 'pause')`,
+    [RULE_A, ORG_A, ACC_A],
+  );
+  const row = (await db.query("SELECT mode, is_active, cooldown_hours, max_actions_per_day FROM public.automation_rules WHERE id = $1", [RULE_A])).rows[0];
+  assert.deepEqual(row, { mode: "simulate", is_active: true, cooldown_hours: 24, max_actions_per_day: 3 });
+  await assert.rejects(
+    () => db.query(`INSERT INTO public.automation_rules (org_id, ad_account_id, name, platform, metric, operator, value, action)
+      VALUES ($1, $2, 'sem %', 'meta', 'roas', 'above', 3, 'increase_budget')`, [ORG_A, ACC_A]),
+    /check constraint/,
+  );
+  await assert.rejects(
+    () => db.query(`INSERT INTO public.automation_rules (org_id, ad_account_id, name, platform, metric, operator, value, action)
+      VALUES ($1, $2, 'invasora', 'meta', 'cpa', 'above', 50, 'pause')`, [ORG_B, ACC_A]),
+    /violates foreign key/,
+  );
+});
+
+test("execuções da regra: status válidos e somem junto com a regra", async () => {
+  await db.query(
+    `INSERT INTO public.automation_runs (org_id, rule_id, entity_external_id, entity_name, metric_value, action, mode, status)
+     VALUES ($1, $2, '120001', 'Campanha X', 75, 'pause', 'simulate', 'simulated')`,
+    [ORG_A, RULE_A],
+  );
+  await assert.rejects(
+    () => db.query(`INSERT INTO public.automation_runs (org_id, rule_id, entity_external_id, action, mode, status)
+      VALUES ($1, $2, '1', 'pause', 'simulate', 'talvez')`, [ORG_A, RULE_A]),
+    /check constraint/,
+  );
+  await db.query("DELETE FROM public.automation_rules WHERE id = $1", [RULE_A]);
+  assert.equal((await db.query("SELECT count(*)::int AS n FROM public.automation_runs WHERE rule_id = $1", [RULE_A])).rows[0].n, 0);
+});
+
+test("regras: usuário autenticado não vê nem cria regra de outra org; execuções são só leitura", async () => {
+  await db.query(
+    `INSERT INTO public.automation_rules (org_id, ad_account_id, name, platform, metric, operator, value, action)
+     VALUES ($1, $2, 'da org B', 'meta', 'cpa', 'above', 50, 'notify')`,
+    [ORG_B, ACC_B],
+  );
+  await db.exec(`SET ROLE authenticated; SELECT set_config('request.jwt.claim.sub', '${USER_A}', false);`);
+  try {
+    const seen = (await db.query("SELECT org_id FROM public.automation_rules")).rows;
+    assert.ok(seen.every((r) => r.org_id === ORG_A));
+    await assert.rejects(
+      () => db.query(`INSERT INTO public.automation_rules (org_id, ad_account_id, name, platform, metric, operator, value, action)
+        VALUES ($1, $2, 'x', 'meta', 'cpa', 'above', 50, 'notify')`, [ORG_B, ACC_B]),
+      /row-level security|permission denied/,
+    );
+    await assert.rejects(
+      () => db.query(`INSERT INTO public.automation_runs (org_id, rule_id, entity_external_id, action, mode, status)
+        VALUES ($1, gen_random_uuid(), '1', 'pause', 'simulate', 'simulated')`, [ORG_A]),
+      /permission denied|row-level security/,
+    );
   } finally {
     await db.exec("RESET ROLE; SELECT set_config('request.jwt.claim.sub', '', false);");
   }
